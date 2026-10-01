@@ -10,8 +10,8 @@
 <link rel="apple-touch-icon" href="icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="حسابات الفروع">
-<meta name="application-name" content="حسابات الفروع">
+<meta name="apple-mobile-web-app-title" content="Dithar">
+<meta name="application-name" content="Dithat">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#4E1220">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -714,7 +714,7 @@ worker:{
 },
 /* ===== monthly report ===== */
 report:{
-  html:()=>`<div class="print-head"><div><strong>حسابات الفروع</strong><span>التقرير الشهري</span></div><div id="pPeriod"></div></div>
+  html:()=>`<div class="print-head"><div><strong>Dithar</strong><span>التقرير الشهري</span></div><div id="pPeriod"></div></div>
   <div class="page-head"><div><h1>التقرير الشهري</h1><p class="sub" id="rLabel"></p></div><button class="btn no-print" data-act="printReport">طباعة / حفظ PDF</button></div>
   <div class="range no-print">
     <label class="field"><span>الشهر</span><div class="date-bar" style="margin:0"><button class="icon-btn" data-act="rMonthShift" data-n="-1" aria-label="الشهر السابق">${svg('prev')}</button><input type="month" id="rMonth" value="${UI.rMonth}"><button class="icon-btn" data-act="rMonthShift" data-n="1" aria-label="الشهر التالي">${svg('next')}</button></div></label>

@@ -36,7 +36,9 @@
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin>
-<link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" crossorigin>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
@@ -366,11 +368,39 @@ if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('messag
 <div id="modal-root"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" crossorigin></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" crossorigin></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" crossorigin></script>
+<!-- Firebase بالطريقة الحديثة: تسجيل الدخول ما ينتظر النت (أسرع بثانية تقريبًا في الآيفون) -->
+<script type="module" onerror="window.dispatchEvent(new Event('fb-fail'))">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import {initializeAuth,indexedDBLocalPersistence,browserLocalPersistence,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,collection,doc,query,where,getDocs,onSnapshot,setDoc,updateDoc,deleteDoc,terminate,clearIndexedDbPersistence} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+let app,auth,db;
+const Q=(ref,cons)=>cons.length?query(ref,...cons):ref;
+const wrapQ=(ref,cons=[])=>({where:(f,op,v)=>wrapQ(ref,cons.concat([where(f,op,v)])),get:()=>getDocs(Q(ref,cons)),onSnapshot:(opts,next,err)=>onSnapshot(Q(ref,cons),opts,next,err)});
+const wrapDoc=d=>({id:d.id,set:o=>setDoc(d,o),update:p=>updateDoc(d,p),delete:()=>deleteDoc(d),collection:c=>wrapColl(collection(d,c))});
+const wrapColl=c=>Object.assign(wrapQ(c),{doc:id=>wrapDoc(id?doc(c,id):doc(c))});
+const authFn=function(){
+  // بدون popupRedirectResolver: ما يحمّل صفحة من سيرفر Firebase قبل ما يتأكد من الدخول
+  if(!auth)auth=initializeAuth(app,{persistence:[indexedDBLocalPersistence,browserLocalPersistence]});
+  return{get currentUser(){return auth.currentUser},setPersistence:()=>Promise.resolve(),onAuthStateChanged:cb=>onAuthStateChanged(auth,cb),
+    signInWithEmailAndPassword:(e,p)=>signInWithEmailAndPassword(auth,e,p),signOut:()=>signOut(auth),sendPasswordResetEmail:e=>sendPasswordResetEmail(auth,e)};
+};
+authFn.Auth={Persistence:{LOCAL:'local'}};
+window.firebase={
+  initializeApp(cfg){app=initializeApp(cfg);return app},
+  firestore(){
+    if(!db){try{db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})});window.__persist='ok'}
+      catch(e){db=initializeFirestore(app,{});window.__persist='fail:'+((e&&e.code)||'')}}
+    return{collection:p=>wrapColl(collection(db,p)),
+      enablePersistence:()=>window.__persist==='ok'?Promise.resolve():Promise.reject({code:(window.__persist||'').slice(5)}),
+      terminate:()=>terminate(db),clearPersistence:()=>clearIndexedDbPersistence(db)};
+  },
+  auth:authFn
+};
+if(window.__mark)__mark('libs');
+window.dispatchEvent(new Event('fb-ready'));
+</script>
 <script>
-__mark('libs');
+__mark('main');
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1051,7 +1081,12 @@ document.addEventListener('change',e=>{const el=e.target,v=el.value;
 });
 
 $('#view').innerHTML=loading;
-initStore();
+(function(){let started=false;const go=()=>{if(!started){started=true;initStore()}};
+  if(window.firebase)go();else{
+    window.addEventListener('fb-ready',go,{once:true});
+    window.addEventListener('fb-fail',()=>{if(location.protocol==='file:'){go();return}
+      started=true;$('#view').innerHTML=`<div class="empty-big" style="margin-top:12vh"><p>ما قدرت أحمّل التطبيق. تأكد من اتصال النت وحاول مرة ثانية.</p><button class="btn brass" onclick="location.reload()">إعادة المحاولة</button></div>`},{once:true});
+  }})();
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 <!-- ===== ملخص التقرير الشهري (دثار) ===== -->

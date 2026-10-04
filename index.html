@@ -2,6 +2,22 @@
 <html lang="ar" dir="rtl" data-theme="light">
 <head>
 <meta charset="utf-8">
+<script>window.__T={};window.__mark=function(k){if(window.__T[k]==null)window.__T[k]=Math.round(performance.now())};__mark('html')</script>
+<!-- صور الإقلاع للآيفون والآيباد (تشيل الشاشة السوداء) -->
+<link rel="apple-touch-startup-image" media="screen and (device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch-1320x2868.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch-1206x2622.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch-1290x2796.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch-1179x2556.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch-1284x2778.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch-1170x2532.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch-1125x2436.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch-1242x2688.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="launch-828x1792.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch-1242x2208.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="launch-750x1334.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="launch-1640x2360.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="launch-1668x2388.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="launch-2048x2732.png">
 <meta name="color-scheme" content="light">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dithar</title>
@@ -302,12 +318,13 @@ tr.sel td{background:var(--brass-soft)}
 </head>
 <body>
 <!-- ===== شاشة التحميل ===== -->
-<div id="splash" aria-hidden="true"><img src="icon.png" alt=""><strong>Dithar</strong><i></i></div>
+<div id="splash" aria-hidden="true"><img src="icon.png" alt=""><div class="sp-below"><strong>Dithar</strong><i></i></div></div>
 <style>
-#splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#4E1220;color:#F3E4C8;transition:opacity .35s ease}
+#splash{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#4E1220;color:#F3E4C8;transition:opacity .35s ease}
 #splash img{width:96px;height:96px;border-radius:24px;object-fit:cover;box-shadow:0 6px 24px rgba(0,0,0,.18)}
 #splash strong{font:600 1.15rem "Readex Pro",Tahoma,sans-serif}
-#splash i{width:28px;height:28px;border-radius:50%;border:3px solid rgba(230,190,110,.25);border-top-color:#E6BE6E;animation:splspin .8s linear infinite;margin-top:6px}
+#splash i{width:28px;height:28px;border-radius:50%;margin:0!important;border:3px solid rgba(230,190,110,.25);border-top-color:#E6BE6E;animation:splspin .8s linear infinite;margin-top:6px}
+#splash .sp-below{position:absolute;left:0;right:0;top:calc(50% + 62px);display:flex;flex-direction:column;align-items:center;gap:14px}
 #splash.out{opacity:0;pointer-events:none}
 @keyframes splspin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){#splash i{animation-duration:2s}}
@@ -316,8 +333,8 @@ tr.sel td{background:var(--brass-soft)}
 <script>
 (function(){
   var t0=Date.now(),done=false;
-  function hide(){if(done)return;var s=document.getElementById('splash');if(!s)return;done=true;
-    setTimeout(function(){s.classList.add('out');setTimeout(function(){s.remove()},400)},Math.max(0,350-(Date.now()-t0)))}
+  function hide(){if(done)return;var s=document.getElementById('splash');if(!s)return;done=true;if(window.__mark)__mark('shown');
+    setTimeout(function(){s.classList.add('out');setTimeout(function(){s.remove()},400)},0)}
   function check(){var v=document.getElementById('view');if(v&&v.children.length&&!v.querySelector('.loading'))hide()}
   document.addEventListener('DOMContentLoaded',function(){
     var v=document.getElementById('view');if(!v)return hide();
@@ -353,6 +370,7 @@ if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('messag
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" crossorigin></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" crossorigin></script>
 <script>
+__mark('libs');
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -521,6 +539,18 @@ function syncInfo(){
     actions:[{key:'cancel',label:'تمام',cls:'ghost'}]});
   if(auth&&auth.currentUser){const left=sessionLeft(),h=Math.floor(left/3600000),m=Math.floor(left%3600000/60000);
     const box=document.querySelector('#modal-root .info-rows');if(box)box.insertAdjacentHTML('beforeend',`<div><span>الجلسة تنتهي بعد</span><b>${h} ساعة و ${m} دقيقة</b></div>`)}
+  speedRows();
+}
+/* قياس سرعة الفتح: كل رقم = الوقت من لحظة فتح التطبيق */
+function speedRows(){
+  const T=window.__T||{},nav=(performance.getEntriesByType&&performance.getEntriesByType('navigation')[0])||{};
+  const sec=v=>v==null?'—':(v/1000).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' ث';
+  const sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);
+  const ps=window.__persist==='ok'?'شغال':window.__persist?'ما يشتغل ('+esc(window.__persist.slice(5))+')':'—';
+  const rows=[['وصول الصفحة',sec(nav.responseEnd)+(sw?' (من الجهاز)':' (من النت)')],['تحميل مكتبات Firebase',sec(T.libs)],['التأكد من تسجيل الدخول',sec(T.auth)],
+    ['عرض البيانات',sec(T.data)+(window.__dataCache==null?'':window.__dataCache?' (من الجهاز)':' (من النت)')],['اختفاء شاشة التحميل',sec(T.shown)],['التزامن مع النت',sec(T.synced)],['حفظ البيانات على الجهاز',ps]];
+  const body=document.querySelector('#modal-root .mbody');if(!body)return;
+  body.insertAdjacentHTML('beforeend',`<p style="margin:14px 0 6px;font-weight:500;color:var(--ink)">سرعة الفتح</p><div class="info-rows">${rows.map(([a,b])=>`<div><span>${a}</span><b dir="auto">${b}</b></div>`).join('')}</div>`);
 }
 
 async function safe(fn){
@@ -548,12 +578,13 @@ async function initStore(){
   }
   firebase.initializeApp(firebaseConfig);
   fdb=firebase.firestore();
-  fdb.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+  fdb.enablePersistence({synchronizeTabs:true}).then(()=>{window.__persist='ok'}).catch(e=>{window.__persist='fail:'+((e&&e.code)||'')});
   auth=firebase.auth();
   auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
   setInterval(checkSession,60*1000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkSession()});
   auth.onAuthStateChanged(user=>{
+    __mark('auth');
     unsubs.forEach(u=>u());unsubs=[];
     if(!user){store.root=null;ready=false;showLogin();return}
     if(sessionLeft()<=0){wipeAndReload();return}
@@ -565,11 +596,11 @@ async function initStore(){
     COLS.forEach(c=>unsubs.push((WINDOWED.includes(c)?store.root.collection(c).where('date','>=',CUTOFF):store.root.collection(c)).onSnapshot({includeMetadataChanges:true},snap=>{
       const first=pending.has(c);
       SYNC.cache[c]=snap.metadata.fromCache;
-      if(!snap.metadata.fromCache&&!snap.metadata.hasPendingWrites&&!SYNC.pending){SYNC.lastSync=Date.now();SYNC.err=null}
+      if(!snap.metadata.fromCache&&!snap.metadata.hasPendingWrites&&!SYNC.pending){SYNC.lastSync=Date.now();SYNC.err=null;__mark('synced')}
       renderSync();
       if(first||snap.docChanges().length){
         LIVE[c]=snap.docs.map(d=>({...d.data(),id:d.id}));merge(c);
-        pending.delete(c);if(!pending.size)ready=true;refresh();
+        pending.delete(c);if(!pending.size){ready=true;__mark('data');if(window.__dataCache==null)window.__dataCache=snap.metadata.fromCache}refresh();
       }
     },e=>{SYNC.err=e;renderSync();toast(e&&e.code==='permission-denied'?'هذا الحساب ما له صلاحية على البيانات':'ما قدرت أقرأ البيانات، تأكد من قواعد Firestore')})));
   });

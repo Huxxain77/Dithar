@@ -155,9 +155,7 @@ input[type=date],input[type=month]{-webkit-appearance:none;appearance:none;displ
 input[type=date]::-webkit-date-and-time-value,input[type=month]::-webkit-date-and-time-value{text-align:center;margin:0;min-width:0}
 /* الصفحة تتحرك فوق وتحت بس */
 html,body{overflow-x:clip;overscroll-behavior:none}
-@keyframes swipeInL{from{opacity:.3;transform:translateX(-28px)}to{opacity:1;transform:none}}
-@keyframes swipeInR{from{opacity:.3;transform:translateX(28px)}to{opacity:1;transform:none}}
-#view.swipe-l{animation:swipeInL .2s ease-out}#view.swipe-r{animation:swipeInR .2s ease-out}
+#view{will-change:transform}
 @supports not (overflow-x:clip){body{overflow-x:hidden}}
 input:focus{border-color:var(--focus);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 22%,transparent)}
 input.err{border-color:var(--neg);box-shadow:0 0 0 3px color-mix(in srgb,var(--neg) 20%,transparent)}
@@ -419,7 +417,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='8 أكتوبر - ز';
+const APP_VERSION='8 أكتوبر - ح';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -751,19 +749,30 @@ function go(tab,detail=null,fromHistory=false){
   if(!fromHistory&&!same)history.pushState({nav:1,tab,detail},'');
   mount();window.scrollTo(0,0);
 }
-/* السحب يمين ويسار يتنقل بين الأقسام (بالترتيب نفسه اللي تحت) */
-(function(){let x0=0,y0=0,t0=0,ok=false;
+/* السحب يمين ويسار: الصفحة تمشي مع الإصبع، وإذا سحبت كفاية تنتقل للقسم اللي بعده */
+(function(){
+  let x0=0,y0=0,t0=0,dx=0,mode=null,busy=false;const W=()=>innerWidth;
+  const keys=()=>TABS.map(x=>x[0]);
+  const target=d=>{const k=keys(),i=k.indexOf(UI.tab),n=i+(d>0?1:-1);return i<0||n<0||n>=k.length?null:k[n]};
   const skip=el=>{for(;el&&el!==document.body;el=el.parentElement){
-    if(el.matches&&el.matches('input,textarea,select,#modal-root *,.topbar *'))return true;
+    if(el.matches&&el.matches('input,textarea,select,#modal-root *,.topbar *,.tabbar *'))return true;
     if(el.scrollWidth>el.clientWidth+2&&/(auto|scroll)/.test(getComputedStyle(el).overflowX))return true}return false};
-  document.addEventListener('touchstart',e=>{if(e.touches.length!==1){ok=false;return}const t=e.touches[0];
-    x0=t.clientX;y0=t.clientY;t0=Date.now();ok=!UI.detail&&!$('#modal-root').children.length&&!(auth&&!auth.currentUser)&&!skip(e.target)},{passive:true});
-  document.addEventListener('touchend',e=>{if(!ok)return;ok=false;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;
-    if(Date.now()-t0>700||Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.8)return;
-    const keys=TABS.map(x=>x[0]),i=keys.indexOf(UI.tab),n=i+(dx>0?1:-1);
-    if(i<0||n<0||n>=keys.length)return;
-    go(keys[n]);const v=$('#view');v.classList.remove('swipe-l','swipe-r');void v.offsetWidth;v.classList.add(dx>0?'swipe-l':'swipe-r');
-    setTimeout(()=>v.classList.remove('swipe-l','swipe-r'),260)},{passive:true});
+  const view=()=>$('#view');
+  const set=(x,anim)=>{const v=view();v.style.transition=anim?'transform .22s cubic-bezier(.2,.7,.3,1), opacity .22s':'none';
+    v.style.transform=x?`translate3d(${x}px,0,0)`:'';v.style.opacity=x?String(Math.max(.55,1-Math.abs(x)/W()*.6)):''};
+  const done=()=>{const v=view();v.style.transition='';v.style.transform='';v.style.opacity='';busy=false};
+  document.addEventListener('touchstart',e=>{mode=null;if(busy||e.touches.length!==1)return;
+    if(UI.detail||$('#modal-root').children.length||(auth&&!auth.currentUser)||skip(e.target))return;
+    const t=e.touches[0];x0=t.clientX;y0=t.clientY;t0=Date.now();dx=0;mode='wait'},{passive:true});
+  document.addEventListener('touchmove',e=>{if(!mode||mode==='v')return;const t=e.touches[0],ddx=t.clientX-x0,ddy=t.clientY-y0;
+    if(mode==='wait'){if(Math.abs(ddx)<8&&Math.abs(ddy)<8)return;mode=Math.abs(ddx)>Math.abs(ddy)*1.3?'h':'v';if(mode==='v')return}
+    e.preventDefault();dx=ddx;set(target(dx)?dx:dx*.25,false)},{passive:false});
+  const end=()=>{if(mode!=='h'){mode=null;return}mode=null;
+    const n=target(dx),fast=Math.abs(dx)/(Date.now()-t0)>.5&&Math.abs(dx)>40;
+    if(!n||!(Math.abs(dx)>W()*.28||fast)){set(0,true);setTimeout(done,230);return}
+    busy=true;const dir=dx>0?1:-1;set(dir*W(),true);
+    setTimeout(()=>{go(n);set(-dir*W()*.35,false);void view().offsetWidth;set(0,true);setTimeout(done,230)},200)};
+  document.addEventListener('touchend',end,{passive:true});document.addEventListener('touchcancel',()=>{if(mode==='h'){mode=null;set(0,true);setTimeout(done,230)}else mode=null},{passive:true});
 })();
 /* زر الرجوع في الأندرويد: يرجع خطوة داخل التطبيق بدل ما يطلع منه */
 history.replaceState({base:1},'');

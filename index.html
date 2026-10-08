@@ -43,8 +43,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 :root{
-  --bg:#F6EFE4;--surface:#FFFCF7;--surface-2:#F1E7D7;--ink:#3A1420;--muted:#8A6E6A;--line:#E6D8C3;
-  --brass:#9E7424;--brass-soft:#EFE1C2;--pos:#3E7B4F;--pos-soft:#E2EEDD;--neg:#A63A35;--neg-soft:#F5E1DC;--focus:#8C2A3E;
+  --bg:#F1F1F6;--surface:#FFFFFF;--surface-2:#F6F6FA;--ink:#1D1B36;--muted:#6A6884;--line:#E1E0EC;
+  --brass:#A77826;--brass-soft:#F5EBD7;--pos:#2B7A57;--pos-soft:#E3F2EA;--neg:#B5443A;--neg-soft:#F8E6E3;--focus:#5B4FD6;
   color-scheme:light;
   box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 }
@@ -61,9 +61,9 @@
   color-scheme:dark;
 }
 *,*::before,*::after{box-sizing:border-box}
-html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%;background:#F6EFE4!important;color-scheme:light only}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%;background:#F1F1F6!important;color-scheme:light only}
 html,body{min-height:100%}
-body{margin:0;min-height:100vh;min-height:100dvh;background:#F6EFE4!important;color:var(--ink);font-family:"Readex Pro","IBM Plex Sans Arabic",Tahoma,"Segoe UI",sans-serif;font-size:16px;line-height:1.55;font-variant-numeric:tabular-nums}
+body{margin:0;min-height:100vh;min-height:100dvh;background:#F1F1F6!important;color:var(--ink);font-family:"Readex Pro","IBM Plex Sans Arabic",Tahoma,"Segoe UI",sans-serif;font-size:16px;line-height:1.55;font-variant-numeric:tabular-nums}
 button,input{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 h1,h2,h3{margin:0;font-weight:600}
@@ -114,7 +114,7 @@ main{max-width:1180px;margin:0 auto;padding:22px max(16px,env(safe-area-inset-ri
 .btn{appearance:none;border:1px solid transparent;background:var(--ink);color:var(--bg);border-radius:11px;padding:0 18px;height:46px;font-weight:500;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .btn:hover{filter:brightness(1.12)}
 .btn:active{transform:translateY(1px)}
-.btn.brass{background:var(--brass);color:#FFFCF7}
+.btn.brass{background:var(--brass);color:#1D1B36}
 .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
 .btn.danger{background:var(--neg);color:#fff}
 .btn.danger-ghost{background:transparent;color:var(--neg);border-color:var(--line)}
@@ -275,9 +275,9 @@ tr.sel td{background:var(--brass-soft)}
 .topbar .sync[data-s="saving"] i,.topbar .sync[data-s="connecting"] i,.topbar .sync[data-s="offline"] i{background:#F2C76E}
 .topbar .sync[data-s="error"]{background:#fff;color:#B5443A}
 .topbar .sync[data-s="local"] i{background:rgba(255,255,255,.6)}
-/* ثيم كريمي: الأزرار والتحديد عنابي */
-.btn:not(.ghost):not(.danger):not(.brass){background:#4E1220;color:#F6EFE4}
-.seg input:checked+span{background:#4E1220;color:#F6EFE4}
+/* الأزرار والتحديد بلون الشريط العنابي */
+.btn:not(.ghost):not(.danger):not(.brass){background:#4E1220;color:#fff}
+.seg input:checked+span{background:#4E1220;color:#fff}
 .fees{margin-top:14px;border-top:1px dashed var(--line);padding-top:10px;display:grid;gap:4px;font-size:.88rem}
 .fee-row{display:grid;grid-template-columns:1fr 1.4fr auto;gap:10px;color:var(--muted)}
 .fee-row b{color:var(--neg);font-weight:500;min-width:70px;text-align:end}
@@ -361,9 +361,9 @@ tr.sel td{background:var(--brass-soft)}
 <!-- ===== تنبيه التحديث ===== -->
 <div id="updBar" hidden><span>فيه تحديث جديد للتطبيق</span><button type="button" onclick="location.reload()">تحديث</button></div>
 <style>
-#updBar{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:9000;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#4E1220;color:#fff;border-radius:14px;padding:10px 12px 10px 16px;box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:.95rem;max-width:520px;margin:0 auto}
+#updBar{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:9000;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#1D1B36;color:#fff;border-radius:14px;padding:10px 12px 10px 16px;box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:.95rem;max-width:520px;margin:0 auto}
 #updBar[hidden]{display:none}
-#updBar button{appearance:none;border:0;border-radius:10px;background:#E6BE6E;color:#2A0C14;font:inherit;font-weight:600;padding:8px 16px;cursor:pointer}
+#updBar button{appearance:none;border:0;border-radius:10px;background:#E6BE6E;color:#1D1B36;font:inherit;font-weight:600;padding:8px 16px;cursor:pointer}
 @media print{#updBar{display:none!important}}
 </style>
 <script>
@@ -414,7 +414,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='8 أكتوبر - ج';
+const APP_VERSION='8 أكتوبر - د';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",

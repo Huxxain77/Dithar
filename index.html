@@ -155,6 +155,9 @@ input[type=date],input[type=month]{-webkit-appearance:none;appearance:none;displ
 input[type=date]::-webkit-date-and-time-value,input[type=month]::-webkit-date-and-time-value{text-align:center;margin:0;min-width:0}
 /* الصفحة تتحرك فوق وتحت بس */
 html,body{overflow-x:clip;overscroll-behavior:none}
+@keyframes swipeInL{from{opacity:.3;transform:translateX(-28px)}to{opacity:1;transform:none}}
+@keyframes swipeInR{from{opacity:.3;transform:translateX(28px)}to{opacity:1;transform:none}}
+#view.swipe-l{animation:swipeInL .2s ease-out}#view.swipe-r{animation:swipeInR .2s ease-out}
 @supports not (overflow-x:clip){body{overflow-x:hidden}}
 input:focus{border-color:var(--focus);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 22%,transparent)}
 input.err{border-color:var(--neg);box-shadow:0 0 0 3px color-mix(in srgb,var(--neg) 20%,transparent)}
@@ -416,7 +419,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='8 أكتوبر - و';
+const APP_VERSION='8 أكتوبر - ز';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -748,6 +751,20 @@ function go(tab,detail=null,fromHistory=false){
   if(!fromHistory&&!same)history.pushState({nav:1,tab,detail},'');
   mount();window.scrollTo(0,0);
 }
+/* السحب يمين ويسار يتنقل بين الأقسام (بالترتيب نفسه اللي تحت) */
+(function(){let x0=0,y0=0,t0=0,ok=false;
+  const skip=el=>{for(;el&&el!==document.body;el=el.parentElement){
+    if(el.matches&&el.matches('input,textarea,select,#modal-root *,.topbar *'))return true;
+    if(el.scrollWidth>el.clientWidth+2&&/(auto|scroll)/.test(getComputedStyle(el).overflowX))return true}return false};
+  document.addEventListener('touchstart',e=>{if(e.touches.length!==1){ok=false;return}const t=e.touches[0];
+    x0=t.clientX;y0=t.clientY;t0=Date.now();ok=!UI.detail&&!$('#modal-root').children.length&&!(auth&&!auth.currentUser)&&!skip(e.target)},{passive:true});
+  document.addEventListener('touchend',e=>{if(!ok)return;ok=false;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;
+    if(Date.now()-t0>700||Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.8)return;
+    const keys=TABS.map(x=>x[0]),i=keys.indexOf(UI.tab),n=i+(dx>0?1:-1);
+    if(i<0||n<0||n>=keys.length)return;
+    go(keys[n]);const v=$('#view');v.classList.remove('swipe-l','swipe-r');void v.offsetWidth;v.classList.add(dx>0?'swipe-l':'swipe-r');
+    setTimeout(()=>v.classList.remove('swipe-l','swipe-r'),260)},{passive:true});
+})();
 /* زر الرجوع في الأندرويد: يرجع خطوة داخل التطبيق بدل ما يطلع منه */
 history.replaceState({base:1},'');
 ['pointerdown','keydown'].forEach(ev=>window.addEventListener(ev,()=>{if(history.state&&history.state.base)history.pushState({nav:1,tab:UI.tab,detail:UI.detail},'')},{capture:true,passive:true}));

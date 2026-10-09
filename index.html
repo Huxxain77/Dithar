@@ -424,7 +424,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='9 أكتوبر - د';
+const APP_VERSION='9 أكتوبر - هـ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -918,7 +918,8 @@ worker:{
     const w=S.workers.find(x=>x.id===UI.detail.id);if(!w){go('workers');return}
     $('#dname').textContent=w.name;$('#wPrice').innerHTML=`الراتب الشهري الحالي ${money(salaryFor(w,curMonth()))}`;
     setVal('#wMonth',UI.wMonth);
-    const[a,b]=monthBounds(UI.wMonth);const t=workerTotals(w.id,a,b);
+    const[a,b]=monthBounds(UI.wMonth);
+    {const d=$('#wexDate');if(d&&!d.dataset.touched){d.value=UI.wMonth===curMonth()?today():b;if(!d.dataset.bound){d.dataset.bound=1;d.addEventListener('change',()=>{d.dataset.touched=1})}}}const t=workerTotals(w.id,a,b);
     const upto=b<today()?b:today(),before=workerBalance(w,shiftDay(a,-1)).balance,now=workerBalance(w,upto).balance;
     $('#stopBtn').textContent=wStopped(w)?'إعادة تفعيل العامل':'إيقاف العامل';
     $('#wHeroLabel').textContent=`${now<0?'عليه لك':'المستحق له'} حتى ${fmtShort(upto)}`;
@@ -1110,11 +1111,13 @@ const ACT={
   async repPay(){const a=amountOf('#payAmt');if(a==null)return;
     if(await safe(()=>store.add('repTx',{repId:UI.detail.id,kind:'pay',amount:a,note:$('#payNote').value.trim(),date:$('#payDate').value||today()}))){$('#payAmt').value='';$('#payNote').value='';toast('تم تسجيل التسديد')}},
   delRepTx:t=>delRow('repTx',t.dataset.id,'حذف هذه الحركة؟'),
-  async setSalary(){const w=S.workers.find(x=>x.id===UI.detail.id);if(!w)return;const m=curMonth();
-    const r=await modal({title:'تغيير الراتب الشهري',body:`<label class="field"><span>الراتب الجديد (ر.س)</span><input type="text" name="price" inputmode="decimal" value="${salaryFor(w,m)}"></label><p>الراتب الجديد يطبق من ${fmtMonth(m)} وبعده، والأشهر اللي قبل تبقى على راتبها القديم.</p>`,actions:[{key:'ok',label:'حفظ الراتب'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+  async setSalary(){const w=S.workers.find(x=>x.id===UI.detail.id);if(!w)return;const m0=UI.wMonth||curMonth(),fm=wFirstMonth(w);
+    const r=await modal({title:'الراتب الشهري',body:`<label class="field"><span>الراتب (ر.س)</span><input type="text" name="price" inputmode="decimal" value="${salaryFor(w,m0)||salaryFor(w,curMonth())}"></label><label class="field"><span>يبدأ من شهر</span><input type="month" name="from" value="${m0}"></label><p>الراتب ينحسب من الشهر اللي تختاره وبعده. لو اخترت شهر قبل ${fmtMonth(fm)}، يصير هو بداية حساب ${esc(w.name)}.</p>`,actions:[{key:'ok',label:'حفظ الراتب'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
     if(!r)return;const p=num(r.values.price);if(!(p>=0)){toast('اكتب راتب صحيح');return}
-    const hist=(w.salaryHist||[{from:w.startMonth||m,amount:w.salary||0}]).filter(x=>x.from!==m).concat([{from:m,amount:p}]);
-    if(await safe(()=>store.update('workers',w.id,{salary:p,salaryHist:hist})))toast('تم تحديث الراتب')},
+    const m=/^\d{4}-\d{2}$/.test(r.values.from||'')?r.values.from:m0;
+    const hist=(w.salaryHist&&w.salaryHist.length?w.salaryHist:[{from:w.startMonth||m,amount:w.salary||0}]).filter(x=>x.from!==m).concat([{from:m,amount:p}]).sort((a,b)=>a.from.localeCompare(b.from));
+    const patch={salaryHist:hist,salary:salaryFor({salaryHist:hist},curMonth())};if(!w.startMonth||m<w.startMonth)patch.startMonth=m;
+    if(await safe(()=>store.update('workers',w.id,patch)))toast(`تم حفظ الراتب من ${fmtMonth(m)}`)},
   async addWExp(){const a=amountOf('#wexAmt');if(a==null)return;
     if(await safe(()=>store.add('workerTx',{workerId:UI.detail.id,kind:'exp',amount:a,note:$('#wexNote').value.trim(),date:$('#wexDate').value||today()}))){$('#wexAmt').value='';$('#wexNote').value='';toast('تم تسجيل الدفعة')}},
   async toggleStop(){const w=S.workers.find(x=>x.id===UI.detail.id);if(!w)return;const m=curMonth();

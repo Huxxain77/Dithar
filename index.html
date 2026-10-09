@@ -424,7 +424,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='9 أكتوبر - ز';
+const APP_VERSION='9 أكتوبر - ح';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -936,7 +936,7 @@ worker:{
 /* ===== monthly report ===== */
 report:{
   html:()=>`<div class="print-head"><div><strong>Dithar</strong><span>التقرير الشهري</span></div><div id="pPeriod"></div></div>
-  <div class="page-head"><div><h1>التقرير الشهري</h1><p class="sub" id="rLabel"></p></div><div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" data-act="openYear">التقرير السنوي</button><button class="btn" data-act="printReport">طباعة / حفظ PDF</button></div></div>
+  <div class="page-head"><div><h1>التقرير الشهري</h1><p class="sub" id="rLabel"></p></div><div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="openYear">التقرير السنوي</button><button class="btn" data-act="printReport">طباعة / حفظ PDF</button></div></div>
   <div class="range no-print">
     <label class="field"><span>الشهر</span><div class="date-bar" style="margin:0"><button class="icon-btn" data-act="rMonthShift" data-n="-1" aria-label="الشهر السابق">${svg('prev')}</button><input type="month" id="rMonth" value="${UI.rMonth}"><button class="icon-btn" data-act="rMonthShift" data-n="1" aria-label="الشهر التالي">${svg('next')}</button></div></label>
     <label class="field"><span>من تاريخ</span><input type="date" id="rFrom" value="${UI.rFrom}"></label>

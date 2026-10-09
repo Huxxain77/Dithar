@@ -175,6 +175,10 @@ input.err{border-color:var(--neg);box-shadow:0 0 0 3px color-mix(in srgb,var(--n
 .date-bar{display:flex;gap:8px;align-items:center;margin-bottom:16px}
 .date-bar input{flex:1;max-width:260px}
 .date-bar .btn{height:40px;padding:0 14px}
+@media (max-width:480px){.day-bar{gap:5px}.day-bar .icon-btn{width:36px}.day-bar .btn{padding:0 10px}.day-bar input{padding:0 6px!important}}
+/* ما يتحدد النص بالضغط المطول، إلا داخل الخانات */
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 
 /* stats */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:14px}
@@ -420,7 +424,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='9 أكتوبر - أ';
+const APP_VERSION='9 أكتوبر - ب';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -464,7 +468,7 @@ const ICON={
   reps:'<path d="M2.5 6.5h11v10h-11zM13.5 10h4l3.5 3.5v3h-7.5"/><circle cx="6.5" cy="17.5" r="1.7"/><circle cx="17" cy="17.5" r="1.7"/>',
   workers:'<circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="M8 7.5 20 18M8 16.5 20 6"/>',
   report:'<path d="M3 20h18M6 16v-5M11 16V6M16 16v-8"/>',
-  prev:'<path d="m9 6 6 6-6 6"/>',next:'<path d="m15 6-6 6 6 6"/>',
+  prev:'<path d="m9 6 6 6-6 6"/>',next:'<path d="m15 6-6 6 6 6"/>',prev2:'<path d="m7 6 6 6-6 6"/><path d="M17 6v12"/>',next2:'<path d="m17 6-6 6 6 6"/><path d="M7 6v12"/>',
   more:'<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
   x:'<path d="M6 6l12 12M18 6 6 18"/>',
   edit:'<path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/>',
@@ -808,7 +812,7 @@ const VIEWS={
 /* ===== branches list ===== */
 branches:{
   html:()=>`<div class="page-head"><div><h1>اليومية</h1><p class="sub">دخل ومصروف المحل، يوم بيوم</p></div></div>
-  <div class="date-bar"><button class="icon-btn" data-act="dayShift" data-n="-1" aria-label="اليوم السابق">${svg('prev')}</button><input type="date" id="day" value="${UI.date}" aria-label="التاريخ"><button class="icon-btn" data-act="dayShift" data-n="1" aria-label="اليوم التالي">${svg('next')}</button><button class="btn ghost" data-act="dayToday">اليوم</button></div>
+  <div class="date-bar day-bar"><button class="icon-btn" data-act="dayMonthShift" data-n="-1" aria-label="الشهر السابق">${svg('prev2')}</button><button class="icon-btn" data-act="dayShift" data-n="-1" aria-label="اليوم السابق">${svg('prev')}</button><input type="date" id="day" value="${UI.date}" aria-label="التاريخ"><button class="icon-btn" data-act="dayShift" data-n="1" aria-label="اليوم التالي">${svg('next')}</button><button class="icon-btn" data-act="dayMonthShift" data-n="1" aria-label="الشهر التالي">${svg('next2')}</button><button class="btn ghost" data-act="dayToday">اليوم</button></div>
   <div class="grid2">
     <section class="panel"><h2>إضافة دخل</h2>
       <div class="seg" role="radiogroup" aria-label="طريقة الدفع">${METHODS.map(([k,l])=>`<label><input type="radio" name="method" value="${k}" ${UI.method===k?'checked':''}><span>${l}</span></label>`).join('')}</div>
@@ -1092,6 +1096,7 @@ const ACT={
   openRep:t=>go('reps',{type:'rep',id:t.dataset.id}),
   openWorker:t=>go('workers',{type:'worker',id:t.dataset.id}),
   dayShift:t=>{UI.date=shiftDay(UI.date,+t.dataset.n);refresh()},
+  dayMonthShift:t=>{const d=parseD(UI.date),day=d.getDate(),m=new Date(d.getFullYear(),d.getMonth()+(+t.dataset.n),1),last=new Date(m.getFullYear(),m.getMonth()+1,0).getDate();m.setDate(Math.min(day,last));UI.date=isoDate(m);refresh()},
   dayToday:()=>{UI.date=today();refresh()},
   pickDay:t=>{UI.date=t.dataset.d;refresh();window.scrollTo({top:0})},
   async addIncome(){const a=amountOf('#incAmt');if(a==null)return;

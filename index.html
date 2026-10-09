@@ -424,7 +424,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='9 أكتوبر - هـ';
+const APP_VERSION='9 أكتوبر - و';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1247,7 +1247,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
       '<h2 class="section-title">الرسومات</h2><section class="charts">'+
       '<div class="chart-card"><h3 id="ch1T">صافي كل يوم</h3><p class="note no-print">اضغط على أي عمود يطلع لك رقمه</p><div class="chart-box" id="ch1"></div>'+
       '<div class="chart-legend"><span><i style="background:'+C.bar+'"></i>صافي المحل</span><span><i class="ln" style="border-color:'+C.muted+';border-top-style:dashed"></i>المتوسط</span></div></div>'+
-      '<div class="chart-card"><h3>مقارنة بالشهر الماضي</h3><p class="note" id="ch2N"></p><div class="chart-hero" id="ch2H"></div><div class="chart-box" id="ch2"></div><div class="chart-legend" id="ch2L"></div></div>'+
+      '<div class="chart-card"><h3>مقارنة الدخل بالشهر الماضي</h3><p class="note" id="ch2N"></p><div class="chart-hero" id="ch2H"></div><div class="chart-box" id="ch2"></div><div class="chart-legend" id="ch2L"></div></div>'+
       '<div class="chart-card"><h3>طرق الدفع</h3><p class="note">من إجمالي دخل الفترة</p><div id="ch3"></div></div>'+
       '</section><h2 class="section-title">الملخص</h2>');
   };
@@ -1297,12 +1297,12 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
     if(end<a){box2.innerHTML='<p class="chart-empty">الفترة ما بدأت للحين.</p>';hero.innerHTML='';leg.innerHTML='';note.textContent=''}
     else{
       var cd=days(a,end),pe=prevMonthDay(end),pd=days(pa,pe);
-      var pents=S.entries.filter(function(x){return inRange(x.date,pa,pe)});
-      var cum=function(list,ds){var c=0;return ds.map(function(d){c+=dayNet(list,d);return c})};
+      var pents=S.entries.filter(function(x){return x.kind==='in'&&inRange(x.date,pa,pe)});
+      var cum=function(list,ds){var c=0;return ds.map(function(d){c+=sumEntries(list.filter(function(x){return x.date===d})).in;return c})};   // الدخل بس، بدون المصروفات
       var cs=cum(ents,cd),ps=cum(pents,pd),n=Math.max(cs.length,ps.length);
       var oneMonth=a.slice(0,7)===b.slice(0,7);
       var curL=oneMonth?parseD(a).toLocaleDateString(LOC,{month:'long'}):'هذي الفترة',prvL=oneMonth?parseD(pa).toLocaleDateString(LOC,{month:'long'}):'الفترة اللي قبلها';
-      note.textContent='الصافي المتراكم من '+fmtShort(a)+' لين '+fmtShort(end)+'، مقابل نفس الأيام من الشهر اللي قبل';
+      note.textContent='الدخل المتراكم (كاش + مدى + فيزا) من '+fmtShort(a)+' لين '+fmtShort(end)+'، مقابل نفس الأيام من الشهر اللي قبل';
       var cl=cs[cs.length-1]||0,pl=ps[ps.length-1]||0,diff=cl-pl;
       var oldMissing=store.root&&typeof LOADED!=='undefined'&&typeof CUTOFF_M!=='undefined'&&pa.slice(0,7)<CUTOFF_M&&LOADED[pa.slice(0,7)]!==true;
       if(oldMissing){hero.innerHTML='<span class="d">جارٍ جلب بيانات الشهر الماضي…</span>'}
@@ -1312,7 +1312,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
       var lo=Math.min(0,Math.min.apply(null,cs.concat(ps))),hi=Math.max(1,Math.max.apply(null,cs.concat(ps))),rg2=range(lo,hi);
       var iw2=W-P.l-P.r,ih2=H-P.t-P.b,x=function(i){return P.l+(n>1?i/(n-1):.5)*iw2},y2=function(v){return P.t+ih2-(v-rg2[0])/(rg2[1]-rg2[0])*ih2};
       var path=function(arr){return arr.map(function(v,i){return(i?'L':'M')+x(i).toFixed(1)+','+y2(v).toFixed(1)}).join('')};
-      var s2='<svg viewBox="0 0 '+W+' '+H+'" direction="ltr" role="img" aria-label="مقارنة بالشهر الماضي">'+grid(rg2[0],rg2[1],y2);
+      var s2='<svg viewBox="0 0 '+W+' '+H+'" direction="ltr" role="img" aria-label="مقارنة الدخل بالشهر الماضي">'+grid(rg2[0],rg2[1],y2);
       if(pents.length&&!oldMissing)s2+='<path d="'+path(ps)+'" fill="none" stroke="'+C.prev+'" stroke-width="2" stroke-dasharray="5 4"/>';
       s2+='<path d="'+path(cs)+'" fill="none" stroke="'+C.cur+'" stroke-width="2.2" stroke-linejoin="round"/>';
       var li=cs.length-1;s2+='<circle cx="'+x(li)+'" cy="'+y2(cl)+'" r="4.5" fill="'+C.cur+'" stroke="#fff" stroke-width="2"/>';
@@ -1363,7 +1363,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
   var XLSX_URL='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
   var B=VIEWS.branches,h0=B.html;
   B.html=function(){return h0().replace('<p class="sub">دخل ومصروف المحل، يوم بيوم</p></div></div>',
-    '<p class="sub">دخل ومصروف المحل، يوم بيوم</p></div><button class="btn ghost xl-btn no-print" data-act="xlImport">+ استيراد Excel أو صورة</button></div>')};
+    '<p class="sub">دخل ومصروف المحل، يوم بيوم</p></div><button class="btn xl-btn no-print" data-act="xlImport">+ استيراد Excel أو صورة</button></div>')};
 
   var norm=function(s){return String(s==null?'':s).replace(/[\s‏‎]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه')};
   var COLS_MAP={date:['التاريخ','تاريخ','اليوم'],mada:['مدى','مدي'],visa:['فيزا','visa'],cash:['كاش','نقد','نقدي'],out:['مصروفات','مصروف','المصروفات'],note:['ملاحظات','ملاحظه','الملاحظات']};

@@ -420,7 +420,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='8 أكتوبر - ط';
+const APP_VERSION='9 أكتوبر - أ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -536,7 +536,7 @@ function needData(){
   if(k==='branch'||k==='branches'){const m=UI.date.slice(0,7)+'-01';ensureRange(m,m)}
   else if(k==='worker'){const m=UI.wMonth+'-01';ensureRange(m,m)}
   if(k==='workers'||k==='worker'||k==='report')ensureWorkerHistory();
-  else if(k==='report'){let a=UI.rFrom,b=UI.rTo;if(a>b)[a,b]=[b,a];ensureRange(a,b)}
+  if(k==='report'){let a=UI.rFrom,b=UI.rTo;if(a>b)[a,b]=[b,a];ensureRange(a,b)}
 }
 const LS_KEY='daftar-hesabat-v1';
 const store={
@@ -1195,5 +1195,138 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
 })();
 </script>
 <!-- ===== نهاية الملخص ===== -->
+<!-- ===== الرسومات البيانية في التقرير ===== -->
+<style>
+.charts .chart-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px 14px 12px;margin-bottom:14px;break-inside:avoid;page-break-inside:avoid}
+.chart-card h3{font-size:1rem;margin:0}.chart-card .note{color:var(--muted);font-size:.78rem;margin:2px 0 10px}
+.chart-box{position:relative}.chart-box svg{display:block;width:100%;height:auto;overflow:visible}
+.chart-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-top:6px}
+.chart-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-left:5px;vertical-align:-1px}
+.chart-legend i.ln{width:16px;height:0;border-radius:0;border-top:2px solid;vertical-align:3px}
+.chart-hero{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:2px 0 8px}.chart-hero b{font-size:1.6rem}
+.chart-hero .d{font-size:.82rem;font-weight:600;border-radius:8px;padding:2px 8px}
+.chart-hero .d.up{color:#2B7A57;background:#E3F2EA}.chart-hero .d.down{color:#B5443A;background:#F8E6E3}
+.chart-tip{position:absolute;pointer-events:none;background:#1D1B36;color:#fff;border-radius:9px;padding:6px 10px;font-size:.78rem;text-align:center;white-space:nowrap;transform:translate(-50%,-100%);z-index:2}
+.chart-tip span{display:block;color:#C9C7DA;font-size:.72rem}
+.pay-split{display:flex;height:22px;border-radius:7px;overflow:hidden;gap:2px;margin:6px 0 10px}
+.pay-rows>div{display:flex;justify-content:space-between;font-size:.88rem;padding:6px 0;border-top:1px dashed var(--line)}
+.pay-rows>div:first-child{border-top:0}.pay-rows i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-left:6px}
+.pay-rows b{font-weight:600}.pay-rows em{font-style:normal;color:var(--muted);margin-right:8px}
+.chart-empty{color:var(--muted);font-size:.88rem;margin:6px 0}
+@media print{.chart-tip{display:none!important}}
+.pdf-mode .chart-tip{display:none!important}
+@media print{.charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}.charts .chart-card{margin:0}.charts .chart-card:last-child{grid-column:1/-1}}
+.pdf-mode .charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}.pdf-mode .charts .chart-card{margin:0}.pdf-mode .charts .chart-card:last-child{grid-column:1/-1}
+</style>
+<script>
+(function(){
+  if(typeof VIEWS==='undefined'||!VIEWS.report)return;
+  var R=VIEWS.report,html0=R.html,upd0=R.update;
+  var C={bar:'#7A2236',neg:'#B5443A',cur:'#8C2A3E',prev:'#A9A7BC',grid:'#EEEDF4',muted:'#6A6884',ink:'#1D1B36',cash:'#8C2A3E',mada:'#C98A1E',visa:'#2A78D6'};
+  var W=360,H=170,P={l:36,r:8,t:16,b:22};
+  var esc2=function(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+  var kfmt=function(v){var a=Math.abs(v);return a>=1000?(v/1000).toLocaleString('en-US',{maximumFractionDigits:1})+'k':String(Math.round(v))};
+  var niceStep=function(span){var raw=span/4,p=Math.pow(10,Math.floor(Math.log10(raw||1))),m=raw/p;return (m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*p};
+  // نفس اليوم في الشهر اللي قبل (لو الشهر أقصر ياخذ آخر يوم فيه)
+  var prevMonthDay=function(s){var d=parseD(s),day=d.getDate(),t=new Date(d.getFullYear(),d.getMonth()-1,1),last=new Date(t.getFullYear(),t.getMonth()+1,0).getDate();t.setDate(Math.min(day,last));return isoDate(t)};
+  var days=function(a,b){var o=[];for(var d=a;d<=b;d=shiftDay(d,1))o.push(d);return o};
+  var dayNet=function(list,d){var r=sumEntries(list.filter(function(x){return x.date===d}));return r.net};
+  var grid=function(lo,hi,y){var st=niceStep(hi-lo),s='';for(var g=Math.ceil(lo/st)*st;g<=hi+1e-9;g+=st){s+='<line x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y(g)+'" y2="'+y(g)+'" stroke="'+(g===0?'#D5D3E2':C.grid)+'"/><text x="'+(P.l-6)+'" y="'+(y(g)+3.5)+'" font-size="10" fill="'+C.muted+'" text-anchor="end">'+kfmt(g)+'</text>'}return s};
+  var range=function(lo,hi){var st=niceStep(hi-lo);return[Math.floor(lo/st)*st,Math.ceil(hi/st)*st||st]};
+
+  R.html=function(){
+    return html0().replace('<h2 class="section-title">الملخص</h2>',
+      '<h2 class="section-title">الرسومات</h2><section class="charts">'+
+      '<div class="chart-card"><h3 id="ch1T">صافي كل يوم</h3><p class="note no-print">اضغط على أي عمود يطلع لك رقمه</p><div class="chart-box" id="ch1"></div>'+
+      '<div class="chart-legend"><span><i style="background:'+C.bar+'"></i>صافي المحل</span><span><i class="ln" style="border-color:'+C.muted+';border-top-style:dashed"></i>المتوسط</span></div></div>'+
+      '<div class="chart-card"><h3>مقارنة بالشهر الماضي</h3><p class="note" id="ch2N"></p><div class="chart-hero" id="ch2H"></div><div class="chart-box" id="ch2"></div><div class="chart-legend" id="ch2L"></div></div>'+
+      '<div class="chart-card"><h3>طرق الدفع</h3><p class="note">من إجمالي دخل الفترة</p><div id="ch3"></div></div>'+
+      '</section><h2 class="section-title">الملخص</h2>');
+  };
+
+  R.update=function(){
+    upd0.apply(this,arguments);
+    if(!document.getElementById('ch1'))return;
+    var a=UI.rFrom,b=UI.rTo;if(a>b){var t=a;a=b;b=t}
+    var pa=prevMonthDay(a),pb=prevMonthDay(b);
+    if(typeof ensureRange==='function')ensureRange(pa,pb);
+    var ents=S.entries.filter(function(x){return inRange(x.date,a,b)});
+    var all=days(a,b),daily=all.length<=62;
+
+    /* 1) صافي كل يوم (أو كل شهر لو الفترة طويلة) */
+    var pts;
+    if(daily)pts=all.map(function(d){return{label:String(parseD(d).getDate()),tip:fmtDay(d),v:dayNet(ents,d),has:ents.some(function(x){return x.date===d})}});
+    else{var ms={};all.forEach(function(d){var m=d.slice(0,7);(ms[m]=ms[m]||[]).push(d)});
+      pts=Object.keys(ms).sort().map(function(m){var l=ents.filter(function(x){return x.date.slice(0,7)===m});return{label:parseD(m+'-01').toLocaleDateString(LOC,{month:'short'}),tip:parseD(m+'-01').toLocaleDateString(LOC,{month:'long',year:'numeric'}),v:sumEntries(l).net,has:l.length>0}})}
+    document.getElementById('ch1T').textContent=daily?'صافي كل يوم':'صافي كل شهر';
+    var box1=document.getElementById('ch1');
+    if(!ents.length)box1.innerHTML='<p class="chart-empty">ما فيه تسجيلات في هذي الفترة.</p>';
+    else{
+      var vals=pts.map(function(p){return p.v}),rg=range(Math.min(0,Math.min.apply(null,vals)),Math.max(0,Math.max.apply(null,vals)));
+      var iw=W-P.l-P.r,ih=H-P.t-P.b,bw=iw/pts.length,y=function(v){return P.t+ih-(v-rg[0])/(rg[1]-rg[0])*ih},y0=y(0);
+      var s='<svg viewBox="0 0 '+W+' '+H+'" direction="ltr" role="img" aria-label="صافي المحل">'+grid(rg[0],rg[1],y);
+      var gap=bw>6?2:1;
+      pts.forEach(function(p,i){if(!p.has||!p.v)return;var x=P.l+i*bw+gap/2,w=Math.max(bw-gap,1),top=Math.min(y(p.v),y0),h=Math.abs(y(p.v)-y0),r=Math.min(3,w/2,h);
+        s+=p.v>0?'<path d="M'+x+','+y0+'V'+(top+r)+'q0,-'+r+' '+r+',-'+r+'h'+(w-2*r)+'q'+r+',0 '+r+','+r+'V'+y0+'z" fill="'+C.bar+'"/>'
+                :'<path d="M'+x+','+y0+'V'+(y0+h-r)+'q0,'+r+' '+r+','+r+'h'+(w-2*r)+'q'+r+',0 '+r+',-'+r+'V'+y0+'z" fill="'+C.neg+'"/>'});
+      var step=daily?(pts.length>20?5:pts.length>10?2:1):Math.ceil(pts.length/8);
+      pts.forEach(function(p,i){if(i===0||(i+1)%step===0||i===pts.length-1&&step===1)s+='<text x="'+(P.l+(i+.5)*bw)+'" y="'+(H-6)+'" font-size="10" fill="'+C.muted+'" text-anchor="middle">'+p.label+'</text>'});
+      var hv=pts.filter(function(p){return p.has}),avg=hv.reduce(function(t,p){return t+p.v},0)/(hv.length||1);
+      s+='<line x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y(avg)+'" y2="'+y(avg)+'" stroke="'+C.muted+'" stroke-dasharray="4 3" stroke-width="1.2"/>';
+      s+='<text x="'+(W-P.r-2)+'" text-anchor="end" y="'+(y(avg)-5)+'" font-size="10.5" font-weight="600" fill="'+C.ink+'" stroke="#fff" stroke-width="4" paint-order="stroke">المتوسط '+fmt(Math.round(avg))+'</text>';
+      pts.forEach(function(p,i){s+='<rect class="hit" data-i="'+i+'" x="'+(P.l+i*bw)+'" y="'+P.t+'" width="'+bw+'" height="'+ih+'" fill="transparent"/>'});
+      box1.innerHTML=s+'</svg>';
+      var svg1=box1.querySelector('svg'),tip=null,selI=-1;
+      box1.onclick=function(e){var h=e.target.closest&&e.target.closest('.hit');if(tip){tip.remove();tip=null}
+        if(!h||+h.dataset.i===selI){selI=-1;return}selI=+h.dataset.i;var p=pts[selI];if(!p.has){selI=-1;return}
+        var k=svg1.getBoundingClientRect().width/W;tip=document.createElement('div');tip.className='chart-tip';
+        tip.innerHTML='<span>'+esc2(p.tip)+'</span><b>'+fmt(p.v)+' ر.س</b>';
+        var tx=Math.min(Math.max((P.l+(selI+.5)*bw)*k,60),svg1.getBoundingClientRect().width-60);tip.style.left=tx+'px';tip.style.top=(Math.min(y(p.v),y0)*k-6)+'px';box1.appendChild(tip)};
+    }
+
+    /* 2) المتراكم مقارنة بالشهر اللي قبل، لين اليوم لو الفترة ما خلصت */
+    var end=b<today()?b:today(),box2=document.getElementById('ch2'),hero=document.getElementById('ch2H'),leg=document.getElementById('ch2L'),note=document.getElementById('ch2N');
+    if(end<a){box2.innerHTML='<p class="chart-empty">الفترة ما بدأت للحين.</p>';hero.innerHTML='';leg.innerHTML='';note.textContent=''}
+    else{
+      var cd=days(a,end),pe=prevMonthDay(end),pd=days(pa,pe);
+      var pents=S.entries.filter(function(x){return inRange(x.date,pa,pe)});
+      var cum=function(list,ds){var c=0;return ds.map(function(d){c+=dayNet(list,d);return c})};
+      var cs=cum(ents,cd),ps=cum(pents,pd),n=Math.max(cs.length,ps.length);
+      var oneMonth=a.slice(0,7)===b.slice(0,7);
+      var curL=oneMonth?parseD(a).toLocaleDateString(LOC,{month:'long'}):'هذي الفترة',prvL=oneMonth?parseD(pa).toLocaleDateString(LOC,{month:'long'}):'الفترة اللي قبلها';
+      note.textContent='الصافي المتراكم من '+fmtShort(a)+' لين '+fmtShort(end)+'، مقابل نفس الأيام من الشهر اللي قبل';
+      var cl=cs[cs.length-1]||0,pl=ps[ps.length-1]||0,diff=cl-pl;
+      var oldMissing=store.root&&typeof LOADED!=='undefined'&&typeof CUTOFF_M!=='undefined'&&pa.slice(0,7)<CUTOFF_M&&LOADED[pa.slice(0,7)]!==true;
+      if(oldMissing){hero.innerHTML='<span class="d">جارٍ جلب بيانات الشهر الماضي…</span>'}
+      else if(!pents.length){hero.innerHTML='<span class="chart-empty">ما فيه تسجيلات في '+esc2(prvL)+' للمقارنة.</span>'}
+      else{var pc=pl?Math.round(diff/Math.abs(pl)*100):0;
+        hero.innerHTML='<b dir="ltr">'+(diff>=0?'+':'−')+Math.abs(pc)+'%</b><span class="d '+(diff>=0?'up':'down')+'">'+(diff>=0?'▲ ':'▼ ')+fmt(Math.abs(diff))+' ر.س '+(diff>=0?'زيادة':'نقص')+'</span>'}
+      var lo=Math.min(0,Math.min.apply(null,cs.concat(ps))),hi=Math.max(1,Math.max.apply(null,cs.concat(ps))),rg2=range(lo,hi);
+      var iw2=W-P.l-P.r,ih2=H-P.t-P.b,x=function(i){return P.l+(n>1?i/(n-1):.5)*iw2},y2=function(v){return P.t+ih2-(v-rg2[0])/(rg2[1]-rg2[0])*ih2};
+      var path=function(arr){return arr.map(function(v,i){return(i?'L':'M')+x(i).toFixed(1)+','+y2(v).toFixed(1)}).join('')};
+      var s2='<svg viewBox="0 0 '+W+' '+H+'" direction="ltr" role="img" aria-label="مقارنة بالشهر الماضي">'+grid(rg2[0],rg2[1],y2);
+      if(pents.length&&!oldMissing)s2+='<path d="'+path(ps)+'" fill="none" stroke="'+C.prev+'" stroke-width="2" stroke-dasharray="5 4"/>';
+      s2+='<path d="'+path(cs)+'" fill="none" stroke="'+C.cur+'" stroke-width="2.2" stroke-linejoin="round"/>';
+      var li=cs.length-1;s2+='<circle cx="'+x(li)+'" cy="'+y2(cl)+'" r="4.5" fill="'+C.cur+'" stroke="#fff" stroke-width="2"/>';
+      var anchor=x(li)>W/2?'end':'start',dxl=anchor==='end'?-8:8,up=!pents.length||cl>=pl;
+      s2+='<text x="'+(x(li)+dxl)+'" y="'+(y2(cl)+(up?-9:16))+'" font-size="11" font-weight="700" fill="'+C.ink+'" text-anchor="'+anchor+'" stroke="#fff" stroke-width="4" paint-order="stroke">'+fmt(Math.round(cl))+'</text>';
+      if(pents.length&&!oldMissing){var pi=ps.length-1;s2+='<text x="'+(x(pi)+(x(pi)>W/2?-8:8))+'" y="'+(y2(pl)+(up?16:-9))+'" font-size="10.5" fill="'+C.muted+'" text-anchor="'+(x(pi)>W/2?'end':'start')+'" stroke="#fff" stroke-width="4" paint-order="stroke">'+fmt(Math.round(pl))+'</text>'}
+      var lab=[0,Math.round((n-1)/3),Math.round(2*(n-1)/3),n-1].filter(function(v,i,arr){return arr.indexOf(v)===i});
+      lab.forEach(function(i){s2+='<text x="'+x(i)+'" y="'+(H-6)+'" font-size="10" fill="'+C.muted+'" text-anchor="middle">'+parseD(shiftDay(a,i)).getDate()+'</text>'});
+      box2.innerHTML=s2+'</svg>';
+      leg.innerHTML='<span><i class="ln" style="border-color:'+C.cur+'"></i>'+esc2(curL)+'</span><span><i class="ln" style="border-color:'+C.prev+';border-top-style:dashed"></i>'+esc2(prvL)+'</span>';
+    }
+
+    /* 3) طرق الدفع */
+    var T=sumEntries(ents),box3=document.getElementById('ch3');
+    if(!T.in)box3.innerHTML='<p class="chart-empty">ما فيه دخل في هذي الفترة.</p>';
+    else{var parts=[['كاش',C.cash,T.cash||0],['مدى',C.mada,T.mada||0],['فيزا',C.visa,T.visa||0]];
+      box3.innerHTML='<div class="pay-split">'+parts.filter(function(p){return p[2]>0}).map(function(p){return '<div style="flex:'+p[2]+';background:'+p[1]+'"></div>'}).join('')+'</div>'+
+        '<div class="pay-rows">'+parts.map(function(p){return '<div><span><i style="background:'+p[1]+'"></i>'+p[0]+'</span><span><b>'+fmt(p[2])+' <small>ر.س</small></b><em>'+Math.round(p[2]/T.in*100)+'%</em></span></div>'}).join('')+'</div>'}
+  };
+  if(typeof UI!=='undefined'&&UI.tab==='report'&&!UI.detail&&typeof mount==='function')mount();
+})();
+</script>
+<!-- ===== نهاية الرسومات ===== -->
 </body>
 </html>

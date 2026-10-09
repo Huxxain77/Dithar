@@ -424,7 +424,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='9 أكتوبر - ب';
+const APP_VERSION='9 أكتوبر - ج';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -497,7 +497,7 @@ function modal({title,body='',actions}){
     root.innerHTML=`<div class="scrim"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="mt"><h3 id="mt">${title}</h3><div class="mbody">${body}</div><div class="mact">${actions.map(a=>`<button class="btn ${a.cls||''}" data-m="${a.key}">${a.label}</button>`).join('')}</div></div></div>`;
     const scrim=root.firstChild;
     const close=key=>{
-      if(key&&key!=='cancel'){const values={};root.querySelectorAll('input[name]').forEach(i=>values[i.name]=i.value);root.innerHTML='';res({key,values})}
+      if(key&&key!=='cancel'){const values={};root.querySelectorAll('input[name]').forEach(i=>{if(i.type==='radio'&&!i.checked)return;values[i.name]=i.value});root.innerHTML='';res({key,values})}
       else{root.innerHTML='';res(null)}
       document.removeEventListener('keydown',onKey,true);modalClose=null;if(prev&&prev.focus)prev.focus();
     };
@@ -550,8 +550,8 @@ const store={
   async add(c,o){o={...o,createdAt:Date.now()};
     if(this.root){const ref=this.root.collection(c).doc();
       if(WINDOWED.includes(c)&&o.date<CUTOFF){OLD[c][ref.id]={...o,id:ref.id};merge(c);refresh()}
-      track(ref.set(o))}
-    else{S[c]=[...S[c],{...o,id:rid()}];this.saveLocal();refresh()}},
+      track(ref.set(o));return ref.id}
+    else{const id=rid();S[c]=[...S[c],{...o,id}];this.saveLocal();refresh();return id}},
   async update(c,id,p){
     if(this.root){if(OLD[c]&&OLD[c][id]){OLD[c][id]={...OLD[c][id],...p};merge(c);refresh()}
       track(this.root.collection(c).doc(id).update(p))}
@@ -835,7 +835,7 @@ branches:{
     $('#dayLabel').textContent=fmtDay(UI.date);
     $('#dayStats').innerHTML=stat('الدخل',s.in,'pos')+stat('عمولة الشبكة',s.fee,'neg')+stat('المصروف',s.out,'neg')+stat('الصافي',s.net);
     $('#dayChips').innerHTML=METHODS.map(([k,l])=>`<span class="chip">${l} <b>${fmt(s[k])}</b></span>`).join('');
-    $('#dayList').innerHTML=dayE.length?dayE.map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind}">${x.kind==='in'?ML[x.method]:'مصروف'}</span><span class="item-note">${x.kind==='out'?esc(x.note||'بدون ملاحظة'):''} ${fmtTime(x.createdAt)}</span></div></div><div class="item-amt ${x.kind==='in'?'pos':'neg'}">${x.kind==='in'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delEntry" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
+    $('#dayList').innerHTML=dayE.length?dayE.map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind}">${x.kind==='in'?ML[x.method]:'مصروف'}</span><span class="item-note">${x.kind==='out'?esc(x.note||'بدون ملاحظة'):esc(x.note||'')} ${x.src==='xlsx'?'<small>من Excel</small>':fmtTime(x.createdAt)}</span></div></div><div class="item-amt ${x.kind==='in'?'pos':'neg'}">${x.kind==='in'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delEntry" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
       :'<p class="empty">ما فيه حركات لهذا اليوم. أضف أول مبلغ من فوق.</p>';
     const m=UI.date.slice(0,7);$('#monLabel').textContent=fmtMonth(m);
     const monE=ents.filter(x=>x.date.startsWith(m));
@@ -1333,5 +1333,112 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
 })();
 </script>
 <!-- ===== نهاية الرسومات ===== -->
+<!-- ===== استيراد من Excel ===== -->
+<style>
+.xl-btn{display:inline-flex;align-items:center;gap:6px}
+.xl-list{display:flex;flex-direction:column;gap:6px;max-height:44vh;overflow:auto;margin:4px 0 6px}
+.xl-list label{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:11px;padding:10px 12px;cursor:pointer}
+.xl-list label:has(input:checked){border-color:#4E1220;background:#F7EEF0}
+.xl-list input{accent-color:#4E1220;width:18px;height:18px;margin:0}
+.xl-list small{color:var(--muted)}
+.xl-sum{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:.92rem;margin:4px 0 10px}
+.xl-sum b{font-weight:600;text-align:left}
+.xl-notes{font-size:.82rem;color:var(--muted);max-height:22vh;overflow:auto;border-top:1px dashed var(--line);padding-top:8px;margin:0}
+.xl-notes li{margin-bottom:3px}
+.xl-warn{font-size:.82rem;color:#8A5A00;background:#FFF4DC;border-radius:9px;padding:8px 10px;margin:0 0 10px}
+</style>
+<script>
+(function(){
+  if(typeof VIEWS==='undefined'||!VIEWS.branches)return;
+  var XLSX_URL='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  var B=VIEWS.branches,h0=B.html;
+  B.html=function(){return h0().replace('<p class="sub">دخل ومصروف المحل، يوم بيوم</p></div></div>',
+    '<p class="sub">دخل ومصروف المحل، يوم بيوم</p></div><button class="btn ghost xl-btn no-print" data-act="xlImport">+ استيراد Excel</button></div>')};
+
+  var norm=function(s){return String(s==null?'':s).replace(/[\s‏‎]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه')};
+  var COLS_MAP={date:['التاريخ','تاريخ','اليوم'],mada:['مدى','مدي'],visa:['فيزا','visa'],cash:['كاش','نقد','نقدي'],out:['مصروفات','مصروف','المصروفات'],note:['ملاحظات','ملاحظه','الملاحظات']};
+  var p2=function(n){return(n<10?'0':'')+n};
+  var cellText=function(c){return c&&c.c&&c.c.length?c.c.map(function(x){return String(x.t||'').trim()}).filter(Boolean).join(' / ').replace(/\s*\n+\s*/g,' / '):''};
+  var dateCode=function(c){if(!c)return null;if(c.t==='n'&&c.v>20000&&c.v<80000){var d=XLSX.SSF.parse_date_code(c.v);return d&&{y:d.y,m:d.m,d:d.d}}
+    if(c.t==='d'&&c.v instanceof Date)return{y:c.v.getFullYear(),m:c.v.getMonth()+1,d:c.v.getDate()};return null};
+  var amount=function(c){if(!c)return 0;var v=c.v;if(typeof v==='string')v=num(v);return typeof v==='number'&&isFinite(v)?Math.round(v*100)/100:0};
+
+  /* يقرأ ورقة شهر: يلقى صف العناوين، ويطلع صف لكل يوم */
+  function readSheet(name,ws){
+    if(!ws||!ws['!ref'])return null;var R=XLSX.utils.decode_range(ws['!ref']),get=function(r,c){return ws[XLSX.utils.encode_cell({r:r,c:c})]};
+    var hr=-1,col={};
+    for(var r=R.s.r;r<=Math.min(R.e.r,R.s.r+10)&&hr<0;r++){for(var c=R.s.c;c<=R.e.c;c++){var t=norm(get(r,c)&&get(r,c).v);
+      Object.keys(COLS_MAP).forEach(function(k){if(col[k]==null&&COLS_MAP[k].some(function(w){return t===norm(w)}))col[k]=c})}
+      if(col.date!=null&&(col.mada!=null||col.cash!=null||col.visa!=null))hr=r;else col={}}
+    if(hr<0)return null;
+    // الشهر: من الخلية اللي فوق العناوين، أو من رقم الشهر في اسم الورقة
+    var ym=null;for(var r0=R.s.r;r0<hr&&!ym;r0++)for(var c0=R.s.c;c0<=R.e.c&&!ym;c0++){var dc=dateCode(get(r0,c0));if(dc)ym={y:dc.y,m:dc.m}}
+    var rows=[],r2;
+    for(r2=hr+1;r2<=R.e.r;r2++){var dc2=dateCode(get(r2,col.date));if(!dc2)break;rows.push({r:r2,dc:dc2})}
+    if(!rows.length)return null;
+    if(!ym){var mn=(name.match(/\((\d{1,2})\)/)||[])[1],cnt={};rows.forEach(function(x){var k=x.dc.y+'-'+x.dc.m;cnt[k]=(cnt[k]||0)+1});
+      var top=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]})[0].split('-');ym={y:+top[0],m:mn?+mn:+top[1]}}
+    var last=new Date(ym.y,ym.m,0).getDate(),days=[];
+    rows.forEach(function(x){if(x.dc.d>last)return;var date=ym.y+'-'+p2(ym.m)+'-'+p2(x.dc.d),items=[],rowNote=col.note!=null?String((get(x.r,col.note)||{}).v||'').trim():'';
+      [['mada','mada'],['visa','visa'],['cash','cash']].forEach(function(k){if(col[k[0]]==null)return;var c=get(x.r,col[k[0]]),a=amount(c);if(a>0){var o={branchId:BID,kind:'in',amount:a,method:k[1],date:date,src:'xlsx'},n=cellText(c);if(n)o.note=n;items.push(o)}});
+      if(col.out!=null){var ce=get(x.r,col.out),ae=amount(ce);if(ae>0)items.push({branchId:BID,kind:'out',amount:ae,note:cellText(ce)||rowNote||'',date:date,src:'xlsx'})}
+      if(items.length)days.push({date:date,items:items})});
+    return{name:name,ym:ym,key:ym.y+'-'+p2(ym.m),days:days};
+  }
+  var monthName=function(key){return parseD(key+'-01').toLocaleDateString(LOC,{month:'long',year:'numeric'})};
+
+  function pickFile(){return new Promise(function(res){var i=document.createElement('input');i.type='file';
+    i.accept='.xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel';
+    i.onchange=function(){res(i.files&&i.files[0]||null)};i.click()})}
+
+  async function runImport(){
+    var f=await pickFile();if(!f)return;
+    toast('جارٍ قراءة الملف…');
+    var months;
+    try{await loadScript(XLSX_URL);
+      var wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:false,cellComments:true});
+      months=wb.SheetNames.map(function(n){return readSheet(n,wb.Sheets[n])}).filter(function(m){return m&&m.days.length});
+    }catch(e){toast('ما قدرت أقرأ الملف، تأكد إنه ملف Excel وإن النت شغال أول مرة');return}
+    if(!months.length){toast('ما لقيت في الملف أعمدة التاريخ ومدى وفيزا وكاش');return}
+    $('#toast').classList.remove('show');
+    // الشهر
+    var sel=months;
+    if(months.length>1){
+      var opts='<div class="xl-list">'+(months.length>1?'<label><span>كل الأشهر <small>('+months.length+' أشهر)</small></span><input type="radio" name="m" value="all"></label>':'')+
+        months.slice().reverse().map(function(m,i){return '<label><span>'+esc(monthName(m.key))+' <small>('+m.days.length+' يوم فيه أرقام)</small></span><input type="radio" name="m" value="'+m.key+'"'+(i===0?' checked':'')+'></label>'}).join('')+'</div>';
+      var r=await modal({title:'أي شهر تبي تستورد؟',body:'<p>لقيت هذي الأشهر في الملف:</p>'+opts,actions:[{key:'ok',label:'التالي'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+      if(!r)return;sel=r.values.m==='all'?months:months.filter(function(m){return m.key===r.values.m});if(!sel.length)return}
+    // نجيب بيانات الأشهر من القاعدة عشان نعرف الأيام المسجلة من قبل
+    var keys=sel.map(function(m){return m.key}).sort();
+    if(typeof ensureRange==='function'){try{await ensureRange(keys[0]+'-01',monthBounds(keys[keys.length-1])[1])}catch(e){}}
+    if(store.root&&typeof LOADED!=='undefined'&&keys.some(function(k){return k<CUTOFF_M&&LOADED[k]!==true})){toast('ما قدرت أتأكد من البيانات القديمة، تأكد من النت وحاول مرة ثانية');return}
+    var have={};S.entries.forEach(function(x){have[x.date]=1});
+    var add=[],skipped=[];
+    sel.forEach(function(m){m.days.forEach(function(d){if(have[d.date])skipped.push(d.date);else add=add.concat(d.items)})});
+    if(!add.length){await modal({title:'ما فيه شي جديد',body:'<p>كل الأيام اللي في الملف مسجلة في التطبيق من قبل ('+skipped.length+' يوم).</p>',actions:[{key:'ok',label:'تمام'}]});return}
+    var t={mada:0,visa:0,cash:0,out:0},notes=[];
+    add.forEach(function(x){if(x.kind==='in')t[x.method]+=x.amount;else t.out+=x.amount;if(x.note)notes.push((x.kind==='out'?'مصروف ':ML[x.method]+' ')+fmt(x.amount)+': '+esc(x.note)+' <small>('+fmtShort(x.date)+')</small>')});
+    var dcount=new Set(add.map(function(x){return x.date})).size;
+    var body='<p>'+esc(sel.length>1?sel.length+' أشهر':monthName(sel[0].key))+': <b>'+dcount+'</b> يوم، <b>'+add.length+'</b> حركة.</p>'+
+      (skipped.length?'<p class="xl-warn">بتخطى '+skipped.length+' يوم لأنها مسجلة في التطبيق من قبل.</p>':'')+
+      '<div class="xl-sum"><span>مدى</span><b>'+fmt(t.mada)+'</b><span>فيزا</span><b>'+fmt(t.visa)+'</b><span>كاش</span><b>'+fmt(t.cash)+'</b><span>المصروفات</span><b>'+fmt(t.out)+'</b></div>'+
+      (notes.length?'<p style="margin:0 0 4px"><b>'+notes.length+'</b> ملاحظة انقرت من الملف:</p><ul class="xl-notes">'+notes.map(function(n){return '<li>'+n+'</li>'}).join('')+'</ul>':'')+
+      '<p style="font-size:.8rem;color:var(--muted);margin:10px 0 0">عمود السحبيات والرواتب ما ينستورد.</p>';
+    var ok=await modal({title:'استيراد من Excel',body:body,actions:[{key:'ok',label:'استيراد '+add.length+' حركة'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+    if(!ok)return;
+    var ids=[];
+    var done=await safe(async function(){for(var i=0;i<add.length;i++){var id=await store.add('entries',add[i]);if(id)ids.push(id)}});
+    if(!done&&!ids.length)return;
+    var tt=$('#toast');clearTimeout(toastT);
+    tt.innerHTML='<span>انستوردت '+ids.length+' حركة</span><button type="button" class="undo-btn">تراجع</button>';tt.classList.add('undo','show');
+    var used=false;tt.querySelector('.undo-btn').onclick=async function(){if(used)return;used=true;tt.classList.remove('show','undo');
+      if(await safe(async function(){for(var i=0;i<ids.length;i++)await store.remove('entries',ids[i])}))toast('تم التراجع عن الاستيراد')};
+    toastT=setTimeout(function(){tt.classList.remove('show','undo')},10000);
+  }
+  ACT.xlImport=function(){runImport()};
+  if(typeof UI!=='undefined'&&UI.tab==='branches'&&!UI.detail&&typeof mount==='function')mount();
+})();
+</script>
+<!-- ===== نهاية الاستيراد ===== -->
 </body>
 </html>

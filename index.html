@@ -424,7 +424,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='9 أكتوبر - و';
+const APP_VERSION='9 أكتوبر - ز';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -541,6 +541,7 @@ function needData(){
   else if(k==='worker'){const m=UI.wMonth+'-01';ensureRange(m,m)}
   if(k==='workers'||k==='worker'||k==='report')ensureWorkerHistory();
   if(k==='report'){let a=UI.rFrom,b=UI.rTo;if(a>b)[a,b]=[b,a];ensureRange(a,b)}
+  if(k==='year'){const y=UI.year||+today().slice(0,4);ensureRange(y+'-01-01',y+'-12-31');ensureWorkerHistory()}
 }
 const LS_KEY='daftar-hesabat-v1';
 const store={
@@ -935,7 +936,7 @@ worker:{
 /* ===== monthly report ===== */
 report:{
   html:()=>`<div class="print-head"><div><strong>Dithar</strong><span>التقرير الشهري</span></div><div id="pPeriod"></div></div>
-  <div class="page-head"><div><h1>التقرير الشهري</h1><p class="sub" id="rLabel"></p></div><button class="btn no-print" data-act="printReport">طباعة / حفظ PDF</button></div>
+  <div class="page-head"><div><h1>التقرير الشهري</h1><p class="sub" id="rLabel"></p></div><div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" data-act="openYear">التقرير السنوي</button><button class="btn" data-act="printReport">طباعة / حفظ PDF</button></div></div>
   <div class="range no-print">
     <label class="field"><span>الشهر</span><div class="date-bar" style="margin:0"><button class="icon-btn" data-act="rMonthShift" data-n="-1" aria-label="الشهر السابق">${svg('prev')}</button><input type="month" id="rMonth" value="${UI.rMonth}"><button class="icon-btn" data-act="rMonthShift" data-n="1" aria-label="الشهر التالي">${svg('next')}</button></div></label>
     <label class="field"><span>من تاريخ</span><input type="date" id="rFrom" value="${UI.rFrom}"></label>
@@ -1530,5 +1531,89 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
 })();
 </script>
 <!-- ===== نهاية الاستيراد ===== -->
+<!-- ===== التقرير السنوي ===== -->
+<style>
+.yr-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px}.yr-bar strong{flex:1;text-align:center;font-size:1.15rem}
+.yr-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:0 0 14px}
+.yr-stats div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.yr-stats span{display:block;color:var(--muted);font-size:.8rem}.yr-stats b{font-size:1.15rem;font-weight:600}
+.yr-tbl td.cur,.yr-tbl th.cur{font-weight:600}
+.yr-tbl tr.future td{color:var(--muted)}
+@media print{.yr-stats{grid-template-columns:repeat(4,1fr)}}
+.pdf-mode .yr-stats{grid-template-columns:repeat(4,1fr)}
+</style>
+<script>
+(function(){
+  if(typeof VIEWS==='undefined')return;
+  var C={bar:'#7A2236',barSoft:'#C9A3AC',grid:'#EEEDF4',muted:'#6A6884',ink:'#1D1B36'};
+  var Wd=360,Hd=190,P={l:36,r:8,t:22,b:24};
+  var kf=function(v){var a=Math.abs(v);return a>=1000?(v/1000).toLocaleString('en-US',{maximumFractionDigits:a>=100000?0:1})+'k':String(Math.round(v))};
+  var step=function(span){var raw=span/4,p=Math.pow(10,Math.floor(Math.log10(raw||1))),m=raw/p;return(m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*p};
+  var yearOf=function(){return UI.year||+today().slice(0,4)};
+  var monthsOfYear=function(y){var o=[];for(var i=1;i<=12;i++)o.push(y+'-'+(i<10?'0':'')+i);return o};
+  var missing=function(y){if(!store.root||typeof LOADED==='undefined'||typeof CUTOFF_M==='undefined')return false;
+    return monthsOfYear(y).some(function(m){return m<CUTOFF_M&&m<=curMonth()&&LOADED[m]!==true})};
+  function rowFor(m){var b=monthBounds(m),a=b[0],e=b[1];if(m>curMonth())return{m:m,future:true};
+    var T=sumEntries(S.entries.filter(function(x){return inRange(x.date,a,e)}));
+    var wages=0;S.workers.forEach(function(w){wages+=workerTotals(w.id,a,e).salary});
+    var rep=0;S.reps.forEach(function(r){rep+=repTotals(r.id,a,e).paid});
+    return{m:m,T:T,wages:wages,rep:rep,shop:T.in-T.fee-T.out,fin:T.in-T.fee-T.out-wages-rep}}
+
+  VIEWS.year={
+    html:function(){return '<div class="detail-top no-print"><button class="back" data-act="back">'+svg('prev')+'التقرير الشهري</button></div>'+
+      '<div class="print-head"><div><strong>Dithar</strong><span>التقرير السنوي</span></div><div id="yPeriod"></div></div>'+
+      '<div class="page-head"><div><h1>التقرير السنوي</h1><p class="sub" id="ySub"></p></div><button class="btn no-print" data-act="printYear">طباعة / حفظ PDF</button></div>'+
+      '<div class="yr-bar no-print"><button class="icon-btn" data-act="yearShift" data-n="-1" aria-label="السنة السابقة">'+svg('prev')+'</button><strong id="yLabel"></strong><button class="icon-btn" data-act="yearShift" data-n="1" aria-label="السنة التالية">'+svg('next')+'</button></div>'+
+      '<div class="yr-stats" id="yStats"></div>'+
+      '<h2 class="section-title">مقارنة الأشهر</h2><section class="charts"><div class="chart-card"><h3>الدخل لكل شهر</h3><p class="note">كاش + مدى + فيزا، بدون خصم المصروفات</p><div class="chart-box" id="yChart"></div>'+
+      '<div class="chart-legend"><span><i style="background:'+C.bar+'"></i>دخل الشهر</span><span><i class="ln" style="border-color:'+C.muted+';border-top-style:dashed"></i>متوسط الأشهر</span></div></div></section>'+
+      '<h2 class="section-title pdf-newpage">تفاصيل كل شهر</h2><section class="panel"><div class="tbl-wrap" id="yTable">'+loading+'</div></section>'},
+    update:function(){
+      var y=yearOf();$('#yLabel').textContent=y;$('#ySub').textContent='يناير – ديسمبر '+y;
+      var pp=$('#yPeriod');if(pp)pp.innerHTML='<span>السنة: '+y+'</span><span>تاريخ الطباعة: '+fmtDay(today())+'</span>';
+      if(missing(y)){$('#yTable').innerHTML='<p class="empty">جارٍ جلب بيانات الأشهر القديمة…</p>';$('#yChart').innerHTML='';$('#yStats').innerHTML='';return}
+      var rows=monthsOfYear(y).map(rowFor),hasIn=rows.filter(function(r){return !r.future&&r.T.in>0}),full=hasIn.filter(function(r){return r.m<curMonth()}),done=full.length?full:hasIn;   // الشهر الحالي ما يدخل في المتوسط وأعلى/أقل شهر لأنه ما خلص
+      var sumK=function(f){return rows.reduce(function(t,r){return t+(r.future?0:f(r))},0)};
+      var tin=sumK(function(r){return r.T.in}),avg=done.length?tin/done.length:0;
+      var best=done.slice().sort(function(a,b){return b.T.in-a.T.in})[0],worst=done.slice().sort(function(a,b){return a.T.in-b.T.in})[0];
+      var mname=function(m){return parseD(m+'-01').toLocaleDateString(LOC,{month:'long'})};
+      $('#yStats').innerHTML='<div><span>دخل السنة</span><b>'+fmt(tin)+'</b> <small>ر.س</small></div><div><span>متوسط الشهر</span><b>'+fmt(Math.round(avg))+'</b> <small>ر.س</small></div>'+
+        '<div><span>أعلى شهر</span><b>'+(best?mname(best.m):'—')+'</b>'+(best?' <small>'+fmt(best.T.in)+'</small>':'')+'</div><div><span>أقل شهر</span><b>'+(worst?mname(worst.m):'—')+'</b>'+(worst?' <small>'+fmt(worst.T.in)+'</small>':'')+'</div>';
+      // الرسم: عمود لكل شهر مع الرقم فوقه
+      var box=$('#yChart');
+      if(!hasIn.length)box.innerHTML='<p class="chart-empty">ما فيه دخل مسجل في '+y+'.</p>';
+      else{var mx=Math.max.apply(null,hasIn.map(function(r){return r.T.in})),st=step(mx),top=Math.ceil(mx*1.12/st)*st,iw=Wd-P.l-P.r,ih=Hd-P.t-P.b,bw=iw/12;
+        var yy=function(v){return P.t+ih-v/top*ih},s='<svg viewBox="0 0 '+Wd+' '+Hd+'" direction="ltr" role="img" aria-label="الدخل لكل شهر">';
+        for(var g=0;g<=top+1e-9;g+=st)s+='<line x1="'+P.l+'" x2="'+(Wd-P.r)+'" y1="'+yy(g)+'" y2="'+yy(g)+'" stroke="'+(g===0?'#D5D3E2':C.grid)+'"/><text x="'+(P.l-6)+'" y="'+(yy(g)+3.5)+'" font-size="10" fill="'+C.muted+'" text-anchor="end">'+kf(g)+'</text>';
+        rows.forEach(function(r,i){var x=P.l+i*bw+2,w=bw-4,cx=x+w/2;
+          s+='<text x="'+cx+'" y="'+(Hd-7)+'" font-size="9.5" fill="'+C.muted+'" text-anchor="middle">'+(i+1)+'</text>';
+          if(r.future||!r.T.in)return;var t0=yy(r.T.in),h=P.t+ih-t0,rr=Math.min(3,w/2,h);
+          s+='<path d="M'+x+','+(P.t+ih)+'V'+(t0+rr)+'q0,-'+rr+' '+rr+',-'+rr+'h'+(w-2*rr)+'q'+rr+',0 '+rr+','+rr+'V'+(P.t+ih)+'z" fill="'+(r.m===curMonth()?C.barSoft:C.bar)+'"/>';
+          s+='<text x="'+cx+'" y="'+(t0-4)+'" font-size="9" font-weight="'+(r===best?'700':'500')+'" fill="'+C.ink+'" text-anchor="middle">'+kf(r.T.in)+'</text>'});
+        s+='<line x1="'+P.l+'" x2="'+(Wd-P.r)+'" y1="'+yy(avg)+'" y2="'+yy(avg)+'" stroke="'+C.muted+'" stroke-dasharray="4 3" stroke-width="1.2"/>';
+        box.innerHTML=s+'</svg>'+(rows.some(function(r){return r.m===curMonth()})?'<p class="note" style="margin:6px 0 0">العمود الفاتح هو الشهر الحالي، وما خلص للحين.</p>':'')}
+      // الجدول
+      var c=function(v,k){return '<td class="num '+(k||'')+'">'+fmt(v)+'</td>'};
+      $('#yTable').innerHTML='<table class="yr-tbl"><thead><tr><th>الشهر</th><th class="num">كاش</th><th class="num">مدى</th><th class="num">فيزا</th><th class="num">الدخل</th><th class="num">العمولة</th><th class="num">المصروفات</th><th class="num">صافي المحل</th><th class="num">رواتب العمال</th><th class="num">المناديب</th><th class="num">الصافي النهائي</th></tr></thead><tbody>'+
+        rows.map(function(r){if(r.future)return '<tr class="future"><td>'+mname(r.m)+'</td><td colspan="10" class="num">—</td></tr>';
+          return '<tr><td>'+mname(r.m)+'</td>'+c(r.T.cash)+c(r.T.mada)+c(r.T.visa)+c(r.T.in,'pos')+c(r.T.fee,'neg')+c(r.T.out,'neg')+c(r.shop)+c(r.wages,'neg')+c(r.rep,'neg')+'<td class="num cur">'+fmt(r.fin)+'</td></tr>'}).join('')+
+        '</tbody><tfoot><tr><td>الإجمالي</td>'+c(sumK(function(r){return r.T.cash}))+c(sumK(function(r){return r.T.mada}))+c(sumK(function(r){return r.T.visa}))+c(tin,'pos')+c(sumK(function(r){return r.T.fee}),'neg')+c(sumK(function(r){return r.T.out}),'neg')+c(sumK(function(r){return r.shop}))+c(sumK(function(r){return r.wages}),'neg')+c(sumK(function(r){return r.rep}),'neg')+'<td class="num cur">'+fmt(sumK(function(r){return r.fin}))+'</td></tr></tfoot></table>';
+    }
+  };
+  var doPrintYear=function(){if(missing(yearOf())){toast('استنى لين تكتمل بيانات السنة');return}refresh();if(usePDF()){sharePDF('Dithar-'+yearOf());return}setTimeout(function(){window.print()},50)};
+  ACT.yearShift=function(t){UI.year=yearOf()+(+t.dataset.n);refresh()};
+  ACT.printYear=doPrintYear;
+  ACT.openYear=function(){UI.year=+UI.rFrom.slice(0,4)||yearOf();go('report',{type:'year'})};
+  var monthly=ACT.printReport;
+  ACT.printReport=async function(){
+    var r=await modal({title:'وش تبي تطبع؟',body:'<p>التقرير الشهري للفترة اللي اخترتها، أو التقرير السنوي كامل مع مقارنة الأشهر بالرسم.</p>',
+      actions:[{key:'month',label:'التقرير الشهري'},{key:'year',label:'التقرير السنوي '+(+UI.rFrom.slice(0,4)||yearOf())},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+    if(!r)return;if(r.key==='month'){monthly();return}
+    UI.year=+UI.rFrom.slice(0,4)||yearOf();go('report',{type:'year'});
+    var tries=0;(function wait(){if(missing(UI.year)&&tries++<60){setTimeout(wait,500);return}setTimeout(doPrintYear,300)})();
+  };
+})();
+</script>
+<!-- ===== نهاية التقرير السنوي ===== -->
 </body>
 </html>

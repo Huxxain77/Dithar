@@ -424,7 +424,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='9 أكتوبر - ج';
+const APP_VERSION='9 أكتوبر - د';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -835,7 +835,7 @@ branches:{
     $('#dayLabel').textContent=fmtDay(UI.date);
     $('#dayStats').innerHTML=stat('الدخل',s.in,'pos')+stat('عمولة الشبكة',s.fee,'neg')+stat('المصروف',s.out,'neg')+stat('الصافي',s.net);
     $('#dayChips').innerHTML=METHODS.map(([k,l])=>`<span class="chip">${l} <b>${fmt(s[k])}</b></span>`).join('');
-    $('#dayList').innerHTML=dayE.length?dayE.map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind}">${x.kind==='in'?ML[x.method]:'مصروف'}</span><span class="item-note">${x.kind==='out'?esc(x.note||'بدون ملاحظة'):esc(x.note||'')} ${x.src==='xlsx'?'<small>من Excel</small>':fmtTime(x.createdAt)}</span></div></div><div class="item-amt ${x.kind==='in'?'pos':'neg'}">${x.kind==='in'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delEntry" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
+    $('#dayList').innerHTML=dayE.length?dayE.map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind}">${x.kind==='in'?ML[x.method]:'مصروف'}</span><span class="item-note">${x.kind==='out'?esc(x.note||'بدون ملاحظة'):esc(x.note||'')} ${x.src==='xlsx'?'<small>من Excel</small>':x.src==='img'?'<small>من صورة</small>':fmtTime(x.createdAt)}</span></div></div><div class="item-amt ${x.kind==='in'?'pos':'neg'}">${x.kind==='in'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delEntry" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
       :'<p class="empty">ما فيه حركات لهذا اليوم. أضف أول مبلغ من فوق.</p>';
     const m=UI.date.slice(0,7);$('#monLabel').textContent=fmtMonth(m);
     const monE=ents.filter(x=>x.date.startsWith(m));
@@ -1345,6 +1345,13 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
 .xl-sum b{font-weight:600;text-align:left}
 .xl-notes{font-size:.82rem;color:var(--muted);max-height:22vh;overflow:auto;border-top:1px dashed var(--line);padding-top:8px;margin:0}
 .xl-notes li{margin-bottom:3px}
+.ocr-wrap{max-height:46vh;overflow:auto;border:1px solid var(--line);border-radius:10px;-webkit-user-select:text}
+.ocr-tbl{width:100%;min-width:0!important;border-collapse:collapse;font-size:.85rem;table-layout:fixed}.ocr-tbl th:first-child,.ocr-tbl td:first-child{width:34px;color:var(--muted)}
+.ocr-tbl th{position:sticky;top:0;background:var(--surface-2);font-weight:600;padding:6px 2px;font-size:.78rem}
+.ocr-tbl td{padding:2px;text-align:center;border-top:1px solid var(--line)}
+.ocr-tbl input{width:100%;min-width:0;height:34px;border:1px solid transparent;border-radius:7px;background:transparent;text-align:center;font-size:16px;padding:0 2px}
+.ocr-tbl input:focus{border-color:var(--focus);background:#fff}.ocr-tbl input.low{background:#FFF1C9}
+.ocr-chk{display:flex;flex-direction:column;gap:3px;font-size:.82rem;margin:0 0 8px}.ocr-chk .ok{color:#2B7A57}.ocr-chk .bad{color:#B5443A;font-weight:600}
 .xl-warn{font-size:.82rem;color:#8A5A00;background:#FFF4DC;border-radius:9px;padding:8px 10px;margin:0 0 10px}
 </style>
 <script>
@@ -1353,7 +1360,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
   var XLSX_URL='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
   var B=VIEWS.branches,h0=B.html;
   B.html=function(){return h0().replace('<p class="sub">دخل ومصروف المحل، يوم بيوم</p></div></div>',
-    '<p class="sub">دخل ومصروف المحل، يوم بيوم</p></div><button class="btn ghost xl-btn no-print" data-act="xlImport">+ استيراد Excel</button></div>')};
+    '<p class="sub">دخل ومصروف المحل، يوم بيوم</p></div><button class="btn ghost xl-btn no-print" data-act="xlImport">+ استيراد Excel أو صورة</button></div>')};
 
   var norm=function(s){return String(s==null?'':s).replace(/[\s‏‎]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه')};
   var COLS_MAP={date:['التاريخ','تاريخ','اليوم'],mada:['مدى','مدي'],visa:['فيزا','visa'],cash:['كاش','نقد','نقدي'],out:['مصروفات','مصروف','المصروفات'],note:['ملاحظات','ملاحظه','الملاحظات']};
@@ -1388,11 +1395,88 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
   var monthName=function(key){return parseD(key+'-01').toLocaleDateString(LOC,{month:'long',year:'numeric'})};
 
   function pickFile(){return new Promise(function(res){var i=document.createElement('input');i.type='file';
-    i.accept='.xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel';
+    i.accept='.xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,image/*';
     i.onchange=function(){res(i.files&&i.files[0]||null)};i.click()})}
 
+  /* ===== قراءة صورة جدول (نفس ترتيب ملف Excel: التاريخ، مدى، فيزا، كاش، مصروفات، سحبيات، المتبقي) ===== */
+  var TESS_URL='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+  function loadImg(f){return new Promise(function(res,rej){var u=URL.createObjectURL(f),im=new Image();im.onload=function(){res(im)};im.onerror=rej;im.src=u})}
+  function lineGroups(prof,min){var out=[],s=-1;for(var i=0;i<=prof.length;i++){var on=i<prof.length&&prof[i]>=min;if(on&&s<0)s=i;if(!on&&s>=0){out.push(Math.round((s+i-1)/2));s=-1}}return out}
+  function otsu(px){var h=new Array(256).fill(0);for(var i=0;i<px.length;i++)h[px[i]]++;var tot=px.length,sum=0;for(var t=0;t<256;t++)sum+=t*h[t];
+    var sB=0,wB=0,best=0,th=128;for(t=0;t<256;t++){wB+=h[t];if(!wB)continue;var wF=tot-wB;if(!wF)break;sB+=t*h[t];var mB=sB/wB,mF=(sum-sB)/wF,v=wB*wF*(mB-mF)*(mB-mF);if(v>best){best=v;th=t}}return th}
+  async function imageMonths(f){
+    var im;try{im=await loadImg(f)}catch(e){toast('ما قدرت أفتح الصورة');return null}
+    var sc=Math.min(1,2600/Math.max(im.naturalWidth,im.naturalHeight)),W=Math.round(im.naturalWidth*sc),H=Math.round(im.naturalHeight*sc);
+    var cv=document.createElement('canvas');cv.width=W;cv.height=H;var cx=cv.getContext('2d',{willReadFrequently:true});cx.fillStyle='#fff';cx.fillRect(0,0,W,H);cx.drawImage(im,0,0,W,H);
+    var d=cx.getImageData(0,0,W,H).data,g=new Uint8Array(W*H);for(var i=0;i<W*H;i++)g[i]=(d[i*4]*299+d[i*4+1]*587+d[i*4+2]*114)/1000;
+    // خطوط الجدول: أطول خط غامق متصل في كل عمود وكل صف
+    var DK=120,vr=new Array(W).fill(0),hr=new Array(H).fill(0),run;
+    for(var x=0;x<W;x++){run=0;for(var y=0;y<H;y++){if(g[y*W+x]<DK){run++;if(run>vr[x])vr[x]=run}else run=0}}
+    for(y=0;y<H;y++){run=0;for(x=0;x<W;x++){if(g[y*W+x]<DK){run++;if(run>hr[y])hr[y]=run}else run=0}}
+    var V=lineGroups(vr,H*.35),Hh=lineGroups(hr,W*.35);
+    if(V.length<5||Hh.length<6){toast('ما قدرت ألقى خطوط الجدول في الصورة. صوّر الجدول كامل وواضح');return null}
+    toast('جارٍ تجهيز قارئ الصور…');
+    try{await loadScript(TESS_URL)}catch(e){toast('قارئ الصور يحتاج نت أول مرة');return null}
+    var worker;try{worker=await Tesseract.createWorker('eng');await worker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789/.,-'})}
+    catch(e){toast('ما قدرت أشغّل قارئ الصور، تأكد من النت');return null}
+    var nc=V.length-1,nr=Hh.length-1,cells=[],done=0,todo=[];
+    for(var r=0;r<nr;r++){cells.push([]);for(var c=0;c<nc;c++){var x0=V[c]+3,x1=V[c+1]-2,y0=Hh[r]+3,y1=Hh[r+1]-2,ink=0;
+      if(x1-x0<6||y1-y0<6){cells[r].push(null);continue}
+      for(y=y0;y<y1;y++)for(x=x0;x<x1;x++)if(g[y*W+x]<140)ink++;
+      cells[r].push(ink>=6?{x0:x0,x1:x1,y0:y0,y1:y1}:null);if(ink>=6)todo.push([r,c])}}
+    var prog=function(){var t=$('#toast');t.classList.remove('undo');t.textContent='جارٍ قراءة الصورة… '+Math.round(done/todo.length*100)+'%';t.classList.add('show');clearTimeout(toastT)};
+    prog();
+    var cc=document.createElement('canvas'),k=3;
+    var ocrBox=async function(b){var w=b.x1-b.x0,h=b.y1-b.y0,pad=15;
+      cc.width=w*k+pad*2;cc.height=h*k+pad*2;var q=cc.getContext('2d',{willReadFrequently:true});q.fillStyle='#fff';q.fillRect(0,0,cc.width,cc.height);
+      q.imageSmoothingQuality='high';q.drawImage(cv,b.x0,b.y0,w,h,pad,pad,w*k,h*k);
+      var id=q.getImageData(0,0,cc.width,cc.height),gg=new Uint8Array(cc.width*cc.height);for(var i=0;i<gg.length;i++)gg[i]=(id.data[i*4]*299+id.data[i*4+1]*587+id.data[i*4+2]*114)/1000;
+      var th=otsu(gg);for(i=0;i<gg.length;i++){var v=gg[i]>th?255:0;id.data[i*4]=id.data[i*4+1]=id.data[i*4+2]=v}q.putImageData(id,0,0);
+      try{var res=await worker.recognize(cc);b.text=String(res.data.text||'').trim();b.conf=res.data.confidence}catch(e){b.text='';b.conf=0}};
+    for(var n=0;n<todo.length;n++){var rc=todo[n],b=cells[rc[0]][rc[1]];await ocrBox(b);done++;if(n%4===0)prog()}
+    $('#toast').classList.remove('show');
+    // عمود التاريخ: أكثر عمود فيه تواريخ
+    var isDate=function(s){return /^\d{1,2}\s*[\/\-.]\s*\d{1,2}/.test(s||'')};
+    var dcol=-1,best=0;for(c=0;c<nc;c++){var cnt=0;for(r=0;r<nr;r++)if(cells[r][c]&&isDate(cells[r][c].text))cnt++;if(cnt>best){best=cnt;dcol=c}}
+    if(best<1||(dcol!==0&&dcol!==nc-1)){toast('ما لقيت عمود التاريخ في طرف الجدول');return null}
+    var dir=dcol===0?1:-1,colOf=function(i){return dcol+dir*i};   // 1 مدى، 2 فيزا، 3 كاش، 4 مصروفات
+    var numOf=function(cell){if(!cell||!cell.text)return'';var t=cell.text.replace(/,/g,'');var m=t.match(/\d+(\.\d+)?/);return m?m[0]:''};
+    // الشهر والسنة: الأكثر تكرار
+    var cntM={},rows=[];
+    for(r=0;r<nr;r++){var dc=cells[r][dcol];if(!dc||!isDate(dc.text))continue;var p=dc.text.match(/\d+/g)||[];rows.push(r);
+      var mm=+p[1],yy=p[2]?+p[2]:0;if(mm>12&&String(p[1]).length>2)mm=+String(p[1]).slice(0,1);if(yy>0&&yy<100)yy+=2000;var key=(yy||new Date().getFullYear())+'-'+p2(mm);if(mm>=1&&mm<=12)cntM[key]=(cntM[key]||0)+1}
+    var key0=Object.keys(cntM).sort(function(a,b){return cntM[b]-cntM[a]})[0];if(!key0){toast('ما قدرت أقرأ التواريخ');return null}
+    var lastDay=new Date(+key0.slice(0,4),+key0.slice(5),0).getDate(),prev=0;
+    var data=rows.map(function(r){var p=(cells[r][dcol].text.match(/\d+/g)||[]),day=+p[0];if(!(day>=1&&day<=lastDay)||day<=prev)day=prev+1;prev=day;
+      var o={day:day,low:{}};['','mada','visa','cash','out'].forEach(function(k,i){if(!i)return;var cl=cells[r][colOf(i)];o[k]=numOf(cl);if(cl&&cl.text&&cl.conf<75)o.low[k]=1});return o});
+    // صف المجموع: أول صف بعد آخر تاريخ فيه أرقام
+    var tot=null,lastR=rows[rows.length-1],tr=-1;for(r=lastR+1;r<nr&&!tot;r++){var a=numOf(cells[r][colOf(1)]),bb=numOf(cells[r][colOf(2)]);if(a||bb){tr=r;tot={mada:a,visa:bb,cash:numOf(cells[r][colOf(3)]),out:numOf(cells[r][colOf(4)])}}}
+    if(tot){var KS=['','mada','visa','cash','out'];for(var i2=1;i2<=4;i2++){var kk=KS[i2],sm=String(Math.round(data.reduce(function(t,o){return t+(+o[kk]||0)},0)));
+      if((tot[kk]||'').split('.')[0].length<sm.length-1&&tr+1<nr){var cA=colOf(i2),bx={x0:V[cA]+3,x1:V[cA+1]-2,y0:Hh[tr]+3,y1:Hh[tr+2]-2};await ocrBox(bx);tot[kk]=numOf(bx)}}}   // خلية مدموجة على صفين
+    try{await worker.terminate()}catch(e){}
+    return await reviewImage(key0,data,tot);
+  }
+  async function reviewImage(key,data,tot){
+    var sumOf=function(k){return data.reduce(function(t,o){return t+(+o[k]||0)},0)};
+    var chk=function(k,lab){if(!tot||!tot[k])return '';var ok=Math.abs(sumOf(k)-(+tot[k]))<0.01;
+      return '<span class="'+(ok?'ok':'bad')+'">'+lab+' '+(ok?'✓ يطابق المجموع':'⚠ مجموعها '+fmt(sumOf(k))+' والصورة '+fmt(+tot[k]))+'</span>'};
+    var body='<p>قريت '+data.length+' يوم من '+esc(monthName(key))+'. راجع الأرقام وصحح أي غلط قبل الاستيراد. الخانات الصفراء غير متأكد منها.</p>'+
+      (tot?'<div class="ocr-chk">'+chk('mada','مدى')+chk('visa','فيزا')+chk('cash','كاش')+chk('out','مصروفات')+'</div>':'')+
+      '<div class="ocr-wrap"><table class="ocr-tbl"><thead><tr><th>اليوم</th><th>مدى</th><th>فيزا</th><th>كاش</th><th>مصروف</th></tr></thead><tbody>'+
+      data.map(function(o,i){return '<tr><td>'+o.day+'</td>'+['mada','visa','cash','out'].map(function(k){return '<td><input name="r'+i+'_'+k+'" value="'+o[k]+'" size="4" inputmode="decimal" dir="ltr"'+(o.low[k]?' class="low"':'')+'></td>'}).join('')+'</tr>'}).join('')+
+      '</tbody></table></div><p style="font-size:.8rem;color:var(--muted);margin:8px 0 0">السحبيات والرواتب ما تنستورد، والصورة ما فيها ملاحظات الخلايا.</p>';
+    setTimeout(function(){var a=document.activeElement;if(a&&a.closest&&a.closest('.ocr-tbl'))a.blur()},30);
+    var r=await modal({title:'مراجعة الأرقام من الصورة',body:body,actions:[{key:'ok',label:'التالي'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+    if(!r)return null;
+    var days=[];data.forEach(function(o,i){var date=key+'-'+p2(o.day),items=[];
+      [['mada','mada'],['visa','visa'],['cash','cash']].forEach(function(k){var a=num(r.values['r'+i+'_'+k[0]]);if(a>0)items.push({branchId:BID,kind:'in',amount:Math.round(a*100)/100,method:k[1],date:date,src:'img'})});
+      var e=num(r.values['r'+i+'_out']);if(e>0)items.push({branchId:BID,kind:'out',amount:Math.round(e*100)/100,note:'',date:date,src:'img'});
+      if(items.length)days.push({date:date,items:items})});
+    return[{key:key,days:days}];
+  }
   async function runImport(){
     var f=await pickFile();if(!f)return;
+    if(/^image\//.test(f.type)||/\.(png|jpe?g|heic|heif|webp)$/i.test(f.name)){var im=await imageMonths(f);if(im&&im[0].days.length)await commitMonths(im);else if(im)toast('ما فيه أرقام للاستيراد');return}
     toast('جارٍ قراءة الملف…');
     var months;
     try{await loadScript(XLSX_URL);
@@ -1400,6 +1484,9 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
       months=wb.SheetNames.map(function(n){return readSheet(n,wb.Sheets[n])}).filter(function(m){return m&&m.days.length});
     }catch(e){toast('ما قدرت أقرأ الملف، تأكد إنه ملف Excel وإن النت شغال أول مرة');return}
     if(!months.length){toast('ما لقيت في الملف أعمدة التاريخ ومدى وفيزا وكاش');return}
+    await commitMonths(months);
+  }
+  async function commitMonths(months){
     $('#toast').classList.remove('show');
     // الشهر
     var sel=months;
@@ -1424,7 +1511,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
       '<div class="xl-sum"><span>مدى</span><b>'+fmt(t.mada)+'</b><span>فيزا</span><b>'+fmt(t.visa)+'</b><span>كاش</span><b>'+fmt(t.cash)+'</b><span>المصروفات</span><b>'+fmt(t.out)+'</b></div>'+
       (notes.length?'<p style="margin:0 0 4px"><b>'+notes.length+'</b> ملاحظة انقرت من الملف:</p><ul class="xl-notes">'+notes.map(function(n){return '<li>'+n+'</li>'}).join('')+'</ul>':'')+
       '<p style="font-size:.8rem;color:var(--muted);margin:10px 0 0">عمود السحبيات والرواتب ما ينستورد.</p>';
-    var ok=await modal({title:'استيراد من Excel',body:body,actions:[{key:'ok',label:'استيراد '+add.length+' حركة'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+    var ok=await modal({title:'تأكيد الاستيراد',body:body,actions:[{key:'ok',label:'استيراد '+add.length+' حركة'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
     if(!ok)return;
     var ids=[];
     var done=await safe(async function(){for(var i=0;i<add.length;i++){var id=await store.add('entries',add[i]);if(id)ids.push(id)}});

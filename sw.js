@@ -1,5 +1,5 @@
 // يفتح التطبيق فورًا من النسخة المحفوظة، ويجيب التحديثات بالخلفية
-const CACHE='hesabat-dithar-v4';
+const CACHE='hesabat-dithar-v5';
 const FB='https://www.gstatic.com/firebasejs/10.12.2/';
 const PRECACHE=['./',FB+'firebase-app.js',FB+'firebase-auth.js',FB+'firebase-firestore.js'];
 
@@ -41,5 +41,7 @@ self.addEventListener('fetch',e=>{
   const url=new URL(req.url);
   if(req.mode==='navigate'&&url.origin===location.origin){e.respondWith(appPage(e));return}
   if(url.hostname==='www.gstatic.com'||url.hostname==='fonts.gstatic.com'||url.hostname==='cdnjs.cloudflare.com'){e.respondWith(cacheFirst(req));return}
+  // ملف الإعدادات والأيقونات وصور الانطلاق: من النت أول (عشان التثبيت ياخذ أحدث نسخة)، وبدون نت من الجهاز
+  if(url.origin===location.origin&&/(\.webmanifest|icon[^/]*\.png|launch-[^/]*\.png)$/.test(url.pathname)){e.respondWith(fetch(req.url,{cache:'no-cache'}).then(res=>put(req,res)).catch(()=>caches.match(req)));return}
   if(url.hostname==='fonts.googleapis.com'||url.origin===location.origin){e.respondWith(staleRevalidate(req));return}
 });

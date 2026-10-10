@@ -427,7 +427,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='10 أكتوبر - ج';
+const APP_VERSION='10 أكتوبر - د';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1195,8 +1195,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
     var net=T.in-T.fee-T.out-wages-repPaid;
     var row=function(label,hint,v,cls){return '<div class="sum-row '+(cls||'')+'"><span>'+label+(hint?'<span class="hint">'+hint+'</span>':'')+'</span><b>'+(cls==='minus'?'− ':'')+fmt(v)+' <small>ر.س</small></b></div>'};
     box.innerHTML=
-      row('إجمالي دخل المحل','كاش + مدى + فيزا',T.in)+
-      row('عمولة الشبكة','مدى 0.8٪ + فيزا 2.5٪',T.fee,'minus')+
+      row('دخل المحل بعد العمولة','كاش + مدى + فيزا ('+fmt(T.in)+') بعد خصم عمولة الشبكة '+fmt(T.fee),T.in-T.fee)+
       row('مصروفات المحل','',T.out,'minus')+
       row('رواتب العمال','الراتب كامل قبل خصم السلف',wages,'minus')+
       row('المدفوع للمناديب','اللي سددته لهم في الفترة',repPaid,'minus')+

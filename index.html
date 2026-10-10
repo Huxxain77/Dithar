@@ -427,7 +427,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='10 أكتوبر - د';
+const APP_VERSION='10 أكتوبر - هـ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1301,11 +1301,11 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
     else{
       var cd=days(a,end),pe=prevMonthDay(end),pd=days(pa,pe);
       var pents=S.entries.filter(function(x){return x.kind==='in'&&inRange(x.date,pa,pe)});
-      var cum=function(list,ds){var c=0;return ds.map(function(d){c+=sumEntries(list.filter(function(x){return x.date===d})).in;return c})};   // الدخل بس، بدون المصروفات
+      var cum=function(list,ds){var c=0;return ds.map(function(d){var t=sumEntries(list.filter(function(x){return x.date===d}));c+=t.in-t.fee;return c})};   // الدخل بعد العمولة، بدون المصروفات
       var cs=cum(ents,cd),ps=cum(pents,pd),n=Math.max(cs.length,ps.length);
       var oneMonth=a.slice(0,7)===b.slice(0,7);
       var curL=oneMonth?parseD(a).toLocaleDateString(LOC,{month:'long'}):'هذي الفترة',prvL=oneMonth?parseD(pa).toLocaleDateString(LOC,{month:'long'}):'الفترة اللي قبلها';
-      note.textContent='الدخل المتراكم (كاش + مدى + فيزا) من '+fmtShort(a)+' لين '+fmtShort(end)+'، مقابل نفس الأيام من الشهر اللي قبل';
+      note.textContent='الدخل المتراكم بعد العمولة (كاش + مدى + فيزا) من '+fmtShort(a)+' لين '+fmtShort(end)+'، مقابل نفس الأيام من الشهر اللي قبل';
       var cl=cs[cs.length-1]||0,pl=ps[ps.length-1]||0,diff=cl-pl;
       var oldMissing=store.root&&typeof LOADED!=='undefined'&&typeof CUTOFF_M!=='undefined'&&pa.slice(0,7)<CUTOFF_M&&LOADED[pa.slice(0,7)]!==true;
       if(oldMissing){hero.innerHTML='<span class="d">جارٍ جلب بيانات الشهر الماضي…</span>'}
@@ -1559,7 +1559,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
     var T=sumEntries(S.entries.filter(function(x){return inRange(x.date,a,e)}));
     var wages=0;S.workers.forEach(function(w){wages+=workerTotals(w.id,a,e).salary});
     var rep=0;S.reps.forEach(function(r){rep+=repTotals(r.id,a,e).paid});
-    return{m:m,T:T,wages:wages,rep:rep,shop:T.in-T.fee-T.out,fin:T.in-T.fee-T.out-wages-rep}}
+    return{m:m,T:T,inNet:T.in-T.fee,wages:wages,rep:rep,shop:T.in-T.fee-T.out,fin:T.in-T.fee-T.out-wages-rep}}
 
   VIEWS.year={
     html:function(){return '<div class="detail-top no-print"><button class="back" data-act="back">'+svg('prev')+'التقرير الشهري</button></div>'+
@@ -1567,31 +1567,31 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
       '<div class="page-head"><div><h1>التقرير السنوي</h1><p class="sub" id="ySub"></p></div><button class="btn no-print" data-act="printYear">طباعة / حفظ PDF</button></div>'+
       '<div class="yr-bar no-print"><button class="icon-btn" data-act="yearShift" data-n="-1" aria-label="السنة السابقة">'+svg('prev')+'</button><strong id="yLabel"></strong><button class="icon-btn" data-act="yearShift" data-n="1" aria-label="السنة التالية">'+svg('next')+'</button></div>'+
       '<div class="yr-stats" id="yStats"></div>'+
-      '<h2 class="section-title">مقارنة الأشهر</h2><section class="charts"><div class="chart-card"><h3>الدخل لكل شهر</h3><p class="note">كاش + مدى + فيزا، بدون خصم المصروفات</p><div class="chart-box" id="yChart"></div>'+
+      '<h2 class="section-title">مقارنة الأشهر</h2><section class="charts"><div class="chart-card"><h3>الدخل لكل شهر</h3><p class="note">كاش + مدى + فيزا بعد خصم العمولة، بدون المصروفات</p><div class="chart-box" id="yChart"></div>'+
       '<div class="chart-legend"><span><i style="background:'+C.bar+'"></i>دخل الشهر</span><span><i class="ln" style="border-color:'+C.muted+';border-top-style:dashed"></i>متوسط الأشهر</span></div></div></section>'+
       '<h2 class="section-title pdf-newpage">تفاصيل كل شهر</h2><section class="panel"><div class="tbl-wrap" id="yTable">'+loading+'</div></section>'},
     update:function(){
       var y=yearOf();$('#yLabel').textContent=y;$('#ySub').textContent='يناير – ديسمبر '+y;
       var pp=$('#yPeriod');if(pp)pp.innerHTML='<span>السنة: '+y+'</span><span>تاريخ الطباعة: '+fmtDay(today())+'</span>';
       if(missing(y)){$('#yTable').innerHTML='<p class="empty">جارٍ جلب بيانات الأشهر القديمة…</p>';$('#yChart').innerHTML='';$('#yStats').innerHTML='';return}
-      var rows=monthsOfYear(y).map(rowFor),hasIn=rows.filter(function(r){return !r.future&&r.T.in>0}),full=hasIn.filter(function(r){return r.m<curMonth()}),done=full.length?full:hasIn;   // الشهر الحالي ما يدخل في المتوسط وأعلى/أقل شهر لأنه ما خلص
+      var rows=monthsOfYear(y).map(rowFor),hasIn=rows.filter(function(r){return !r.future&&r.inNet>0}),full=hasIn.filter(function(r){return r.m<curMonth()}),done=full.length?full:hasIn;   // الشهر الحالي ما يدخل في المتوسط وأعلى/أقل شهر لأنه ما خلص
       var sumK=function(f){return rows.reduce(function(t,r){return t+(r.future?0:f(r))},0)};
-      var tin=sumK(function(r){return r.T.in}),avg=done.length?tin/done.length:0;
-      var best=done.slice().sort(function(a,b){return b.T.in-a.T.in})[0],worst=done.slice().sort(function(a,b){return a.T.in-b.T.in})[0];
+      var tin=sumK(function(r){return r.inNet}),avg=done.length?tin/done.length:0;
+      var best=done.slice().sort(function(a,b){return b.inNet-a.inNet})[0],worst=done.slice().sort(function(a,b){return a.inNet-b.inNet})[0];
       var mname=function(m){return parseD(m+'-01').toLocaleDateString(LOC,{month:'long'})};
-      $('#yStats').innerHTML='<div><span>دخل السنة</span><b>'+fmt(tin)+'</b> <small>ر.س</small></div><div><span>متوسط الشهر</span><b>'+fmt(Math.round(avg))+'</b> <small>ر.س</small></div>'+
-        '<div><span>أعلى شهر</span><b>'+(best?mname(best.m):'—')+'</b>'+(best?' <small>'+fmt(best.T.in)+'</small>':'')+'</div><div><span>أقل شهر</span><b>'+(worst?mname(worst.m):'—')+'</b>'+(worst?' <small>'+fmt(worst.T.in)+'</small>':'')+'</div>';
+      $('#yStats').innerHTML='<div><span>دخل السنة بعد العمولة</span><b>'+fmt(tin)+'</b> <small>ر.س</small></div><div><span>متوسط الشهر</span><b>'+fmt(Math.round(avg))+'</b> <small>ر.س</small></div>'+
+        '<div><span>أعلى شهر</span><b>'+(best?mname(best.m):'—')+'</b>'+(best?' <small>'+fmt(best.inNet)+'</small>':'')+'</div><div><span>أقل شهر</span><b>'+(worst?mname(worst.m):'—')+'</b>'+(worst?' <small>'+fmt(worst.inNet)+'</small>':'')+'</div>';
       // الرسم: عمود لكل شهر مع الرقم فوقه
       var box=$('#yChart');
       if(!hasIn.length)box.innerHTML='<p class="chart-empty">ما فيه دخل مسجل في '+y+'.</p>';
-      else{var mx=Math.max.apply(null,hasIn.map(function(r){return r.T.in})),st=step(mx),top=Math.ceil(mx*1.12/st)*st,iw=Wd-P.l-P.r,ih=Hd-P.t-P.b,bw=iw/12;
+      else{var mx=Math.max.apply(null,hasIn.map(function(r){return r.inNet})),st=step(mx),top=Math.ceil(mx*1.12/st)*st,iw=Wd-P.l-P.r,ih=Hd-P.t-P.b,bw=iw/12;
         var yy=function(v){return P.t+ih-v/top*ih},s='<svg viewBox="0 0 '+Wd+' '+Hd+'" direction="ltr" role="img" aria-label="الدخل لكل شهر">';
         for(var g=0;g<=top+1e-9;g+=st)s+='<line x1="'+P.l+'" x2="'+(Wd-P.r)+'" y1="'+yy(g)+'" y2="'+yy(g)+'" stroke="'+(g===0?'#D5D3E2':C.grid)+'"/><text x="'+(P.l-6)+'" y="'+(yy(g)+3.5)+'" font-size="10" fill="'+C.muted+'" text-anchor="end">'+kf(g)+'</text>';
         rows.forEach(function(r,i){var x=P.l+i*bw+2,w=bw-4,cx=x+w/2;
           s+='<text x="'+cx+'" y="'+(Hd-7)+'" font-size="9.5" fill="'+C.muted+'" text-anchor="middle">'+(i+1)+'</text>';
-          if(r.future||!r.T.in)return;var t0=yy(r.T.in),h=P.t+ih-t0,rr=Math.min(3,w/2,h);
+          if(r.future||!r.inNet)return;var t0=yy(r.inNet),h=P.t+ih-t0,rr=Math.min(3,w/2,h);
           s+='<path d="M'+x+','+(P.t+ih)+'V'+(t0+rr)+'q0,-'+rr+' '+rr+',-'+rr+'h'+(w-2*rr)+'q'+rr+',0 '+rr+','+rr+'V'+(P.t+ih)+'z" fill="'+(r.m===curMonth()?C.barSoft:C.bar)+'"/>';
-          s+='<text x="'+cx+'" y="'+(t0-4)+'" font-size="9" font-weight="'+(r===best?'700':'500')+'" fill="'+C.ink+'" text-anchor="middle">'+kf(r.T.in)+'</text>'});
+          s+='<text x="'+cx+'" y="'+(t0-4)+'" font-size="9" font-weight="'+(r===best?'700':'500')+'" fill="'+C.ink+'" text-anchor="middle">'+kf(r.inNet)+'</text>'});
         s+='<line x1="'+P.l+'" x2="'+(Wd-P.r)+'" y1="'+yy(avg)+'" y2="'+yy(avg)+'" stroke="'+C.muted+'" stroke-dasharray="4 3" stroke-width="1.2"/>';
         box.innerHTML=s+'</svg>'+(rows.some(function(r){return r.m===curMonth()})?'<p class="note" style="margin:6px 0 0">العمود الفاتح هو الشهر الحالي، وما خلص للحين.</p>':'')}
       // الجدول

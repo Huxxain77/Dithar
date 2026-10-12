@@ -360,6 +360,8 @@ tr.sel td{background:var(--brass-soft)}
 .row-val strong.neg{color:var(--neg)}.row-val strong.pos{color:var(--pos)}.row-val strong.muted{color:var(--muted);font-weight:500}
 .cust-search input{width:100%}
 .warn-box{background:var(--neg-soft);color:var(--neg);border-radius:12px;padding:10px 14px;margin:0 0 12px;font-size:.9rem}
+.dialog{max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.scrim.kb{align-items:flex-end;padding-bottom:10px}
 </style>
 </head>
 <body>
@@ -446,7 +448,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='12 أكتوبر - أ';
+const APP_VERSION='12 أكتوبر - ب';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1093,6 +1095,16 @@ async function editCustomer(id){const c=S.customers.find(x=>x.id===id);if(!c)ret
   if(name===c.name&&phone===(c.phone||''))return;
   if(await safe(()=>store.update('customers',id,{name,phone})))toast('تم حفظ التعديل')}
 
+/* الكيبورد في الآيفون يغطي النافذة: نخلي النافذة تقعد فوق الكيبورد دايم */
+(function(){const vv=window.visualViewport;if(!vv)return;
+  const fit=()=>{const sc=document.querySelector('#modal-root .scrim');if(!sc)return;
+    const kb=innerHeight-vv.height>80;
+    sc.style.top=kb?vv.offsetTop+'px':'';sc.style.height=kb?vv.height+'px':'';sc.style.bottom=kb?'auto':'';sc.classList.toggle('kb',kb);
+    const a=document.activeElement;if(kb&&a&&sc.contains(a))a.scrollIntoView({block:'nearest'})};
+  vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit);
+  document.addEventListener('focusin',()=>setTimeout(fit,60));
+  new MutationObserver(fit).observe(document.getElementById('modal-root'),{childList:true});
+})();
 /* ---------- actions ---------- */
 async function addEntity(col,label,withPrice){
   const r=await modal({title:`إضافة ${label}`,body:`<label class="field"><span>اسم ${label}</span><input type="text" name="name"></label>${withPrice?'<label class="field"><span>الراتب الشهري (ر.س)</span><input type="text" name="price" inputmode="decimal"></label>':''}`,

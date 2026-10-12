@@ -42,6 +42,7 @@
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js">
+<link rel="preload" as="font" type="font/woff" href="readex-input.woff" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
@@ -363,7 +364,10 @@ tr.sel td{background:var(--brass-soft)}
 .dialog{max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .scrim.kb{align-items:flex-end;padding-bottom:10px}
 /* الحروف اللي لها ذيل تحت (ح خ ج ي) كانت تنقص من تحت في الآيفون */
-input[type=text],input[type=password],input[type=email],input[type=tel],input[type=search]{line-height:34px;padding-top:5px;padding-bottom:5px;-webkit-appearance:none;appearance:none;overflow:visible}
+@font-face{font-family:"Readex Input";src:url(readex-input.woff) format("woff");font-weight:100 900;font-display:swap}
+/* نفس خط Readex بس بمقاسات أعمق تحت، عشان الآيفون ما يقص ذيل ح خ ج ي داخل الخانات */
+input,textarea,select{font-family:"Readex Input","Readex Pro","IBM Plex Sans Arabic",Tahoma,sans-serif}
+input[type=text],input[type=password],input[type=email],input[type=tel],input[type=search]{line-height:normal;padding-top:0;padding-bottom:0;-webkit-appearance:none;appearance:none}
 </style>
 </head>
 <body>
@@ -450,7 +454,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='12 أكتوبر - د';
+const APP_VERSION='12 أكتوبر - هـ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1249,9 +1253,12 @@ const ACT={
     if(await safe(()=>store.add('custTx',{custId:UI.detail.id,kind:'pay',amount:a,note:$('#cpayNote').value.trim(),date:$('#cpayDate').value||today()}))){$('#cpayAmt').value='';$('#cpayNote').value='';toast('تم تسجيل التسديد')}},
   custPayAll:()=>{const b=custTotals(UI.detail.id).bal;if(!(b>0)){toast('ما عليه شي');return}const el=$('#cpayAmt');el.value=String(Math.round(b*100)/100);el.focus()},
   custWA:()=>{const c=S.customers.find(x=>x.id===UI.detail.id);if(!c)return;const t=custTotals(c.id);
-    const lines=t.tx.filter(x=>x.kind==='debt').slice(-5).map(x=>{const its=x.items&&x.items.length?x.items:[{d:x.note||'بضاعة',p:x.amount}];
-      return '• '+fmtShort(x.date)+(its.length>1?' (المجموع '+fmt(x.amount)+' ر.س)':'')+':\n'+its.map(i=>'   - '+(i.d||'بضاعة')+': '+fmt(i.p)+' ر.س').join('\n')});
-    const msg='السلام عليكم '+c.name+'،\nمعك دثار للأقمشة. '+(t.bal>0?'المتبقي عليك: '+fmt(t.bal)+' ر.س'+(lines.length?'\n\nآخر المشتريات:\n'+lines.join('\n\n'):''):'حسابك خالص، شكرًا لك.');
+    const tx=t.tx.slice(-12),its=x=>x.items&&x.items.length?x.items:[{d:x.note||'بضاعة',p:x.amount}];
+    const lines=tx.map(x=>x.kind==='debt'
+      ?'• '+fmtShort(x.date)+': مشتريات بـ '+fmt(x.amount)+' ر.س\n'+its(x).map(i=>'   - '+(i.d||'بضاعة')+': '+fmt(i.p)+' ر.س').join('\n')
+      :'• '+fmtShort(x.date)+': دفعت '+fmt(x.amount)+' ر.س'+(x.note?' ('+x.note+')':''));
+    const msg='السلام عليكم '+c.name+'،\nمعك دثار للأقمشة، هذا كشف حسابك'+(t.tx.length>tx.length?' (آخر '+tx.length+' حركة)':'')+':\n\n'+lines.join('\n\n')
+      +'\n\nإجمالي المشتريات: '+fmt(t.debt)+' ر.س\nالمدفوع: '+fmt(t.paid)+' ر.س\n'+(t.bal>0.004?'المتبقي عليك: '+fmt(t.bal)+' ر.س':t.bal<-0.004?'لك عندنا: '+fmt(-t.bal)+' ر.س':'حسابك خالص، شكرًا لك.');
     window.open('https://wa.me/'+waNum(c.phone)+'?text='+encodeURIComponent(msg),'_blank')},
   delCustTx:t=>delRow('custTx',t.dataset.id,'حذف هذه الحركة؟'),
   async setSalary(){const w=S.workers.find(x=>x.id===UI.detail.id);if(!w)return;const m0=UI.wMonth||curMonth(),fm=wFirstMonth(w);

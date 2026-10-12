@@ -152,7 +152,7 @@ main{max-width:1180px;margin:0 auto;padding:22px max(16px,env(safe-area-inset-ri
 @media (min-width:640px){.grid2{grid-template-columns:1fr 1fr}}
 .field{display:block;margin-bottom:10px}
 .field>span{display:block;font-size:.82rem;color:var(--muted);margin-bottom:5px}
-input[type=text],input[type=password],input[type=email],input[type=date],input[type=month]{width:100%;height:46px;border:1px solid var(--line);background:var(--surface-2);border-radius:11px;padding:0 12px;font-size:16px;min-width:0}
+input[type=text],input[type=password],input[type=email],input[type=tel],input[type=search],input[type=date],input[type=month]{width:100%;height:46px;border:1px solid var(--line);background:var(--surface-2);border-radius:11px;padding:0 12px;font-size:16px;min-width:0}
 /* آيفون: حقول التاريخ لها عرض داخلي يطلعها برا الشاشة */
 input[type=date],input[type=month]{-webkit-appearance:none;appearance:none;display:block;max-width:100%;line-height:44px}
 input[type=date]::-webkit-date-and-time-value,input[type=month]::-webkit-date-and-time-value{text-align:center;margin:0;min-width:0}
@@ -362,6 +362,8 @@ tr.sel td{background:var(--brass-soft)}
 .warn-box{background:var(--neg-soft);color:var(--neg);border-radius:12px;padding:10px 14px;margin:0 0 12px;font-size:.9rem}
 .dialog{max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .scrim.kb{align-items:flex-end;padding-bottom:10px}
+/* الحروف اللي لها ذيل تحت (ح خ ج ي) كانت تنقص من تحت في الآيفون */
+input[type=text],input[type=password],input[type=email],input[type=tel],input[type=search]{line-height:normal;padding-top:0;padding-bottom:0;-webkit-appearance:none;appearance:none}
 </style>
 </head>
 <body>
@@ -448,7 +450,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='12 أكتوبر - ب';
+const APP_VERSION='12 أكتوبر - ج';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1247,8 +1249,9 @@ const ACT={
     if(await safe(()=>store.add('custTx',{custId:UI.detail.id,kind:'pay',amount:a,note:$('#cpayNote').value.trim(),date:$('#cpayDate').value||today()}))){$('#cpayAmt').value='';$('#cpayNote').value='';toast('تم تسجيل التسديد')}},
   custPayAll:()=>{const b=custTotals(UI.detail.id).bal;if(!(b>0)){toast('ما عليه شي');return}const el=$('#cpayAmt');el.value=String(Math.round(b*100)/100);el.focus()},
   custWA:()=>{const c=S.customers.find(x=>x.id===UI.detail.id);if(!c)return;const t=custTotals(c.id);
-    const lines=t.tx.filter(x=>x.kind==='debt').slice(-5).map(x=>'• '+fmtShort(x.date)+': '+(x.items&&x.items.length?x.items.map(i=>i.d||'بضاعة').join('، '):(x.note||'بضاعة'))+' — '+fmt(x.amount));
-    const msg='السلام عليكم '+c.name+'،\nمعك دثار للأقمشة. '+(t.bal>0?'المتبقي عليك: '+fmt(t.bal)+' ر.س'+(lines.length?'\n\nآخر المشتريات:\n'+lines.join('\n'):''):'حسابك خالص، شكرًا لك.');
+    const lines=t.tx.filter(x=>x.kind==='debt').slice(-5).map(x=>{const its=x.items&&x.items.length?x.items:[{d:x.note||'بضاعة',p:x.amount}];
+      return '• '+fmtShort(x.date)+(its.length>1?' (المجموع '+fmt(x.amount)+' ر.س)':'')+':\n'+its.map(i=>'   - '+(i.d||'بضاعة')+': '+fmt(i.p)+' ر.س').join('\n')});
+    const msg='السلام عليكم '+c.name+'،\nمعك دثار للأقمشة. '+(t.bal>0?'المتبقي عليك: '+fmt(t.bal)+' ر.س'+(lines.length?'\n\nآخر المشتريات:\n'+lines.join('\n\n'):''):'حسابك خالص، شكرًا لك.');
     window.open('https://wa.me/'+waNum(c.phone)+'?text='+encodeURIComponent(msg),'_blank')},
   delCustTx:t=>delRow('custTx',t.dataset.id,'حذف هذه الحركة؟'),
   async setSalary(){const w=S.workers.find(x=>x.id===UI.detail.id);if(!w)return;const m0=UI.wMonth||curMonth(),fm=wFirstMonth(w);

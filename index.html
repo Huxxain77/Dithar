@@ -368,6 +368,78 @@ tr.sel td{background:var(--brass-soft)}
 /* نفس خط Readex بس بمقاسات أعمق تحت، عشان الآيفون ما يقص ذيل ح خ ج ي داخل الخانات */
 input,textarea,select{font-family:"Readex Input","Readex Pro","IBM Plex Sans Arabic",Tahoma,sans-serif}
 input[type=text],input[type=password],input[type=email],input[type=tel],input[type=search]{line-height:normal;padding-top:0;padding-bottom:0;-webkit-appearance:none;appearance:none}
+
+/* ===================== تلميع التصميم (Impeccable) ===================== */
+/* الغرزة المتقطعة هي توقيع دثار: نخليها في البطاقة الرئيسية والتبويب والمجاميع بس، مو في كل عنوان */
+.page-head{align-items:center;margin-bottom:18px}
+.page-head h1{font-size:1.6rem;letter-spacing:-.005em}
+.page-head h1::after{display:none}
+.sub{margin-top:3px;font-size:.9rem}
+@media (max-width:599px){
+  .page-head{flex-wrap:nowrap;align-items:flex-start}
+  .page-head>div{min-width:0;flex:1}
+  .page-head>.btn{height:40px;padding:0 14px;font-size:.9rem;flex:none;margin-top:3px}
+  .hide-sm{display:none}
+}
+.section-title::before{display:none}
+.section-title{font-size:1.12rem;margin:28px 0 12px}
+/* أزرار التعديل والحذف جنب كل بطاقة: أهدى وما تزاحم البطاقة */
+.row-wrap{gap:4px}
+.row-btns{gap:2px;justify-content:center}
+.row-wrap .row-btns .icon-btn{width:38px;height:38px;flex:none;border-color:transparent;background:transparent;border-radius:10px}
+.row-wrap .row-btns .icon-btn svg{width:17px;height:17px}
+.edit-btn:hover,.edit-btn:focus-visible{background:var(--surface-2)}
+/* الإشارة + و − تطلع قبل الرقم مو بعده */
+.item-amt{direction:ltr;unicode-bidi:isolate}
+/* أرقام أوضح في البطاقات */
+.row-val strong{font-size:1.2rem;letter-spacing:-.01em}
+.stat strong{letter-spacing:-.01em}
+.panel h2{font-size:1rem}
+.field>span{font-size:.8rem}
+
+/* ===================== الحركة (أسلوب إميل) ===================== */
+:root{--ease-out:cubic-bezier(.23,1,.32,1);--ease-drawer:cubic-bezier(.32,.72,0,1)}
+/* كل ضغطة لها رد فعل: الزر ينضغط شوي */
+.btn,.icon-btn,.row-card,.back,.tabbar button,.topnav button,.toast .undo-btn{transition:transform .16s var(--ease-out),background-color .16s,color .16s,border-color .16s,filter .16s}
+.btn:active,.toast .undo-btn:active{transform:scale(.97)}
+.icon-btn:active{transform:scale(.9)}
+.row-card:active{transform:scale(.985)}
+.tabbar button:active{transform:scale(.92)}
+.back:active{transform:translateX(3px)}
+/* خط التبويب ينرسم لما تنتقل */
+@keyframes stitchIn{from{transform:scaleX(0)}}
+.tabbar button[aria-current="page"]::before,.topbar .topnav button[aria-current="page"]::after{animation:stitchIn .35s var(--ease-out)}
+/* كاش / مدى / فيزا: الاختيار ينزلق بين الخيارات */
+@supports selector(:has(a)){
+.seg{position:relative}
+.seg::before{content:"";position:absolute;top:4px;bottom:4px;width:calc((100% - 16px)/3);inset-inline-start:calc(4px + var(--i,0) * ((100% - 16px)/3 + 4px));background:#4E1220;border-radius:9px;transition:inset-inline-start .3s var(--ease-drawer)}
+.seg:has(label:nth-child(2) input:checked){--i:1}
+.seg:has(label:nth-child(3) input:checked){--i:2}
+.seg:not(:has(input:checked))::before{opacity:0}
+.seg span{position:relative;z-index:1;transition:color .2s}
+.seg input:checked+span{background:transparent!important;color:#fff}
+}
+/* الصفحة تدخل بهدوء لما تنتقل لها */
+@keyframes viewIn{from{opacity:0;transform:translateY(6px)}}
+#view.enter>*{animation:viewIn .26s var(--ease-out) both}
+/* النوافذ: من تحت في الجوال وتقفلها بسحبة، وفي التابلت تكبر من الوسط */
+@keyframes fadeIn{from{opacity:0}}
+@keyframes fadeOut{to{opacity:0}}
+@keyframes sheetIn{from{transform:translateY(calc(100% + 40px))}}
+@keyframes sheetOut{to{transform:translateY(calc(100% + 40px))}}
+@keyframes popIn{from{opacity:0;transform:scale(.96)}}
+@keyframes popOut{to{opacity:0;transform:scale(.97)}}
+.scrim{animation:fadeIn .22s ease-out}
+.scrim.out{animation:fadeOut .2s ease-in forwards;pointer-events:none}
+.dialog{animation:sheetIn .42s var(--ease-drawer);touch-action:pan-y}
+.scrim.out .dialog{animation:sheetOut .22s cubic-bezier(.4,0,1,1) forwards}
+.scrim.out.dragged .dialog{animation:none}
+@media (max-width:599px){.dialog{position:relative;padding-top:26px}.dialog::before{content:"";position:absolute;top:9px;left:50%;width:38px;height:5px;margin-left:-19px;border-radius:9px;background:var(--line)}}
+@media (min-width:600px){.dialog{animation:popIn .2s var(--ease-out)}.scrim.out .dialog{animation:popOut .15s ease-in forwards}}
+/* رسالة التنبيه تطلع من تحت بنعومة */
+.toast{transform:translate(-50%,12px) scale(.96);transition:opacity .2s ease,transform .32s var(--ease-drawer)}
+.toast.show{transform:translate(-50%,0) scale(1)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
@@ -454,7 +526,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='12 أكتوبر - هـ';
+const APP_VERSION='14 أكتوبر - أ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -528,17 +600,33 @@ function modal({title,body='',actions}){
   return new Promise(res=>{
     const root=$('#modal-root');const prev=document.activeElement;
     root.innerHTML=`<div class="scrim"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="mt"><h3 id="mt">${title}</h3><div class="mbody">${body}</div><div class="mact">${actions.map(a=>`<button class="btn ${a.cls||''}" data-m="${a.key}">${a.label}</button>`).join('')}</div></div></div>`;
-    const scrim=root.firstChild;
-    const close=key=>{
-      if(key&&key!=='cancel'){const values={};root.querySelectorAll('input[name]').forEach(i=>{if(i.type==='radio'&&!i.checked)return;values[i.name]=i.value});root.innerHTML='';res({key,values})}
-      else{root.innerHTML='';res(null)}
-      document.removeEventListener('keydown',onKey,true);modalClose=null;if(prev&&prev.focus)prev.focus();
+    const scrim=root.firstChild,dlg=scrim.firstChild;let done=false;
+    /* تقفل بحركة: تنزل لتحت (أو تصغر في التابلت) وبعدها تنشال */
+    const leave=dragged=>{scrim.classList.add('out');if(dragged)scrim.classList.add('dragged');setTimeout(()=>scrim.remove(),dragged?240:230)};
+    const close=(key,dragged)=>{if(done)return;done=true;
+      if(key&&key!=='cancel'){const values={};scrim.querySelectorAll('input[name]').forEach(i=>{if(i.type==='radio'&&!i.checked)return;values[i.name]=i.value});res({key,values})}
+      else res(null);
+      if(document.activeElement&&scrim.contains(document.activeElement))document.activeElement.blur();
+      leave(dragged);
+      document.removeEventListener('keydown',onKey,true);modalClose=null;if(prev&&prev.focus)prev.focus({preventScroll:true});
     };
+    /* في الجوال: تسحب النافذة لتحت وتقفل */
+    (function(){let y0=0,t0=0,dy=0,on=false;
+      dlg.addEventListener('touchstart',e=>{on=false;if(innerWidth>=600||e.touches.length!==1||dlg.scrollTop>0)return;if(e.target.closest('input,textarea,select'))return;
+        y0=e.touches[0].clientY;t0=Date.now();dy=0;on=true},{passive:true});
+      dlg.addEventListener('touchmove',e=>{if(!on)return;dy=e.touches[0].clientY-y0;
+        if(dy<=0){dlg.style.transform='';return}
+        e.preventDefault();dlg.style.transition='none';dlg.style.transform=`translateY(${dy}px)`;scrim.style.backgroundColor=`rgba(10,9,25,${Math.max(.08,.48-dy/700)})`},{passive:false});
+      const end=()=>{if(!on)return;on=false;const v=dy/Math.max(1,Date.now()-t0);
+        if(dy>110||(v>.45&&dy>30)){dlg.style.transition='transform .24s cubic-bezier(.4,0,1,1)';dlg.style.transform='translateY(calc(100% + 60px))';close(null,true)}
+        else{dlg.style.transition='transform .34s cubic-bezier(.32,.72,0,1)';dlg.style.transform='';scrim.style.backgroundColor=''}};
+      dlg.addEventListener('touchend',end,{passive:true});dlg.addEventListener('touchcancel',end,{passive:true});
+    })();
     modalClose=()=>close(null);
     const onKey=e=>{if(e.key==='Escape'){e.preventDefault();close(null)}
       if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();e.stopPropagation();close(actions[0].key)}};
     document.addEventListener('keydown',onKey,true);
-    scrim.addEventListener('click',e=>{if(e.target===scrim)close(null);const b=e.target.closest('[data-m]');if(b)close(b.dataset.m)});
+    scrim.addEventListener('click',e=>{if(e.target===scrim){close(null);return}const b=e.target.closest('[data-m]');if(b)close(b.dataset.m)});
     (root.querySelector('input')||root.querySelector('.btn')).focus();
   });
 }
@@ -815,7 +903,7 @@ function go(tab,detail=null,fromHistory=false){
     const n=target(dx),fast=Math.abs(dx)/(Date.now()-t0)>.5&&Math.abs(dx)>40;
     if(!n||!(Math.abs(dx)>W()*.28||fast)){set(0,true);setTimeout(done,230);return}
     busy=true;const dir=dx>0?1:-1;set(dir*W(),true);
-    setTimeout(()=>{go(n);set(-dir*W()*.35,false);void view().offsetWidth;set(0,true);setTimeout(done,230)},200)};
+    setTimeout(()=>{NO_ENTER=true;go(n);NO_ENTER=false;set(-dir*W()*.35,false);void view().offsetWidth;set(0,true);setTimeout(done,230)},200)};
   document.addEventListener('touchend',end,{passive:true});document.addEventListener('touchcancel',()=>{if(mode==='h'){mode=null;set(0,true);setTimeout(done,230)}else mode=null},{passive:true});
 })();
 /* زر الرجوع في الأندرويد: يرجع خطوة داخل التطبيق بدل ما يطلع منه */
@@ -830,8 +918,10 @@ window.addEventListener('popstate',e=>{
   history.pushState({nav:1,tab:UI.tab,detail:UI.detail},'');
 });
 function current(){return VIEWS[UI.detail?UI.detail.type:UI.tab]}
+let NO_ENTER=false;
 function mount(){
-  const v=current();$('#view').innerHTML=v.html();
+  const v=current();const V=$('#view');V.innerHTML=v.html();
+  V.classList.remove('enter');if(!NO_ENTER){void V.offsetWidth;V.classList.add('enter')}
   const nav=TABS.map(([k,full,short])=>`<button data-act="nav" data-tab="${k}" ${UI.tab===k?'aria-current="page"':''}>${svg(k)}<span>{L}</span></button>`);
   $('#topnav').innerHTML=nav.map((h,i)=>h.replace('{L}',TABS[i][1])).join('');
   $('#tabbar').innerHTML=nav.map((h,i)=>h.replace('{L}',TABS[i][2])).join('');
@@ -1512,7 +1602,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
   var XLSX_URL='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
   var B=VIEWS.branches,h0=B.html;
   B.html=function(){return h0().replace('<p class="sub">دخل ومصروف المحل، يوم بيوم</p></div></div>',
-    '<p class="sub">دخل ومصروف المحل، يوم بيوم</p></div><button class="btn xl-btn no-print" data-act="xlImport">+ استيراد Excel أو صورة</button></div>')};
+    '<p class="sub">دخل ومصروف المحل، يوم بيوم</p></div><button class="btn xl-btn no-print" data-act="xlImport">+ استيراد<span class="hide-sm"> Excel أو صورة</span></button></div>')};
 
   var norm=function(s){return String(s==null?'':s).replace(/[\s‏‎]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه')};
   var COLS_MAP={date:['التاريخ','تاريخ','اليوم'],mada:['مدى','مدي'],visa:['فيزا','visa'],cash:['كاش','نقد','نقدي'],out:['مصروفات','مصروف','المصروفات'],note:['ملاحظات','ملاحظه','الملاحظات']};

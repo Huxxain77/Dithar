@@ -440,6 +440,21 @@ input[type=text],input[type=password],input[type=email],input[type=tel],input[ty
 .toast{transform:translate(-50%,12px) scale(.96);transition:opacity .2s ease,transform .32s var(--ease-drawer)}
 .toast.show{transform:translate(-50%,0) scale(1)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* الأجهزة */
+.dev-chip{gap:5px;padding:0 10px;font-variant-numeric:tabular-nums}
+.dev-chip svg{width:16px;height:16px}
+.topbar .dev-chip{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);color:#fff}
+.dev-list{display:grid;gap:2px;margin:4px 0 2px}
+.dev-row{display:flex;align-items:center;gap:10px;padding:10px 2px;border-top:1px solid var(--line)}
+.dev-row:first-child{border-top:0}
+.dev-row>i{width:8px;height:8px;border-radius:50%;background:var(--line);flex:none}
+.dev-row>i.on{background:var(--pos)}
+.dev-row>div{flex:1;min-width:0}
+.dev-row b{font-weight:500;margin-inline-end:6px}
+.dev-row small{display:block;font-size:.78rem;color:var(--muted)}
+.dev-row>span{font-size:.82rem;color:var(--muted);white-space:nowrap}
+@media (max-width:380px){.topbar .sync span{max-width:64px;overflow:hidden;text-overflow:ellipsis}}
 </style>
 </head>
 <body>
@@ -485,7 +500,7 @@ if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('messag
 
 <header class="topbar"><div class="topbar-in">
   <div class="brand"><img class="brand-logo" src="icon.png" alt="">Dithar</div>
-  <div class="top-end"><nav class="topnav" id="topnav" aria-label="الأقسام"></nav><button class="sync" id="sync" data-act="syncInfo" data-s="connecting" aria-live="polite"><i></i><span>جارٍ الاتصال</span></button><button class="logout-btn" id="logoutBtn" data-act="logout" hidden aria-label="تسجيل الخروج" title="تسجيل الخروج"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5M14 8l-4 4 4 4M10 12h10"/></svg></button></div>
+  <div class="top-end"><nav class="topnav" id="topnav" aria-label="الأقسام"></nav><button class="sync dev-chip" id="devChip" data-act="devices" hidden aria-label="الأجهزة" title="الأجهزة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2.2"/><path d="M11 17.5h2"/></svg><span>1</span></button><button class="sync" id="sync" data-act="syncInfo" data-s="connecting" aria-live="polite"><i></i><span>جارٍ الاتصال</span></button><button class="logout-btn" id="logoutBtn" data-act="logout" hidden aria-label="تسجيل الخروج" title="تسجيل الخروج"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5M14 8l-4 4 4 4M10 12h10"/></svg></button></div>
 </div></header>
 <div id="staleBar" hidden>بدون نت: هذي آخر بيانات محفوظة على الجهاز، وممكن ما تكون الأحدث</div>
 <main id="view"></main>
@@ -526,7 +541,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='14 أكتوبر - أ';
+const APP_VERSION='17 أكتوبر - أ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -633,10 +648,10 @@ function modal({title,body='',actions}){
 const confirmBox=(title,text,label='حذف')=>modal({title,body:`<p>${text}</p>`,actions:[{key:'ok',label,cls:'danger'},{key:'cancel',label:'إلغاء',cls:'ghost'}]}).then(r=>!!r);
 
 /* ---------- data store ---------- */
-const COLS=['branches','entries','reps','repTx','workers','workerTx','customers','custTx'];
-const OPTIONAL=['customers','custTx'];   // أقسام جديدة: لو قواعد Firestore ما تسمح فيها ما نعطّل باقي التطبيق
+const COLS=['branches','entries','reps','repTx','workers','workerTx','customers','custTx','devices'];
+const OPTIONAL=['customers','custTx','devices'];   // أقسام جديدة: لو قواعد Firestore ما تسمح فيها ما نعطّل باقي التطبيق
 const S={};COLS.forEach(c=>S[c]=[]);
-let ready=false,STALE=false,CUST_ERR=null;
+let ready=false,STALE=false,CUST_ERR=null,DEV_ERR=null;
 /* تحميل آخر 4 شهور فقط (الشهر الحالي + 3 قبله). الأقدم ينجاب وقت الحاجة، وما ينمسح شي */
 const WINDOWED=['entries','workerTx'];
 const CUTOFF_M=shiftMonth(curMonth(),-3),CUTOFF=CUTOFF_M+'-01';
@@ -760,7 +775,7 @@ async function wipeAndReload(){
 function checkSession(){if(auth&&auth.currentUser&&sessionLeft()<=0){toast('انتهت الجلسة، سجّل دخول مرة ثانية');wipeAndReload()}}
 async function initStore(){
   if(!firebaseConfig.apiKey||!window.firebase){
-    store.loadLocal();ready=true;mount();renderSync();
+    store.loadLocal();ready=true;mount();renderSync();$('#devChip').hidden=false;seenDevice(true);setTimeout(askDeviceName,2600);
     toast('Firebase غير مربوط: البيانات محفوظة على هذا الجهاز فقط');return;
   }
   firebase.initializeApp(firebaseConfig);
@@ -776,7 +791,7 @@ async function initStore(){
     if(!user){store.root=null;ready=false;showLogin();return}
     if(sessionLeft()<=0){wipeAndReload();return}
     $('#toast').classList.remove('show');
-    $('#sync').hidden=false;$('#logoutBtn').hidden=false;
+    $('#sync').hidden=false;$('#logoutBtn').hidden=false;$('#devChip').hidden=false;setTimeout(()=>seenDevice(true),1200);setTimeout(askDeviceName,2600);
     store.root=fdb.collection('shop').doc('main');
     mount();renderSync();
     /* ما نعرض أي رقم لين يتأكد من النت إن البيانات هي الأحدث.
@@ -797,13 +812,13 @@ async function initStore(){
       if(STALE&&confirmed.size===COLS.length)showStale(false);
       if(!ready&&!navigator.onLine)openStale();
       if(ready)refresh();
-    },e=>{if(OPTIONAL.includes(c)){LIVE[c]=[];LIVE[c].__got=1;merge(c);pending.delete(c);confirmed.add(c);if(!ready&&confirmed.size===COLS.length){ready=true;__mark('data')}if(ready)refresh();CUST_ERR=e&&e.code||'err';return}
+    },e=>{if(OPTIONAL.includes(c)){LIVE[c]=[];LIVE[c].__got=1;merge(c);pending.delete(c);confirmed.add(c);if(!ready&&confirmed.size===COLS.length){ready=true;__mark('data')}if(ready)refresh();if(c==='devices')DEV_ERR=e&&e.code||'err';else CUST_ERR=e&&e.code||'err';return}
       SYNC.err=e;renderSync();toast(e&&e.code==='permission-denied'?'هذا الحساب ما له صلاحية على البيانات':'ما قدرت أقرأ البيانات، تأكد من قواعد Firestore')})));
   });
 }
 function togglePw(b){const i=$('#lgPass');const show=i.type==='password';i.type=show?'text':'password';b.classList.toggle('on',show);b.setAttribute('aria-label',show?'إخفاء كلمة المرور':'إظهار كلمة المرور')}
 function showLogin(){
-  $('#sync').hidden=true;$('#logoutBtn').hidden=true;$('#tabbar').hidden=true;$('#topnav').innerHTML='';
+  $('#sync').hidden=true;$('#logoutBtn').hidden=true;$('#devChip').hidden=true;$('#tabbar').hidden=true;$('#topnav').innerHTML='';
   $('#view').innerHTML=`<section class="panel login"><div class="page-head"><div><h1>تسجيل الدخول</h1><p class="sub">الجلسة تبقى 24 ساعة على هذا الجهاز</p></div></div>
   <label class="field"><span>البريد الإلكتروني</span><input type="email" id="lgUser" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" dir="ltr" data-enter="login" value="${esc(savedEmail())}"></label>
   <label class="field"><span>كلمة المرور</span><span class="pw-wrap"><input type="password" id="lgPass" autocomplete="current-password" dir="ltr" data-enter="login"><button type="button" class="pw-eye" aria-label="إظهار كلمة المرور" onpointerdown="event.preventDefault()" onclick="togglePw(this)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></label>
@@ -928,7 +943,7 @@ function mount(){
   $('#tabbar').hidden=false;
   refresh();
 }
-function refresh(){if(ready){needData();const v=current();v.update&&v.update()}}
+function refresh(){if(ready){needData();const v=current();v.update&&v.update()}renderDevChip()}
 const back=(label)=>`<div class="detail-top"><button class="back" data-act="back">${svg('prev')}${label}</button><div style="display:flex;gap:8px"><button class="icon-btn del-btn" data-act="delCurrent" aria-label="حذف">${svg('trash')}</button><button class="icon-btn" data-act="menu" aria-label="تعديل الاسم">${svg('edit')}</button></div></div>`;
 const loading='<p class="loading">جارٍ التحميل…</p>';
 function amountOf(sel){const el=$(sel);const n=num(el.value);if(!(n>0)){el.classList.add('err');el.focus();toast('اكتب مبلغ صحيح');return null}return n}
@@ -1201,6 +1216,49 @@ async function editCustomer(id){const c=S.customers.find(x=>x.id===id);if(!c)ret
   document.addEventListener('focusin',()=>setTimeout(fit,60));
   new MutationObserver(fit).observe(document.getElementById('modal-root'),{childList:true});
 })();
+/* ---------- الأجهزة: كل جهاز يسجل نفسه لما ينفتح التطبيق بس (بدون تبليغ مستمر) ---------- */
+const DEV_KEY='dithar-device',DEV_GAP=10*60*1000;
+function myDevice(){let d=null;try{d=JSON.parse(localStorage.getItem(DEV_KEY)||'null')}catch(e){}
+  if(!d||!d.id){d={id:rid()+rid(),name:'',asked:false};saveMyDevice(d)}return d}
+function saveMyDevice(d){try{localStorage.setItem(DEV_KEY,JSON.stringify(d))}catch(e){}}
+function guessDevice(){const u=navigator.userAgent;
+  if(/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1))return'آيباد';
+  if(/iPhone/.test(u))return'آيفون';
+  if(/Android/.test(u))return /Mobile/.test(u)?'جوال أندرويد':'تابلت أندرويد';
+  return'كمبيوتر'}
+let devLastWrite=0;
+function seenDevice(force){const d=myDevice();const now=Date.now();
+  if(!force&&now-devLastWrite<DEV_GAP)return;devLastWrite=now;
+  const o={name:d.name||guessDevice(),kind:guessDevice(),lastSeen:now};
+  if(store.root){try{store.root.collection('devices').doc(d.id).set(o).catch(()=>{})}catch(e){}}
+  else{S.devices=[...S.devices.filter(x=>x.id!==d.id),{...o,id:d.id}];store.saveLocal()}
+  renderDevChip()}
+/* لما ترجع للتطبيق من الخلفية نعتبرها فتحة جديدة (مرة كل 10 دقايق بالكثير) */
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&auth&&auth.currentUser)seenDevice(false)});
+async function askDeviceName(){const d=myDevice();if(d.asked||d.name)return;
+  if($('#modal-root').children.length){setTimeout(askDeviceName,3000);return}
+  d.asked=true;saveMyDevice(d);await renameDevice(true)}
+async function renameDevice(first){const d=myDevice();
+  const r=await modal({title:first?'وش اسم هالجهاز؟':'اسم هذا الجهاز',body:`<p>${first?'يطلع في قائمة الأجهزة فوق، عشان تعرف أي جهاز فتح التطبيق ومتى.':'الاسم اللي يطلع في قائمة الأجهزة.'}</p><label class="field"><span>اسم الجهاز</span><input type="text" name="name" value="${esc(d.name||guessDevice())}" placeholder="مثال: جوال حسين، تابلت المحل"></label>`,
+    actions:[{key:'ok',label:'حفظ'},{key:'cancel',label:first?'تخطي':'إلغاء',cls:'ghost'}]});
+  if(!r)return;const n=(r.values.name||'').trim().slice(0,40);if(!n)return;
+  d.name=n;saveMyDevice(d);seenDevice(true);toast('تم حفظ اسم الجهاز')}
+const DAY=24*60*60*1000;
+function devWhen(t){const now=Date.now(),m=Math.round((now-t)/60000);
+  if(m<2)return'الحين';if(m<60)return`قبل ${m} دقيقة`;
+  const d=new Date(t),td=new Date();const same=d.toDateString()===td.toDateString();
+  const y=new Date(now-DAY).toDateString()===d.toDateString();
+  return same?'اليوم '+fmtTime(t):y?'أمس '+fmtTime(t):d.toLocaleDateString(LOC,{day:'numeric',month:'short'})+' '+fmtTime(t)}
+function devList(){const me=myDevice().id;return[...(S.devices||[])].filter(x=>x&&x.lastSeen).sort((a,b)=>(b.id===me)-(a.id===me)||b.lastSeen-a.lastSeen)}
+function renderDevChip(){const el=$('#devChip');if(!el)return;
+  const n=devList().filter(x=>Date.now()-x.lastSeen<DAY).length||1;
+  el.querySelector('span').textContent=n;el.title=`${n} ${n===1?'جهاز':'أجهزة'} فتحت التطبيق آخر 24 ساعة`}
+function devicesInfo(){const me=myDevice().id,L=devList(),act=L.filter(x=>Date.now()-x.lastSeen<DAY).length;
+  const rows=L.length?L.map(x=>`<div class="dev-row"><i class="${Date.now()-x.lastSeen<15*60000?'on':''}"></i><div><b>${esc(x.name||x.kind||'جهاز')}</b>${x.id===me?'<span class="tag brass">هذا الجهاز</span>':''}<small>${esc(x.kind||'')}</small></div><span>${devWhen(x.lastSeen)}</span></div>`).join(''):'<p class="empty">ما فيه أجهزة مسجلة للحين.</p>';
+  const p=modal({title:'الأجهزة',body:`<p>${act} ${act===1?'جهاز فتح':'أجهزة فتحت'} التطبيق آخر 24 ساعة. كل جهاز يسجل وقته لما ينفتح التطبيق.</p>${DEV_ERR?'<p class="warn-box">قواعد Firestore ما تسمح بقائمة الأجهزة للحين، فكل جهاز يشوف نفسه بس. أضف <b>devices</b> في القواعد.</p>':''}<div class="dev-list">${rows}</div>`,
+    actions:[{key:'rename',label:'تغيير اسم هذا الجهاز',cls:'ghost'},{key:'cancel',label:'تم',cls:'ghost'}]});
+  p.then(r=>{if(r&&r.key==='rename')setTimeout(()=>renameDevice(false),260)})}
+
 /* ---------- actions ---------- */
 async function addEntity(col,label,withPrice){
   const r=await modal({title:`إضافة ${label}`,body:`<label class="field"><span>اسم ${label}</span><input type="text" name="name"></label>${withPrice?'<label class="field"><span>الراتب الشهري (ر.س)</span><input type="text" name="price" inputmode="decimal"></label>':''}`,
@@ -1365,6 +1423,7 @@ const ACT={
     if(await confirmBox(`إيقاف ${esc(w.name)}؟`,`راتب ${fmtMonth(m)} ينحسب له، ومن الشهر الجاي يوقف. حساباته القديمة تبقى زي ما هي، وتقدر تسجل له دفعات عشان تصفّي حسابه.`,'إيقاف'))await safe(()=>store.update('workers',w.id,{end:m}))&&toast('تم إيقاف العامل')},
   delWTx:t=>delRow('workerTx',t.dataset.id,'حذف هذا التسجيل؟'),
   syncInfo:()=>syncInfo(),
+  devices:()=>devicesInfo(),
   login:async()=>{const u=$('#lgUser').value,p=$('#lgPass').value;if(!u.trim()||!p){toast('اكتب البريد وكلمة المرور');return}
     const b=$('#lgBtn');b.disabled=true;b.textContent='جارٍ الدخول…';
     try{await auth.signInWithEmailAndPassword(userToEmail(u),p);try{localStorage.setItem(EMAIL_KEY,userToEmail(u))}catch(e){}}catch(e){toast(AUTH_ERR[e&&e.code]||'صار خطأ، حاول مرة ثانية');b.disabled=false;b.textContent='دخول'}},

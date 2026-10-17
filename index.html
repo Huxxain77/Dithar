@@ -1236,7 +1236,7 @@ function seenDevice(force){const d=myDevice();const now=Date.now();
 /* لما ترجع للتطبيق من الخلفية نعتبرها فتحة جديدة (مرة كل 10 دقايق بالكثير) */
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&auth&&auth.currentUser)seenDevice(false)});
 async function askDeviceName(){const d=myDevice();if(d.asked||d.name)return;
-  if($('#modal-root').children.length){setTimeout(askDeviceName,3000);return}
+  const ae=document.activeElement;if($('#modal-root').children.length||(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))){setTimeout(askDeviceName,4000);return}
   d.asked=true;saveMyDevice(d);await renameDevice(true)}
 async function renameDevice(first){const d=myDevice();
   const r=await modal({title:first?'وش اسم هالجهاز؟':'اسم هذا الجهاز',body:`<p>${first?'يطلع في قائمة الأجهزة فوق، عشان تعرف أي جهاز فتح التطبيق ومتى.':'الاسم اللي يطلع في قائمة الأجهزة.'}</p><label class="field"><span>اسم الجهاز</span><input type="text" name="name" value="${esc(d.name||guessDevice())}" placeholder="مثال: جوال حسين، تابلت المحل"></label>`,

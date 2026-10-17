@@ -451,7 +451,9 @@ input[type=text],input[type=password],input[type=email],input[type=tel],input[ty
 .dev-row>i{width:8px;height:8px;border-radius:50%;background:var(--line);flex:none}
 .dev-row>i.on{background:var(--pos)}
 .dev-row>div{flex:1;min-width:0}
-.dev-row b{font-weight:500;margin-inline-end:6px}
+.dev-row b{font-weight:500;margin-inline-end:4px}
+/* الوسم بعنصر مستقل عشان آخر حرف من الاسم ما يتصل بكلمة الوسم */
+.dev-row .tag{display:inline-block;vertical-align:middle}
 .dev-row small{display:block;font-size:.78rem;color:var(--muted)}
 .dev-row>span{font-size:.82rem;color:var(--muted);white-space:nowrap}
 @media (max-width:380px){.topbar .sync span{max-width:64px;overflow:hidden;text-overflow:ellipsis}}
@@ -541,7 +543,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='17 أكتوبر - أ';
+const APP_VERSION='17 أكتوبر - ب';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1225,7 +1227,9 @@ function guessDevice(){const u=navigator.userAgent;
   if(/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1))return'آيباد';
   if(/iPhone/.test(u))return'آيفون';
   if(/Android/.test(u))return /Mobile/.test(u)?'جوال أندرويد':'تابلت أندرويد';
-  return'كمبيوتر'}
+  /* تابلت أندرويد بوضع سطح المكتب يقول عن نفسه لينكس */
+  if(/Linux|X11|CrOS/.test(u)&&navigator.maxTouchPoints>0)return'تابلت أندرويد';
+  return /Windows/.test(u)?'كمبيوتر ويندوز':/Macintosh/.test(u)?'ماك':'كمبيوتر'}
 let devLastWrite=0;
 function seenDevice(force){const d=myDevice();const now=Date.now();
   if(!force&&now-devLastWrite<DEV_GAP)return;devLastWrite=now;
@@ -1254,7 +1258,7 @@ function renderDevChip(){const el=$('#devChip');if(!el)return;
   const n=devList().filter(x=>Date.now()-x.lastSeen<DAY).length||1;
   el.querySelector('span').textContent=n;el.title=`${n} ${n===1?'جهاز':'أجهزة'} فتحت التطبيق آخر 24 ساعة`}
 function devicesInfo(){const me=myDevice().id,L=devList(),act=L.filter(x=>Date.now()-x.lastSeen<DAY).length;
-  const rows=L.length?L.map(x=>`<div class="dev-row"><i class="${Date.now()-x.lastSeen<15*60000?'on':''}"></i><div><b>${esc(x.name||x.kind||'جهاز')}</b>${x.id===me?'<span class="tag brass">هذا الجهاز</span>':''}<small>${esc(x.kind||'')}</small></div><span>${devWhen(x.lastSeen)}</span></div>`).join(''):'<p class="empty">ما فيه أجهزة مسجلة للحين.</p>';
+  const rows=L.length?L.map(x=>`<div class="dev-row"><i class="${Date.now()-x.lastSeen<15*60000?'on':''}"></i><div><b>${esc(x.name||x.kind||'جهاز')}</b>${x.id===me?' <span class="tag brass">هذا الجهاز</span>':''}<small>${esc(x.kind||'')}</small></div><span>${devWhen(x.lastSeen)}</span></div>`).join(''):'<p class="empty">ما فيه أجهزة مسجلة للحين.</p>';
   const p=modal({title:'الأجهزة',body:`<p>${act} ${act===1?'جهاز فتح':'أجهزة فتحت'} التطبيق آخر 24 ساعة. كل جهاز يسجل وقته لما ينفتح التطبيق.</p>${DEV_ERR?'<p class="warn-box">قواعد Firestore ما تسمح بقائمة الأجهزة للحين، فكل جهاز يشوف نفسه بس. أضف <b>devices</b> في القواعد.</p>':''}<div class="dev-list">${rows}</div>`,
     actions:[{key:'rename',label:'تغيير اسم هذا الجهاز',cls:'ghost'},{key:'cancel',label:'تم',cls:'ghost'}]});
   p.then(r=>{if(r&&r.key==='rename')setTimeout(()=>renameDevice(false),260)})}

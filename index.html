@@ -543,7 +543,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='17 أكتوبر - ج';
+const APP_VERSION='20 أكتوبر - أ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1254,7 +1254,12 @@ async function seenDevice(force){const d=myDevice();const now=Date.now();
   const o={name:d.name||auto,custom:!!d.name,kind:guessDevice(),lastSeen:now};
   if(store.root){try{store.root.collection('devices').doc(d.id).set(o).catch(()=>{})}catch(e){}}
   else{S.devices=[...S.devices.filter(x=>x.id!==d.id),{...o,id:d.id}];store.saveLocal()}
-  renderDevChip()}
+  pruneDevices();renderDevChip()}
+/* أي جهاز ما فتح التطبيق 24 ساعة ينحذف من القائمة، ولو رجع يفتح يرجع بنفس اسمه */
+function pruneDevices(){const me=myDevice().id,now=Date.now(),old=(S.devices||[]).filter(x=>x&&x.id!==me&&(!x.lastSeen||now-x.lastSeen>=DAY));
+  if(!old.length)return;
+  if(store.root)old.forEach(x=>{try{store.root.collection('devices').doc(x.id).delete().catch(()=>{})}catch(e){}});
+  else{S.devices=S.devices.filter(x=>!old.includes(x));store.saveLocal()}}
 /* لما ترجع للتطبيق من الخلفية نعتبرها فتحة جديدة (مرة كل 10 دقايق بالكثير) */
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&auth&&auth.currentUser)seenDevice(false)});
 async function renameDevice(){const d=myDevice(),auto=await autoName();
@@ -1268,17 +1273,17 @@ function devWhen(t){const now=Date.now(),m=Math.round((now-t)/60000);
   const d=new Date(t),td=new Date();const same=d.toDateString()===td.toDateString();
   const y=new Date(now-DAY).toDateString()===d.toDateString();
   return same?'اليوم '+fmtTime(t):y?'أمس '+fmtTime(t):d.toLocaleDateString(LOC,{day:'numeric',month:'short'})+' '+fmtTime(t)}
-function devList(){const me=myDevice().id,L=(S.devices||[]).filter(x=>x&&x.lastSeen).map(x=>({...x}));
+function devList(){const me=myDevice().id,now=Date.now(),L=(S.devices||[]).filter(x=>x&&x.lastSeen&&(x.id===me||now-x.lastSeen<DAY)).map(x=>({...x}));
   /* جهازين بنفس الاسم التلقائي: نرقمهم ١ و ٢ بترتيب ثابت */
   const g={};L.forEach(x=>{const k=x.name||x.kind||'جهاز';(g[k]=g[k]||[]).push(x)});
   Object.values(g).forEach(a=>{if(a.length<2)return;a.sort((x,y)=>x.id<y.id?-1:1).forEach((x,i)=>{x.label=(x.name||x.kind)+' ('+(i+1)+')'})});
   return L.sort((a,b)=>(b.id===me)-(a.id===me)||b.lastSeen-a.lastSeen)}
 function renderDevChip(){const el=$('#devChip');if(!el)return;
-  const n=devList().filter(x=>Date.now()-x.lastSeen<DAY).length||1;
+  const n=devList().length||1;
   el.querySelector('span').textContent=n;el.title=`${n} ${n===1?'جهاز':'أجهزة'} فتحت التطبيق آخر 24 ساعة`}
-function devicesInfo(){const me=myDevice().id,L=devList(),act=L.filter(x=>Date.now()-x.lastSeen<DAY).length;
+function devicesInfo(){const me=myDevice().id,L=devList(),act=L.length;
   const rows=L.length?L.map(x=>`<div class="dev-row"><i class="${Date.now()-x.lastSeen<15*60000?'on':''}"></i><div><b>${esc(x.label||x.name||x.kind||'جهاز')}</b>${x.id===me?' <span class="tag brass">هذا الجهاز</span>':''}<small>${esc(x.custom?(x.kind||''):(x.kind||'')+' (اسم تلقائي)')}</small></div><span>${devWhen(x.lastSeen)}</span></div>`).join(''):'<p class="empty">ما فيه أجهزة مسجلة للحين.</p>';
-  const p=modal({title:'الأجهزة',body:`<p>${act} ${act===1?'جهاز فتح':'أجهزة فتحت'} التطبيق آخر 24 ساعة. كل جهاز يسجل وقته لما ينفتح التطبيق.</p>${DEV_ERR?'<p class="warn-box">قواعد Firestore ما تسمح بقائمة الأجهزة للحين، فكل جهاز يشوف نفسه بس. أضف <b>devices</b> في القواعد.</p>':''}<div class="dev-list">${rows}</div>`,
+  const p=modal({title:'الأجهزة',body:`<p>${act} ${act===1?'جهاز فتح':'أجهزة فتحت'} التطبيق آخر 24 ساعة. الجهاز اللي ما يفتح التطبيق 24 ساعة يختفي من القائمة، ويرجع لما ينفتح عليه.</p>${DEV_ERR?'<p class="warn-box">قواعد Firestore ما تسمح بقائمة الأجهزة للحين، فكل جهاز يشوف نفسه بس. أضف <b>devices</b> في القواعد.</p>':''}<div class="dev-list">${rows}</div>`,
     actions:[{key:'rename',label:'تغيير اسم هذا الجهاز',cls:'ghost'},{key:'cancel',label:'تم',cls:'ghost'}]});
   p.then(r=>{if(r&&r.key==='rename')setTimeout(()=>renameDevice(),260)})}
 

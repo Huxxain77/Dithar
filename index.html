@@ -457,6 +457,12 @@ input[type=text],input[type=password],input[type=email],input[type=tel],input[ty
 .dev-row small{display:block;font-size:.78rem;color:var(--muted)}
 .dev-row>span{font-size:.82rem;color:var(--muted);white-space:nowrap}
 @media (max-width:380px){.topbar .sync span{max-width:64px;overflow:hidden;text-overflow:ellipsis}}
+
+/* صف أسماء الأعمدة تحت الإجمالي */
+tfoot tr.foot-head td{font-size:.74rem;font-weight:500;color:var(--muted);border-top:0;padding-top:2px;padding-bottom:6px}
+.pdf-mode tr.foot-head{display:none}
+/* الرقم السالب: الإشارة قبل الرقم (-18) مو بعده */
+td.num{direction:ltr;text-align:left}
 </style>
 </head>
 <body>
@@ -543,7 +549,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='20 أكتوبر - أ';
+const APP_VERSION='21 أكتوبر - أ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -986,9 +992,9 @@ branches:{
     if(!days.length){$('#dayTable').innerHTML='<p class="empty">ما فيه تسجيلات هذا الشهر.</p>';return}
     const tot=sumEntries(monE);
     const cell=v=>`<td class="num">${fmt(v)}</td>`;
-    $('#dayTable').innerHTML=`<table><thead><tr><th>اليوم</th>${METHODS.map(([,l])=>`<th class="num">${l}</th>`).join('')}<th class="num">الدخل</th><th class="num">العمولة</th><th class="num">المصروف</th><th class="num">الصافي</th></tr></thead><tbody>${
+    $('#dayTable').innerHTML=withFootHead(`<table><thead><tr><th>اليوم</th>${METHODS.map(([,l])=>`<th class="num">${l}</th>`).join('')}<th class="num">الدخل</th><th class="num">العمولة</th><th class="num">المصروف</th><th class="num">الصافي</th></tr></thead><tbody>${
       days.map(d=>{const r=sumEntries(monE.filter(x=>x.date===d));return`<tr class="${d===UI.date?'sel':''}"><td><button class="linkish" data-act="pickDay" data-d="${d}">${fmtShort(d)}</button></td>${cell(r.cash)}${cell(r.mada)}${cell(r.visa)}<td class="num pos">${fmt(r.in)}</td><td class="num neg">${fmt(r.fee)}</td><td class="num neg">${fmt(r.out)}</td>${cell(r.net)}</tr>`}).join('')
-    }</tbody><tfoot><tr><td>الإجمالي</td>${cell(tot.cash)}${cell(tot.mada)}${cell(tot.visa)}<td class="num pos">${fmt(tot.in)}</td><td class="num neg">${fmt(tot.fee)}</td><td class="num neg">${fmt(tot.out)}</td>${cell(tot.net)}</tr></tfoot></table>`;
+    }</tbody><tfoot><tr><td>الإجمالي</td>${cell(tot.cash)}${cell(tot.mada)}${cell(tot.visa)}<td class="num pos">${fmt(tot.in)}</td><td class="num neg">${fmt(tot.fee)}</td><td class="num neg">${fmt(tot.out)}</td>${cell(tot.net)}</tr></tfoot></table>`);
   }
 },
 /* ===== reps list ===== */
@@ -1159,10 +1165,10 @@ report:{
     $('#rSums').innerHTML=`<span>إجمالي الدخل <b>${fmt(T.in)}</b></span><span>عمولة الشبكة <b>${fmt(T.fee)}</b></span><span>إجمالي المصروفات <b>${fmt(T.out)}</b></span>`;
     $('#rFees').innerHTML=`<div class="fee-row"><span>عمولة مدى</span><span>${fmt(T.mada)} × ${pct(FEES.mada)}</span><b>${fmt(T.madaFee)}</b></div><div class="fee-row"><span>عمولة فيزا</span><span>${fmt(T.visa)} × ${pct(FEES.visa)}</span><b>${fmt(T.visaFee)}</b></div><div class="fee-row total"><span>إجمالي العمولة</span><span></span><b>${fmt(T.fee)}</b></div>`;
     {const days=[...new Set(ents.map(x=>x.date))].sort();
-    $('#rBranches').innerHTML=!days.length?'<p class="empty">ما فيه تسجيلات في هذي الفترة.</p>':
+    $('#rBranches').innerHTML=!days.length?'<p class="empty">ما فيه تسجيلات في هذي الفترة.</p>':withFootHead(
       `<table><thead><tr><th>اليوم</th>${METHODS.map(([,l])=>`<th class="num">${l}</th>`).join('')}<th class="num">الدخل</th><th class="num">العمولة</th><th class="num">المصروفات</th><th class="num">الصافي</th></tr></thead><tbody>${
       days.map(d=>{const r=sumEntries(ents.filter(x=>x.date===d));return`<tr><td>${fmtShort(d)}</td>${cell(r.cash)}${cell(r.mada)}${cell(r.visa)}${cell(r.in,'pos')}${cell(r.fee,'neg')}${cell(r.out,'neg')}${cell(r.net)}</tr>`}).join('')
-      }</tbody><tfoot><tr><td>الإجمالي</td>${cell(T.cash)}${cell(T.mada)}${cell(T.visa)}${cell(T.in,'pos')}${cell(T.fee,'neg')}${cell(T.out,'neg')}${cell(T.net)}</tr></tfoot></table>`;}
+      }</tbody><tfoot><tr><td>الإجمالي</td>${cell(T.cash)}${cell(T.mada)}${cell(T.visa)}${cell(T.in,'pos')}${cell(T.fee,'neg')}${cell(T.out,'neg')}${cell(T.net)}</tr></tfoot></table>`);}
     // workers
     if(!S.workers.length)$('#rWorkers').innerHTML='<p class="empty">ما فيه عمال مضافين.</p>';
     else{const rows=[...S.workers].sort(byName).map(w=>({w,...workerTotals(w.id,a,b)}));
@@ -1286,6 +1292,11 @@ function devicesInfo(){const me=myDevice().id,L=devList(),act=L.length;
   const p=modal({title:'الأجهزة',body:`<p>${act} ${act===1?'جهاز فتح':'أجهزة فتحت'} التطبيق آخر 24 ساعة. الجهاز اللي ما يفتح التطبيق 24 ساعة يختفي من القائمة، ويرجع لما ينفتح عليه.</p>${DEV_ERR?'<p class="warn-box">قواعد Firestore ما تسمح بقائمة الأجهزة للحين، فكل جهاز يشوف نفسه بس. أضف <b>devices</b> في القواعد.</p>':''}<div class="dev-list">${rows}</div>`,
     actions:[{key:'rename',label:'تغيير اسم هذا الجهاز',cls:'ghost'},{key:'cancel',label:'تم',cls:'ghost'}]});
   p.then(r=>{if(r&&r.key==='rename')setTimeout(()=>renameDevice(),260)})}
+
+/* أسماء الأعمدة تتكرر تحت المجموع، عشان ما تحتاج تطلع لفوق تشوف أي عمود */
+function withFootHead(h){return h.replace(/<thead><tr>([\s\S]*?)<\/tr><\/thead>([\s\S]*?)<\/tfoot>/,(m,hr,rest)=>{
+  const cells=hr.replace(/<th([^>]*)>[\s\S]*?<\/th>/,'<td></td>').replace(/<th/g,'<td').replace(/<\/th>/g,'</td>');
+  return `<thead><tr>${hr}</tr></thead>${rest}<tr class="foot-head no-print" aria-hidden="true">${cells}</tr></tfoot>`})}
 
 /* ---------- actions ---------- */
 async function addEntity(col,label,withPrice){
@@ -1919,10 +1930,10 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
         box.innerHTML=s+'</svg>'+(rows.some(function(r){return r.m===curMonth()})?'<p class="note" style="margin:6px 0 0">العمود الفاتح هو الشهر الحالي، وما خلص للحين.</p>':'')}
       // الجدول
       var c=function(v,k){return '<td class="num '+(k||'')+'">'+fmt(v)+'</td>'};
-      $('#yTable').innerHTML='<table class="yr-tbl"><thead><tr><th>الشهر</th><th class="num">كاش</th><th class="num">مدى</th><th class="num">فيزا</th><th class="num">الدخل</th><th class="num">العمولة</th><th class="num">المصروفات</th><th class="num">صافي المحل</th><th class="num">رواتب العمال</th><th class="num">المناديب</th><th class="num">الصافي النهائي</th></tr></thead><tbody>'+
+      $('#yTable').innerHTML=withFootHead('<table class="yr-tbl"><thead><tr><th>الشهر</th><th class="num">كاش</th><th class="num">مدى</th><th class="num">فيزا</th><th class="num">الدخل</th><th class="num">العمولة</th><th class="num">المصروفات</th><th class="num">صافي المحل</th><th class="num">رواتب العمال</th><th class="num">المناديب</th><th class="num">الصافي النهائي</th></tr></thead><tbody>'+
         rows.map(function(r){if(r.future)return '<tr class="future"><td>'+mname(r.m)+'</td><td colspan="10" class="num">—</td></tr>';
           return '<tr><td>'+mname(r.m)+'</td>'+c(r.T.cash)+c(r.T.mada)+c(r.T.visa)+c(r.T.in,'pos')+c(r.T.fee,'neg')+c(r.T.out,'neg')+c(r.shop)+c(r.wages,'neg')+c(r.rep,'neg')+'<td class="num cur">'+fmt(r.fin)+'</td></tr>'}).join('')+
-        '</tbody><tfoot><tr><td>الإجمالي</td>'+c(sumK(function(r){return r.T.cash}))+c(sumK(function(r){return r.T.mada}))+c(sumK(function(r){return r.T.visa}))+c(tin,'pos')+c(sumK(function(r){return r.T.fee}),'neg')+c(sumK(function(r){return r.T.out}),'neg')+c(sumK(function(r){return r.shop}))+c(sumK(function(r){return r.wages}),'neg')+c(sumK(function(r){return r.rep}),'neg')+'<td class="num cur">'+fmt(sumK(function(r){return r.fin}))+'</td></tr></tfoot></table>';
+        '</tbody><tfoot><tr><td>الإجمالي</td>'+c(sumK(function(r){return r.T.cash}))+c(sumK(function(r){return r.T.mada}))+c(sumK(function(r){return r.T.visa}))+c(tin,'pos')+c(sumK(function(r){return r.T.fee}),'neg')+c(sumK(function(r){return r.T.out}),'neg')+c(sumK(function(r){return r.shop}))+c(sumK(function(r){return r.wages}),'neg')+c(sumK(function(r){return r.rep}),'neg')+'<td class="num cur">'+fmt(sumK(function(r){return r.fin}))+'</td></tr></tfoot></table>');
     }
   };
   var doPrintYear=function(){if(missing(yearOf())){toast('استنى لين تكتمل بيانات السنة');return}refresh();if(usePDF()){sharePDF('Dithar-'+yearOf());return}setTimeout(function(){window.print()},50)};

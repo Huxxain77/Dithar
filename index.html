@@ -555,7 +555,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='23 أكتوبر - ب';
+const APP_VERSION='23 أكتوبر - ج';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1233,7 +1233,9 @@ async function editCustomer(id){const c=S.customers.find(x=>x.id===id);if(!c)ret
 /* ---------- الأجهزة: كل جهاز يسجل نفسه لما ينفتح التطبيق بس (بدون تبليغ مستمر) ---------- */
 const DEV_KEY='dithar-device',DEV_GAP=10*60*1000;
 function myDevice(){let d=null;try{d=JSON.parse(localStorage.getItem(DEV_KEY)||'null')}catch(e){}
-  if(!d||!d.id){d={id:rid()+rid(),name:'',asked:false};saveMyDevice(d)}return d}
+  if(!d||!d.id){d={id:rid()+rid(),name:'',fresh:true,v:2};saveMyDevice(d)}
+  if(!d.v){d.v=2;d.fresh=true;saveMyDevice(d)}   /* مرة وحدة للأجهزة القديمة: تنظيف النسخ المكررة */
+  return d}
 function saveMyDevice(d){try{localStorage.setItem(DEV_KEY,JSON.stringify(d))}catch(e){}}
 function guessDevice(){const u=navigator.userAgent;
   if(/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1))return'آيباد';
@@ -1260,13 +1262,29 @@ async function autoName(){const d=myDevice();if(d.auto)return d.auto;let n=guess
       n=androidName(m)}}catch(e){}
   d.auto=n;saveMyDevice(d);return n}
 let devLastWrite=0;
-async function seenDevice(force){const d=myDevice();const now=Date.now();
+/* بصمة الجهاز: نفس الجوال يعطي نفس البصمة حتى لو انحذف التطبيق وانضاف من جديد */
+function devPrint(){const u=navigator.userAgent,os=(u.match(/OS (\d+)_(\d+)/)||u.match(/Android ([\d.]+)/)||[''])[0];
+  let tz='';try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){}
+  return [guessDevice(),Math.min(screen.width,screen.height)+'x'+Math.max(screen.width,screen.height),devicePixelRatio,os,tz,navigator.language].join('|')}
+/* المتصفح في الجوال (سفاري أو كروم بدون تثبيت) ما ينحسب جهاز، النسخة المثبتة على الشاشة الرئيسية بس */
+function countable(){const st=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  return st||!/آيفون|آيباد|أندرويد/.test(guessDevice())||!store.root}
+let DEV_DEDUPE=false;
+function dedupeDevices(){const d=myDevice();if(!d.fresh)return;
+  if(store.root&&!(LIVE.devices&&LIVE.devices.__got)){DEV_DEDUPE=true;return}
+  DEV_DEDUPE=false;const fp=devPrint();
+  /* أول مرة يفتح هالجهاز بعد إعادة تثبيت: نشيل نسخه القديمة اللي بنفس البصمة */
+  const dup=(S.devices||[]).filter(x=>x&&x.id!==d.id&&(x.fp?x.fp===fp:(!x.custom&&x.kind===guessDevice()&&x.name===d.auto)));
+  if(store.root)dup.forEach(x=>{try{store.root.collection('devices').doc(x.id).delete().catch(()=>{})}catch(e){}});
+  else{S.devices=S.devices.filter(x=>!dup.includes(x));store.saveLocal()}
+  d.fresh=false;saveMyDevice(d)}
+async function seenDevice(force){const d=myDevice();const now=Date.now();if(!countable())return;
   if(!force&&now-devLastWrite<DEV_GAP)return;devLastWrite=now;
   const auto=await autoName();
-  const o={name:d.name||auto,custom:!!d.name,kind:guessDevice(),lastSeen:now};
+  const o={name:d.name||auto,custom:!!d.name,kind:guessDevice(),fp:devPrint(),lastSeen:now};
   if(store.root){try{store.root.collection('devices').doc(d.id).set(o).catch(()=>{})}catch(e){}}
   else{S.devices=[...S.devices.filter(x=>x.id!==d.id),{...o,id:d.id}];store.saveLocal()}
-  pruneDevices();renderDevChip()}
+  pruneDevices();dedupeDevices();renderDevChip()}
 /* أي جهاز ما فتح التطبيق 24 ساعة ينحذف من القائمة، ولو رجع يفتح يرجع بنفس اسمه */
 function pruneDevices(){const me=myDevice().id,now=Date.now(),old=(S.devices||[]).filter(x=>x&&x.id!==me&&(!x.lastSeen||now-x.lastSeen>=DAY));
   if(!old.length)return;
@@ -1290,7 +1308,7 @@ function devList(){const me=myDevice().id,now=Date.now(),L=(S.devices||[]).filte
   const g={};L.forEach(x=>{const k=x.name||x.kind||'جهاز';(g[k]=g[k]||[]).push(x)});
   Object.values(g).forEach(a=>{if(a.length<2)return;a.sort((x,y)=>x.id<y.id?-1:1).forEach((x,i)=>{x.label=(x.name||x.kind)+' ('+(i+1)+')'})});
   return L.sort((a,b)=>(b.id===me)-(a.id===me)||b.lastSeen-a.lastSeen)}
-function renderDevChip(){const el=$('#devChip');if(!el)return;
+function renderDevChip(){if(DEV_DEDUPE)dedupeDevices();const el=$('#devChip');if(!el)return;
   const n=devList().length||1;
   el.querySelector('span').textContent=n;el.title=`${n} ${n===1?'جهاز':'أجهزة'} فتحت التطبيق آخر 24 ساعة`}
 function devicesInfo(){const me=myDevice().id,L=devList(),act=L.length;

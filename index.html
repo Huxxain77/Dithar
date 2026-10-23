@@ -468,6 +468,9 @@ td.num{direction:ltr;text-align:left}
 <body>
 <!-- ===== شاشة التحميل ===== -->
 <div id="splash" aria-hidden="true"><img src="icon.png" alt=""><div class="sp-below"><strong>Dithar</strong><i></i></div></div>
+<script>/* أندرويد: شاشة النظام تعرض الشعار أكبر، فنكبر شعار شاشتنا بنفس المقاس عشان ما يقفز الحجم */
+(function(){var u=navigator.userAgent,and=/Android/.test(u)||(/Linux|X11/.test(u)&&navigator.maxTouchPoints>0);
+if(and&&matchMedia('(display-mode: standalone)').matches)document.getElementById('splash').classList.add('and')})()</script>
 <style>
 #splash{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#34161B;color:#F3E4C8;transition:opacity .35s ease}
 #splash img{width:96px;height:96px;object-fit:cover;-webkit-mask-image:radial-gradient(closest-side,#000 80%,transparent 100%);mask-image:radial-gradient(closest-side,#000 80%,transparent 100%)}   /* الشعار يذوب في الخلفية */
@@ -475,6 +478,8 @@ td.num{direction:ltr;text-align:left}
 #splash i{width:28px;height:28px;border-radius:50%;margin:0!important;border:3px solid rgba(230,190,110,.25);border-top-color:#E6BE6E;animation:splspin .8s linear infinite,splfade .35s ease-out;margin-top:6px}
 #splash .sp-below{position:absolute;left:0;right:0;top:calc(50% + 62px);display:flex;flex-direction:column;align-items:center;gap:14px}
 #splash.out{opacity:0;pointer-events:none}
+#splash.and img{width:270px;height:270px}
+#splash.and .sp-below{top:calc(50% + 150px)}
 @keyframes splspin{to{transform:rotate(360deg)}}
 @keyframes splfade{from{opacity:0}}   /* دائرة التحميل تظهر بهدوء أول ما يشتغل التطبيق، ما تكون مرسومة ثابتة في صورة الانطلاق */
 @media (prefers-reduced-motion:reduce){#splash i{animation-duration:2s}}
@@ -550,7 +555,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='23 أكتوبر - أ';
+const APP_VERSION='23 أكتوبر - ب';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",

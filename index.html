@@ -555,7 +555,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='24 أكتوبر - ج';
+const APP_VERSION='24 أكتوبر - د';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1718,6 +1718,11 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
 .cat-opts label{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:.88rem;cursor:pointer}
 .cat-opts label:has(input:checked){border-color:#4E1220;background:#F7EEF0}
 .cat-opts input{accent-color:#4E1220;margin:0}
+.cm-list{display:grid;gap:6px;margin:6px 0 4px}
+.cm-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:12px;padding:8px 8px 8px 12px}
+.cm-row small{display:block;color:var(--muted);font-size:.76rem}
+.cm-row .btn{height:36px;padding:0 14px;font-size:.88rem;background:transparent!important;color:var(--neg)!important;border-color:var(--line)!important}
+#catManage{font-size:.78rem}
 @media print{.cat-it button,.cat-items{display:none!important}.cat-row .nm::after{content:""!important}}
 .pdf-mode .cat-it button,.pdf-mode .cat-items{display:none!important}
 </style>
@@ -1749,14 +1754,27 @@ function catOf(x){
   for(var i=0;i<EXP_CATS.length;i++){var c=EXP_CATS[i];if(c[1].some(hit))return c[0]}
   return CAT_OTHER}
 function catColor(c){var i=EXP_CATS.findIndex(function(x){return x[0]===c});if(i<0){var X=['#B04A75','#5C7A2B','#D08C2A','#4E6FAE','#9C6B4E'],h=0;for(var j=0;j<c.length;j++)h+=c.charCodeAt(j);return X[h%X.length]}return CAT_COLORS[i]}
-function catList(){var a=EXP_CATS.map(function(c){return c[0]});(S.catRules||[]).forEach(function(r){if(r.cat&&a.indexOf(r.cat)<0)a.push(r.cat)});
-  (S.entries||[]).forEach(function(x){if(x.cat&&a.indexOf(x.cat)<0)a.push(x.cat)});a.push(CAT_OTHER);return a}
+function catList(){var a=EXP_CATS.map(function(c){return c[0]});(S.catRules||[]).forEach(function(r){if(r.cat&&r.cat!==CAT_OTHER&&a.indexOf(r.cat)<0)a.push(r.cat)});
+  (S.entries||[]).forEach(function(x){if(x.cat&&x.cat!==CAT_OTHER&&a.indexOf(x.cat)<0)a.push(x.cat)});a.push(CAT_OTHER);return a}
+/* الأنواع اللي أضفتها بنفسك تقدر تحذفها، ومصروفاتها ترجع للتصنيف التلقائي */
+function customCats(){var base=EXP_CATS.map(function(c){return c[0]}).concat([CAT_OTHER]);return catList().filter(function(c){return base.indexOf(c)<0})}
+async function manageCats(){var L=customCats();
+  var used=function(c){return (S.entries||[]).filter(function(x){return x.kind==='out'&&catOf(x)===c}).length};
+  var r=await modal({title:'إدارة الأنواع',body:L.length?'<p>الأنواع التي أضفتها. عند حذف نوع، تعود مصروفاته للتصنيف التلقائي.</p><div class="cm-list">'+L.map(function(c,i){return '<div class="cm-row"><span>'+esc(c)+'<small>'+used(c)+' مصروف</small></span><button type="button" class="btn danger-ghost" data-m="del:'+i+'">حذف</button></div>'}).join('')+'</div>'
+      :'<p>لا توجد أنواع مضافة. الأنواع الأساسية ثابتة، ولا تظهر في الرسم إلا إذا كان لها مصروفات.</p>',
+    actions:[{key:'cancel',label:'تم',cls:'ghost'}]});
+  if(!r||r.key.indexOf('del:')!==0)return;var c=L[+r.key.slice(4)];if(!c)return;
+  var rules=(S.catRules||[]).filter(function(y){return y.cat===c}),ents=(S.entries||[]).filter(function(y){return y.cat===c});
+  var docs=rules.map(function(y){return {c:'catRules',x:Object.assign({},y)}}).concat(ents.map(function(y){return {c:'entries',x:Object.assign({},y)}}));
+  if(await safe(async function(){for(var i=0;i<rules.length;i++)await store.remove('catRules',rules[i].id);for(var j=0;j<ents.length;j++)await store.update('entries',ents[j].id,{cat:null})})){
+    undoToast('تم حذف نوع «'+c+'»',docs);setTimeout(manageCats,260)}}
 async function recatEntry(id){var x=S.entries.find(function(y){return y.id===id});if(!x)return;
   var cur=catOf(x),k=catKey(x.note),list=catList();
   var r=await modal({title:'نوع المصروف',body:'<p>'+(k?'«'+esc(x.note)+'» '+fmt(x.amount)+' ر.س. أي مصروف بالملاحظة نفسها لاحقًا سيُصنَّف في النوع الذي تختاره.':'مصروف بدون ملاحظة بـ '+fmt(x.amount)+' ر.س.')+'</p>'+
     '<div class="cat-opts">'+list.map(function(c){return '<label><input type="radio" name="cat" value="'+esc(c)+'"'+(c===cur?' checked':'')+'>'+esc(c)+'</label>'}).join('')+'</div>'+
     '<label class="field"><span>أو نوع جديد</span><input type="text" name="newcat" placeholder="مثال: ضيافة"></label>',
-    actions:[{key:'ok',label:'حفظ'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+    actions:[{key:'ok',label:'حفظ'},{key:'manage',label:'إدارة الأنواع',cls:'ghost'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+  if(r&&r.key==='manage'){setTimeout(manageCats,260);return}
   if(!r)return;var c=(r.values.newcat||'').trim().slice(0,30)||r.values.cat;if(!c||c===cur)return;
   var ok=k?await safe(function(){return store.restore('catRules',{id:catRuleId(k),k:k,cat:c})}):await safe(function(){return store.update('entries',x.id,{cat:c})});
   if(ok)toast('أصبح «'+c+'»'+(k?' لكل «'+x.note+'»':''))}
@@ -1764,7 +1782,7 @@ async function recatEntry(id){var x=S.entries.find(function(y){return y.id===id}
   if(typeof VIEWS==='undefined'||!VIEWS.report)return;
   var R=VIEWS.report,html0=R.html,upd0=R.update,open=null;
   R.html=function(){return html0().replace('</section><h2 class="section-title">الملخص</h2>',
-    '<div class="chart-card"><h3>أنواع المصروفات</h3><p class="note no-print">اضغط على أي نوع لعرض تفاصيله، ويمكنك تغيير نوع أي مصروف</p><div id="ch4"></div></div></section><h2 class="section-title">الملخص</h2>')};
+    '<div class="chart-card"><h3>أنواع المصروفات</h3><p class="note no-print">اضغط على أي نوع لعرض تفاصيله، ويمكنك تغيير نوع أي مصروف. <button type="button" class="link-btn" id="catManage">إدارة الأنواع</button></p><div id="ch4"></div></div></section><h2 class="section-title">الملخص</h2>')};
   R.update=function(){upd0.apply(this,arguments);var box=document.getElementById('ch4');if(!box)return;
     var a=UI.rFrom,b=UI.rTo;if(a>b){var t=a;a=b;b=t}
     var outs=S.entries.filter(function(x){return x.kind==='out'&&inRange(x.date,a,b)});
@@ -1776,6 +1794,7 @@ async function recatEntry(id){var x=S.entries.find(function(y){return y.id===id}
       return '<button type="button" class="cat-row" data-cat="'+esc(r.c)+'" aria-expanded="'+on+'"><span class="nm">'+esc(r.c)+'</span><span class="tr"><i style="width:'+(r.t/mx*100)+'%;background:'+col+'"></i></span><span class="vl">'+fmt(r.t)+'<em>'+Math.round(r.t/tot*100)+'%</em></span></button>'+
         (on?'<div class="cat-items">'+r.l.sort(byDateAsc).reverse().map(function(x){return '<div class="cat-it"><div class="n">'+(x.note?esc(x.note):'<span style="color:var(--muted)">بدون ملاحظة</span>')+'<small>'+fmtShort(x.date)+'</small></div><b>'+fmt(x.amount)+'</b><button type="button" data-recat="'+x.id+'">تغيير النوع</button></div>'}).join('')+'</div>':'')}).join('')+'</div>'+
       (CAT_ERR?'<p class="warn-box" style="margin-top:8px">قواعد Firestore لا تسمح بحفظ الأنواع التي تختارها. أضف <b>catRules</b> في القواعد.</p>':'');
+    var mb=document.getElementById('catManage');if(mb)mb.onclick=function(){manageCats()};
     box.onclick=function(e){var rc=e.target.closest('[data-recat]');if(rc){recatEntry(rc.dataset.recat);return}
       var row=e.target.closest('.cat-row');if(row){open=open===row.dataset.cat?null:row.dataset.cat;R.update()}}};
   if(typeof UI!=='undefined'&&UI.tab==='report'&&!UI.detail&&typeof mount==='function')mount();

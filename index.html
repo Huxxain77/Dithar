@@ -555,7 +555,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='23 أكتوبر - ج';
+const APP_VERSION='24 أكتوبر - أ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -662,10 +662,10 @@ function modal({title,body='',actions}){
 const confirmBox=(title,text,label='حذف')=>modal({title,body:`<p>${text}</p>`,actions:[{key:'ok',label,cls:'danger'},{key:'cancel',label:'إلغاء',cls:'ghost'}]}).then(r=>!!r);
 
 /* ---------- data store ---------- */
-const COLS=['branches','entries','reps','repTx','workers','workerTx','customers','custTx','devices'];
-const OPTIONAL=['customers','custTx','devices'];   // أقسام جديدة: لو قواعد Firestore ما تسمح فيها ما نعطّل باقي التطبيق
+const COLS=['branches','entries','reps','repTx','workers','workerTx','customers','custTx','devices','catRules'];
+const OPTIONAL=['customers','custTx','devices','catRules'];   // أقسام جديدة: لو قواعد Firestore ما تسمح فيها ما نعطّل باقي التطبيق
 const S={};COLS.forEach(c=>S[c]=[]);
-let ready=false,STALE=false,CUST_ERR=null,DEV_ERR=null;
+let ready=false,STALE=false,CUST_ERR=null,DEV_ERR=null,CAT_ERR=null;
 /* تحميل آخر 4 شهور فقط (الشهر الحالي + 3 قبله). الأقدم ينجاب وقت الحاجة، وما ينمسح شي */
 const WINDOWED=['entries','workerTx'];
 const CUTOFF_M=shiftMonth(curMonth(),-3),CUTOFF=CUTOFF_M+'-01';
@@ -826,7 +826,7 @@ async function initStore(){
       if(STALE&&confirmed.size===COLS.length)showStale(false);
       if(!ready&&!navigator.onLine)openStale();
       if(ready)refresh();
-    },e=>{if(OPTIONAL.includes(c)){LIVE[c]=[];LIVE[c].__got=1;merge(c);pending.delete(c);confirmed.add(c);if(!ready&&confirmed.size===COLS.length){ready=true;__mark('data')}if(ready)refresh();if(c==='devices')DEV_ERR=e&&e.code||'err';else CUST_ERR=e&&e.code||'err';return}
+    },e=>{if(OPTIONAL.includes(c)){LIVE[c]=[];LIVE[c].__got=1;merge(c);pending.delete(c);confirmed.add(c);if(!ready&&confirmed.size===COLS.length){ready=true;__mark('data')}if(ready)refresh();if(c==='devices')DEV_ERR=e&&e.code||'err';else if(c==='catRules')CAT_ERR=e&&e.code||'err';else CUST_ERR=e&&e.code||'err';return}
       SYNC.err=e;renderSync();toast(e&&e.code==='permission-denied'?'هذا الحساب ما له صلاحية على البيانات':'ما قدرت أقرأ البيانات، تأكد من قواعد Firestore')})));
   });
 }
@@ -1697,6 +1697,92 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
 })();
 </script>
 <!-- ===== نهاية الرسومات ===== -->
+<!-- ===== وين تروح المصروفات ===== -->
+<style>
+.cat-rows{display:grid;gap:2px}
+.cat-row{appearance:none;width:100%;background:none;border:0;border-top:1px dashed var(--line);padding:9px 0;display:grid;grid-template-columns:1fr auto;grid-template-areas:'nm vl' 'tr tr';gap:6px 10px;align-items:center;text-align:start;font:inherit;color:inherit;cursor:pointer}
+.cat-row:first-child{border-top:0}
+.cat-row .nm{font-size:.9rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat-row .nm{grid-area:nm}.cat-row .vl{grid-area:vl}.cat-row .tr{grid-area:tr;height:10px;background:#F1EFF5;border-radius:6px;overflow:hidden}
+.cat-row .tr i{display:block;height:100%;border-radius:6px}
+.cat-row .vl{font-size:.86rem;white-space:nowrap;text-align:left;direction:ltr}
+.cat-row .vl em{font-style:normal;color:var(--muted);margin-left:6px}
+.cat-row[aria-expanded="true"] .nm::after{content:" ▾";color:var(--muted)}
+.cat-items{margin:2px 0 8px;padding:4px 10px;background:var(--surface-2);border-radius:12px}
+.cat-it{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:.86rem}
+.cat-it:first-child{border-top:0}
+.cat-it .n{flex:1;min-width:0;overflow-wrap:anywhere}.cat-it small{display:block;color:var(--muted);font-size:.74rem}
+.cat-it b{font-weight:500;white-space:nowrap;direction:ltr}
+.cat-it button{appearance:none;border:1px solid var(--line);background:var(--surface);border-radius:8px;font:inherit;font-size:.74rem;padding:3px 8px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.cat-opts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0 10px}
+.cat-opts label{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:.88rem;cursor:pointer}
+.cat-opts label:has(input:checked){border-color:#4E1220;background:#F7EEF0}
+.cat-opts input{accent-color:#4E1220;margin:0}
+@media print{.cat-it button,.cat-items{display:none!important}.cat-row .nm::after{content:""!important}}
+.pdf-mode .cat-it button,.pdf-mode .cat-items{display:none!important}
+</style>
+<script>
+/* تصنيف المصروفات حسب الملاحظة: كلمات معروفة، وأي تصنيف تختاره بنفسك ينحفظ ويتطبق على نفس الملاحظة بعدين */
+var EXP_CATS=[
+  ['رسوم حكومية',['اقامه','تاشيره','بلديه','رخصه','جوازات','مكتب العمل','غرامه','مخالفه','تامينات','تامين','زكاه','ضريبه','قوي','مقيم','تجديد','غرفه تجاريه','سجل']],
+  ['فواتير واتصالات',['فاتوره','كهرب','انترنت','نت','شريحه','اتصالات','stc','موبايلي','زين','سوا','جوال']],
+  ['إيجار',['ايجار','اجار','اجره المحل']],
+  ['مأكولات ومشروبات',['فطور','فطار','غدا','عشا','فلافل','شاي','قهوه','كوفي','ماء','مويه','مياه','عصير','اكل','مطعم','بوفيه','سندويش','ساندويش','شاورما','برجر','خبز','تميس','تمر','حليب','ببسي','بيبسي','كولا','مشروب','وجبه','حلا','كيك','فول','بروست','دجاج','رز','بيتزا','ايسكريم','بسكويت','مكسرات']],
+  ['نقل وتوصيل',['نقل','توصيل','مشوار','تاكسي','اوبر','كريم','بنزين','وقود','ديزل','شحن','سواق','ارامكس','سمسا','بريد','دباب','موقف','مواقف']],
+  ['بضاعة وأقمشة',['قماش','اقمشه','بضاعه','جمله','شماغ','غتر','طواقي','طاقيه','بشت','تفصيل','خياط']],
+  ['مستلزمات المحل',['كيس','اكياس','علاق','شماعه','شماعات','خيط','خيوط','زرار','ازرار','سحاب','ورق','قرطاسيه','طابعه','حبر','قلم','اقلام','شنط','شنطه','تغليف','كرتون','شريط','لاصق','بطاقات','ستيكر','مقص','ابر','عطر','بخور','دبابيس']],
+  ['نظافة وصيانة',['تنظيف','منظف','صابون','مناديل','كلينكس','فلاش','معطر','مكنسه','صيانه','تصليح','سباك','كهربائي','مكيف','لمبه','لمبات','دهان','نجار','زجاج','قفل','مفتاح']]
+];
+var CAT_OTHER='أخرى';
+var CAT_COLORS=['#7A2236','#A77826','#2A78D6','#2B7A57','#8C5BB5','#C2603A','#3F8C8C','#6A6884','#B04A75','#5C7A2B'];
+function catNorm(t){return String(t||'').toLowerCase().replace(/[ً-ٰٟ]/g,'').replace(/[أإآا]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/ـ/g,'').replace(/\s+/g,' ').trim()}
+function catKey(t){return catNorm(t).replace(/[\d٠-٩.,،]+/g,'').replace(/\s+/g,' ').trim()}
+function catRuleId(k){var h=0;for(var i=0;i<k.length;i++){h=(h*31+k.charCodeAt(i))|0}return 'r'+(h>>>0).toString(36)+'_'+k.length}
+function catOf(x){
+  if(x.cat)return x.cat;
+  var k=catKey(x.note);if(!k)return CAT_OTHER;
+  var r=(S.catRules||[]).find(function(y){return y.k===k});if(r)return r.cat;
+  var n=catNorm(x.note),ws=n.split(' ').map(function(w){return [w,w.replace(/^(و|ف|ب|لل|ل)?(ال)?/,'')]});
+  /* الكلمة لازم تبدأ بالكلمة المعروفة (عشان «بنزين» ما تنحسب «زين» شركة الاتصالات) */
+  var hit=function(k){k=k.trim();if(k.indexOf(' ')>=0)return n.indexOf(k)>=0;
+    return ws.some(function(p){return k.length<=2?(p[0]===k||p[1]===k):(p[0].indexOf(k)===0||p[1].indexOf(k)===0)})};
+  for(var i=0;i<EXP_CATS.length;i++){var c=EXP_CATS[i];if(c[1].some(hit))return c[0]}
+  return CAT_OTHER}
+function catColor(c){var i=EXP_CATS.findIndex(function(x){return x[0]===c});if(i<0){var X=['#B04A75','#5C7A2B','#D08C2A','#4E6FAE','#9C6B4E'],h=0;for(var j=0;j<c.length;j++)h+=c.charCodeAt(j);return X[h%X.length]}return CAT_COLORS[i]}
+function catList(){var a=EXP_CATS.map(function(c){return c[0]});(S.catRules||[]).forEach(function(r){if(r.cat&&a.indexOf(r.cat)<0)a.push(r.cat)});
+  (S.entries||[]).forEach(function(x){if(x.cat&&a.indexOf(x.cat)<0)a.push(x.cat)});a.push(CAT_OTHER);return a}
+async function recatEntry(id){var x=S.entries.find(function(y){return y.id===id});if(!x)return;
+  var cur=catOf(x),k=catKey(x.note),list=catList();
+  var r=await modal({title:'نوع المصروف',body:'<p>'+(k?'«'+esc(x.note)+'» '+fmt(x.amount)+' ر.س. أي مصروف بنفس الملاحظة بعدين بينحط في النوع اللي تختاره.':'مصروف بدون ملاحظة بـ '+fmt(x.amount)+' ر.س.')+'</p>'+
+    '<div class="cat-opts">'+list.map(function(c){return '<label><input type="radio" name="cat" value="'+esc(c)+'"'+(c===cur?' checked':'')+'>'+esc(c)+'</label>'}).join('')+'</div>'+
+    '<label class="field"><span>أو نوع جديد</span><input type="text" name="newcat" placeholder="مثال: ضيافة"></label>',
+    actions:[{key:'ok',label:'حفظ'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+  if(!r)return;var c=(r.values.newcat||'').trim().slice(0,30)||r.values.cat;if(!c||c===cur)return;
+  var ok=k?await safe(function(){return store.restore('catRules',{id:catRuleId(k),k:k,cat:c})}):await safe(function(){return store.update('entries',x.id,{cat:c})});
+  if(ok)toast('صار «'+c+'»'+(k?' لكل «'+x.note+'»':''))}
+(function(){
+  if(typeof VIEWS==='undefined'||!VIEWS.report)return;
+  var R=VIEWS.report,html0=R.html,upd0=R.update,open=null;
+  R.html=function(){return html0().replace('</section><h2 class="section-title">الملخص</h2>',
+    '<div class="chart-card"><h3>وين تروح المصروفات</h3><p class="note no-print">اضغط على أي نوع تشوف تفاصيله، وتقدر تغيّر نوع أي مصروف</p><div id="ch4"></div></div></section><h2 class="section-title">الملخص</h2>')};
+  R.update=function(){upd0.apply(this,arguments);var box=document.getElementById('ch4');if(!box)return;
+    var a=UI.rFrom,b=UI.rTo;if(a>b){var t=a;a=b;b=t}
+    var outs=S.entries.filter(function(x){return x.kind==='out'&&inRange(x.date,a,b)});
+    if(!outs.length){box.innerHTML='<p class="chart-empty">ما فيه مصروفات في هذي الفترة.</p>';return}
+    var g={};outs.forEach(function(x){var c=catOf(x);(g[c]=g[c]||{c:c,t:0,l:[]}).t+=x.amount;g[c].l.push(x)});
+    var rows=Object.keys(g).map(function(k){return g[k]}).sort(function(x,y){return (x.c===CAT_OTHER)-(y.c===CAT_OTHER)||y.t-x.t});
+    var tot=outs.reduce(function(s,x){return s+x.amount},0),mx=Math.max.apply(null,rows.map(function(r){return r.t}));
+    box.innerHTML='<div class="cat-rows">'+rows.map(function(r,i){var col=r.c===CAT_OTHER?'#B9B7C8':catColor(r.c),on=open===r.c;
+      return '<button type="button" class="cat-row" data-cat="'+esc(r.c)+'" aria-expanded="'+on+'"><span class="nm">'+esc(r.c)+'</span><span class="tr"><i style="width:'+(r.t/mx*100)+'%;background:'+col+'"></i></span><span class="vl">'+fmt(r.t)+'<em>'+Math.round(r.t/tot*100)+'%</em></span></button>'+
+        (on?'<div class="cat-items">'+r.l.sort(byDateAsc).reverse().map(function(x){return '<div class="cat-it"><div class="n">'+(x.note?esc(x.note):'<span style="color:var(--muted)">بدون ملاحظة</span>')+'<small>'+fmtShort(x.date)+'</small></div><b>'+fmt(x.amount)+'</b><button type="button" data-recat="'+x.id+'">تغيير النوع</button></div>'}).join('')+'</div>':'')}).join('')+'</div>'+
+      (CAT_ERR?'<p class="warn-box" style="margin-top:8px">قواعد Firestore ما تسمح بحفظ الأنواع اللي تختارها. أضف <b>catRules</b> في القواعد.</p>':'');
+    box.onclick=function(e){var rc=e.target.closest('[data-recat]');if(rc){recatEntry(rc.dataset.recat);return}
+      var row=e.target.closest('.cat-row');if(row){open=open===row.dataset.cat?null:row.dataset.cat;R.update()}}};
+  if(typeof UI!=='undefined'&&UI.tab==='report'&&!UI.detail&&typeof mount==='function')mount();
+})();
+</script>
+<!-- ===== نهاية المصروفات ===== -->
+
 <!-- ===== استيراد من Excel ===== -->
 <style>
 .xl-btn{display:inline-flex;align-items:center;gap:6px}

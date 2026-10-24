@@ -555,7 +555,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='24 أكتوبر - د';
+const APP_VERSION='24 أكتوبر - هـ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -617,10 +617,10 @@ const ML=Object.fromEntries(METHODS);
 let toastT;
 function toast(msg){const t=$('#toast');t.classList.remove('undo');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600)}
 /* تراجع بعد الحذف: يرجع نفس السجلات بنفس أرقامها */
-function undoToast(msg,docs){const t=$('#toast');clearTimeout(toastT);
+function undoToast(msg,docs,extra){const t=$('#toast');clearTimeout(toastT);
   t.innerHTML=`<span>${esc(msg)}</span><button type="button" class="undo-btn">تراجع</button>`;t.classList.add('undo','show');
   let used=false;t.querySelector('.undo-btn').onclick=async()=>{if(used)return;used=true;t.classList.remove('show','undo');
-    if(await safe(async()=>{for(const d of docs)await store.restore(d.c,d.x)}))toast('تم التراجع واستعادة البيانات')};
+    if(await safe(async()=>{for(const d of docs)await store.restore(d.c,d.x);if(extra)await extra()}))toast('تم التراجع واستعادة البيانات')};
   toastT=setTimeout(()=>t.classList.remove('show','undo'),7000)}
 
 /* ---------- modal ---------- */
@@ -1721,6 +1721,8 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
 .cm-list{display:grid;gap:6px;margin:6px 0 4px}
 .cm-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:12px;padding:8px 8px 8px 12px}
 .cm-row small{display:block;color:var(--muted);font-size:.76rem}
+.cm-row.off{background:var(--surface-2)}
+.cm-row.off .btn{color:var(--ink)!important}
 .cm-row .btn{height:36px;padding:0 14px;font-size:.88rem;background:transparent!important;color:var(--neg)!important;border-color:var(--line)!important}
 #catManage{font-size:.78rem}
 @media print{.cat-it button,.cat-items{display:none!important}.cat-row .nm::after{content:""!important}}
@@ -1746,28 +1748,35 @@ function catRuleId(k){var h=0;for(var i=0;i<k.length;i++){h=(h*31+k.charCodeAt(i
 function catOf(x){
   if(x.cat)return x.cat;
   var k=catKey(x.note);if(!k)return CAT_OTHER;
-  var r=(S.catRules||[]).find(function(y){return y.k===k});if(r)return r.cat;
+  var r=(S.catRules||[]).find(function(y){return y.k&&y.k===k});if(r)return r.cat;
+  var hid=hiddenCats();
   var n=catNorm(x.note),ws=n.split(' ').map(function(w){return [w,w.replace(/^(و|ف|ب|لل|ل)?(ال)?/,'')]});
   /* الكلمة لازم تبدأ بالكلمة المعروفة (عشان «بنزين» ما تنحسب «زين» شركة الاتصالات) */
   var hit=function(k){k=k.trim();if(k.indexOf(' ')>=0)return n.indexOf(k)>=0;
     return ws.some(function(p){return k.length<=2?(p[0]===k||p[1]===k):(p[0].indexOf(k)===0||p[1].indexOf(k)===0)})};
-  for(var i=0;i<EXP_CATS.length;i++){var c=EXP_CATS[i];if(c[1].some(hit))return c[0]}
+  for(var i=0;i<EXP_CATS.length;i++){var c=EXP_CATS[i];if(hid.indexOf(c[0])<0&&c[1].some(hit))return c[0]}
   return CAT_OTHER}
+/* الأنواع الأساسية اللي حذفتها (تنحفظ كسجل صغير، وتقدر تسترجعها) */
+function hiddenCats(){return (S.catRules||[]).filter(function(y){return y.hide}).map(function(y){return y.hide})}
 function catColor(c){var i=EXP_CATS.findIndex(function(x){return x[0]===c});if(i<0){var X=['#B04A75','#5C7A2B','#D08C2A','#4E6FAE','#9C6B4E'],h=0;for(var j=0;j<c.length;j++)h+=c.charCodeAt(j);return X[h%X.length]}return CAT_COLORS[i]}
-function catList(){var a=EXP_CATS.map(function(c){return c[0]});(S.catRules||[]).forEach(function(r){if(r.cat&&r.cat!==CAT_OTHER&&a.indexOf(r.cat)<0)a.push(r.cat)});
+function catList(){var hid=hiddenCats(),a=EXP_CATS.map(function(c){return c[0]}).filter(function(c){return hid.indexOf(c)<0});(S.catRules||[]).forEach(function(r){if(r.cat&&r.cat!==CAT_OTHER&&a.indexOf(r.cat)<0)a.push(r.cat)});
   (S.entries||[]).forEach(function(x){if(x.cat&&x.cat!==CAT_OTHER&&a.indexOf(x.cat)<0)a.push(x.cat)});a.push(CAT_OTHER);return a}
-/* الأنواع اللي أضفتها بنفسك تقدر تحذفها، ومصروفاتها ترجع للتصنيف التلقائي */
-function customCats(){var base=EXP_CATS.map(function(c){return c[0]}).concat([CAT_OTHER]);return catList().filter(function(c){return base.indexOf(c)<0})}
-async function manageCats(){var L=customCats();
+/* إدارة الأنواع: أي نوع ينحذف (الأساسي يتخبى ويقدر يرجع)، ومصروفاته ترجع للتصنيف التلقائي */
+async function manageCats(){var L=catList().filter(function(c){return c!==CAT_OTHER}),H=hiddenCats(),base=EXP_CATS.map(function(c){return c[0]});
   var used=function(c){return (S.entries||[]).filter(function(x){return x.kind==='out'&&catOf(x)===c}).length};
-  var r=await modal({title:'إدارة الأنواع',body:L.length?'<p>الأنواع التي أضفتها. عند حذف نوع، تعود مصروفاته للتصنيف التلقائي.</p><div class="cm-list">'+L.map(function(c,i){return '<div class="cm-row"><span>'+esc(c)+'<small>'+used(c)+' مصروف</small></span><button type="button" class="btn danger-ghost" data-m="del:'+i+'">حذف</button></div>'}).join('')+'</div>'
-      :'<p>لا توجد أنواع مضافة. الأنواع الأساسية ثابتة، ولا تظهر في الرسم إلا إذا كان لها مصروفات.</p>',
+  var r=await modal({title:'إدارة الأنواع',body:'<p>عند حذف نوع، تنتقل مصروفاته إلى «أخرى» أو إلى نوع آخر يطابقها.</p><div class="cm-list">'+L.map(function(c,i){return '<div class="cm-row"><span>'+esc(c)+'<small>'+used(c)+' مصروف'+(base.indexOf(c)<0?' · نوع مضاف':'')+'</small></span><button type="button" class="btn danger-ghost" data-m="del:'+i+'">حذف</button></div>'}).join('')+'</div>'+
+      (H.length?'<p style="margin-top:14px">أنواع أساسية محذوفة:</p><div class="cm-list">'+H.map(function(c,i){return '<div class="cm-row off"><span>'+esc(c)+'</span><button type="button" class="btn ghost" data-m="res:'+i+'">استرجاع</button></div>'}).join('')+'</div>':''),
     actions:[{key:'cancel',label:'تم',cls:'ghost'}]});
-  if(!r||r.key.indexOf('del:')!==0)return;var c=L[+r.key.slice(4)];if(!c)return;
+  if(!r)return;
+  if(r.key.indexOf('res:')===0){var h=H[+r.key.slice(4)],hd=(S.catRules||[]).find(function(y){return y.hide===h});
+    if(hd&&await safe(function(){return store.remove('catRules',hd.id)}))toast('تم استرجاع «'+h+'»');setTimeout(manageCats,260);return}
+  if(r.key.indexOf('del:')!==0)return;var c=L[+r.key.slice(4)];if(!c)return;
   var rules=(S.catRules||[]).filter(function(y){return y.cat===c}),ents=(S.entries||[]).filter(function(y){return y.cat===c});
   var docs=rules.map(function(y){return {c:'catRules',x:Object.assign({},y)}}).concat(ents.map(function(y){return {c:'entries',x:Object.assign({},y)}}));
-  if(await safe(async function(){for(var i=0;i<rules.length;i++)await store.remove('catRules',rules[i].id);for(var j=0;j<ents.length;j++)await store.update('entries',ents[j].id,{cat:null})})){
-    undoToast('تم حذف نوع «'+c+'»',docs);setTimeout(manageCats,260)}}
+  var isBase=base.indexOf(c)>=0,hideId='hide_'+catRuleId(c);
+  if(await safe(async function(){for(var i=0;i<rules.length;i++)await store.remove('catRules',rules[i].id);for(var j=0;j<ents.length;j++)await store.update('entries',ents[j].id,{cat:null});
+      if(isBase)await store.restore('catRules',{id:hideId,hide:c})})){
+    undoToast('تم حذف نوع «'+c+'»',docs,isBase?function(){return store.remove('catRules',hideId)}:null);setTimeout(manageCats,260)}}
 async function recatEntry(id){var x=S.entries.find(function(y){return y.id===id});if(!x)return;
   var cur=catOf(x),k=catKey(x.note),list=catList();
   var r=await modal({title:'نوع المصروف',body:'<p>'+(k?'«'+esc(x.note)+'» '+fmt(x.amount)+' ر.س. أي مصروف بالملاحظة نفسها لاحقًا سيُصنَّف في النوع الذي تختاره.':'مصروف بدون ملاحظة بـ '+fmt(x.amount)+' ر.س.')+'</p>'+

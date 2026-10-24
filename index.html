@@ -343,7 +343,7 @@ tr.sel td{background:var(--brass-soft)}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-/* مديونية الزباين */
+/* مديونية العملاء */
 .debt-items{display:grid;gap:8px;margin-bottom:8px}
 .debt-item{display:grid;grid-template-columns:1fr 92px 34px;gap:6px;align-items:center}
 .debt-item input{width:100%;min-width:0}
@@ -500,7 +500,7 @@ if(and&&matchMedia('(display-mode: standalone)').matches)document.getElementById
 </script>
 <!-- ===== نهاية شاشة التحميل ===== -->
 <!-- ===== تنبيه التحديث ===== -->
-<div id="updBar" hidden><span>فيه تحديث جديد للتطبيق</span><button type="button" onclick="location.reload()">تحديث</button></div>
+<div id="updBar" hidden><span>يتوفر تحديث جديد للتطبيق</span><button type="button" onclick="location.reload()">تحديث</button></div>
 <style>
 #updBar{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:9000;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#1D1B36;color:#fff;border-radius:14px;padding:10px 12px 10px 16px;box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:.95rem;max-width:520px;margin:0 auto}
 #updBar[hidden]{display:none}
@@ -516,7 +516,7 @@ if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('messag
   <div class="brand"><img class="brand-logo" src="icon.png" alt="">Dithar</div>
   <div class="top-end"><nav class="topnav" id="topnav" aria-label="الأقسام"></nav><button class="sync dev-chip" id="devChip" data-act="devices" hidden aria-label="الأجهزة" title="الأجهزة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2.2"/><path d="M11 17.5h2"/></svg><span>1</span></button><button class="sync" id="sync" data-act="syncInfo" data-s="connecting" aria-live="polite"><i></i><span>جارٍ الاتصال</span></button><button class="logout-btn" id="logoutBtn" data-act="logout" hidden aria-label="تسجيل الخروج" title="تسجيل الخروج"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5M14 8l-4 4 4 4M10 12h10"/></svg></button></div>
 </div></header>
-<div id="staleBar" hidden>بدون نت: هذي آخر بيانات محفوظة على الجهاز، وممكن ما تكون الأحدث</div>
+<div id="staleBar" hidden>بدون إنترنت: هذه آخر بيانات محفوظة على الجهاز، وقد لا تكون الأحدث</div>
 <main id="view"></main>
 <nav class="tabbar" id="tabbar" aria-label="الأقسام"></nav>
 <div id="modal-root"></div>
@@ -555,7 +555,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='24 أكتوبر - ب';
+const APP_VERSION='24 أكتوبر - ج';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -610,7 +610,7 @@ const ICON={
 };
 const svg=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
 const BID='main';
-const TABS=[['branches','اليومية','اليومية'],['reps','المناديب','المناديب'],['workers','العمال','العمال'],['debts','مديونية الزباين','الديون'],['report','التقرير الشهري','التقرير']];
+const TABS=[['branches','اليومية','اليومية'],['reps','المناديب','المناديب'],['workers','العمال','العمال'],['debts','مديونية العملاء','الديون'],['report','التقرير الشهري','التقرير']];
 const METHODS=[['cash','كاش'],['mada','مدى'],['visa','فيزا']];
 const ML=Object.fromEntries(METHODS);
 
@@ -620,7 +620,7 @@ function toast(msg){const t=$('#toast');t.classList.remove('undo');t.textContent
 function undoToast(msg,docs){const t=$('#toast');clearTimeout(toastT);
   t.innerHTML=`<span>${esc(msg)}</span><button type="button" class="undo-btn">تراجع</button>`;t.classList.add('undo','show');
   let used=false;t.querySelector('.undo-btn').onclick=async()=>{if(used)return;used=true;t.classList.remove('show','undo');
-    if(await safe(async()=>{for(const d of docs)await store.restore(d.c,d.x)}))toast('تم التراجع، رجعت البيانات')};
+    if(await safe(async()=>{for(const d of docs)await store.restore(d.c,d.x)}))toast('تم التراجع واستعادة البيانات')};
   toastT=setTimeout(()=>t.classList.remove('show','undo'),7000)}
 
 /* ---------- modal ---------- */
@@ -683,7 +683,7 @@ async function ensureRange(from,to){
       snap.docs.forEach(d=>{const x={...d.data(),id:d.id};if(x.date&&ms.includes(x.date.slice(0,7)))OLD[c][d.id]=x});merge(c);
     }
     ms.forEach(m=>LOADED[m]=true);
-  }catch(e){ms.forEach(m=>delete LOADED[m]);toast('ما قدرت أجيب بيانات الأشهر القديمة، تأكد من النت')}
+  }catch(e){ms.forEach(m=>delete LOADED[m]);toast('تعذّر جلب بيانات الأشهر القديمة، تأكد من الاتصال بالإنترنت')}
   refresh();
 }
 function needData(){
@@ -723,7 +723,7 @@ const SYNC={pending:0,cache:{},lastSync:null,err:null};
 function track(p){
   SYNC.pending++;renderSync();
   p.then(()=>{SYNC.pending--;SYNC.lastSync=Date.now();SYNC.err=null;renderSync()},
-    e=>{SYNC.pending--;SYNC.err=e;renderSync();toast('ما تم حفظ آخر عملية في قاعدة البيانات')});
+    e=>{SYNC.pending--;SYNC.err=e;renderSync();toast('لم تُحفظ آخر عملية في قاعدة البيانات')});
 }
 function syncState(){
   if(!store.root)return'local';
@@ -734,7 +734,7 @@ function syncState(){
   if(SYNC.pending)return'saving';
   return'synced';
 }
-const SYNC_LABEL={local:'على الجهاز فقط',error:'خطأ بالحفظ',offline:'بدون نت',connecting:'جارٍ الاتصال',saving:'جارٍ الحفظ',synced:'متزامن'};
+const SYNC_LABEL={local:'على الجهاز فقط',error:'خطأ بالحفظ',offline:'بدون إنترنت',connecting:'جارٍ الاتصال',saving:'جارٍ الحفظ',synced:'متزامن'};
 function renderSync(){
   const el=$('#sync');if(!el)return;const st=syncState();
   el.dataset.s=st;
@@ -745,14 +745,14 @@ function syncInfo(){
   const st=syncState();
   const msg={
     synced:'كل البيانات محفوظة في قاعدة البيانات ومتطابقة مع باقي أجهزتك.',
-    saving:'فيه عمليات تنرفع الحين. انتظر لين يصير «متزامن» قبل ما تسكر الصفحة.',
-    offline:'الجهاز بدون نت. اللي تسجله ينحفظ على الجهاز وينرفع تلقائي أول ما يرجع النت، حتى لو سكرت الصفحة.',
+    saving:'جارٍ رفع العمليات. انتظر حتى تظهر «متزامن» قبل إغلاق الصفحة.',
+    offline:'الجهاز غير متصل بالإنترنت. ما تسجله يُحفظ على الجهاز ويُرفع تلقائيًا عند عودة الاتصال، حتى لو أغلقت الصفحة.',
     connecting:'جارٍ الاتصال بقاعدة البيانات.',
-    error:'آخر عملية رفضتها قاعدة البيانات. غالبًا القواعد في Firestore تغيرت أو فيها خطأ. راجع تبويب Rules.',
+    error:'رفضت قاعدة البيانات آخر عملية. غالبًا تغيّرت قواعد Firestore أو فيها خطأ. راجع تبويب Rules.',
     local:'Firebase غير مربوط، والبيانات محفوظة في هذا المتصفح فقط.'}[st];
   const last=SYNC.lastSync?new Date(SYNC.lastSync).toLocaleTimeString(LOC,{hour:'numeric',minute:'2-digit',second:'2-digit'}):'—';
   modal({title:`الحالة: ${SYNC_LABEL[st]}`,body:`<p>${msg}</p><div class="info-rows"><div><span>آخر مزامنة</span><b>${last}</b></div><div><span>عمليات بانتظار الرفع</span><b>${SYNC.pending}</b></div><div><span>الاتصال بالإنترنت</span><b>${navigator.onLine?'متصل':'غير متصل'}</b></div>${SYNC.err?`<div><span>رمز الخطأ</span><b dir="ltr">${esc(SYNC.err.code||'unknown')}</b></div>`:''}</div>`,
-    actions:[{key:'cancel',label:'تمام',cls:'ghost'}]});
+    actions:[{key:'cancel',label:'حسنًا',cls:'ghost'}]});
   if(auth&&auth.currentUser){const left=sessionLeft(),h=Math.floor(left/3600000),m=Math.floor(left%3600000/60000);
     const box=document.querySelector('#modal-root .info-rows');if(box)box.insertAdjacentHTML('beforeend',`<div><span>الجلسة تنتهي بعد</span><b>${h} ساعة و ${m} دقيقة</b></div>`)}
   speedRows();
@@ -762,16 +762,16 @@ function speedRows(){
   const T=window.__T||{},nav=(performance.getEntriesByType&&performance.getEntriesByType('navigation')[0])||{};
   const sec=v=>v==null?'—':(v/1000).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' ث';
   const sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);
-  const ps=window.__persist==='ok'?'شغال':window.__persist?'ما يشتغل ('+esc(window.__persist.slice(5))+')':'—';
-  const rows=[['وصول الصفحة',sec(nav.responseEnd)+(sw?' (من الجهاز)':' (من النت)')],['تحميل مكتبات Firebase',sec(T.libs)],['التأكد من تسجيل الدخول',sec(T.auth)],
-    ['عرض البيانات',sec(T.data)+(window.__dataCache==null?'':window.__dataCache?' (من الجهاز)':' (من النت)')],['اختفاء شاشة التحميل',sec(T.shown)],['التزامن مع النت',sec(T.synced)],['حفظ البيانات على الجهاز',ps],['نسخة التطبيق',APP_VERSION]];
+  const ps=window.__persist==='ok'?'يعمل':window.__persist?'لا يعمل ('+esc(window.__persist.slice(5))+')':'—';
+  const rows=[['وصول الصفحة',sec(nav.responseEnd)+(sw?' (من الجهاز)':' (من الإنترنت)')],['تحميل مكتبات Firebase',sec(T.libs)],['التأكد من تسجيل الدخول',sec(T.auth)],
+    ['عرض البيانات',sec(T.data)+(window.__dataCache==null?'':window.__dataCache?' (من الجهاز)':' (من الإنترنت)')],['اختفاء شاشة التحميل',sec(T.shown)],['التزامن مع الإنترنت',sec(T.synced)],['حفظ البيانات على الجهاز',ps],['نسخة التطبيق',APP_VERSION]];
   const body=document.querySelector('#modal-root .mbody');if(!body)return;
   body.insertAdjacentHTML('beforeend',`<p style="margin:14px 0 6px;font-weight:500;color:var(--ink)">سرعة الفتح</p><div class="info-rows">${rows.map(([a,b])=>`<div><span>${a}</span><b dir="auto">${b}</b></div>`).join('')}</div>`);
 }
 
 async function safe(fn){
   try{await fn();return true}
-  catch(e){toast(e&&e.code==='quota_exceeded'?'المساحة ممتلئة، احذف بعض السجلات القديمة':'ما تم الحفظ، حاول مرة ثانية');return false}
+  catch(e){toast(e&&e.code==='quota_exceeded'?'المساحة ممتلئة، احذف بعض السجلات القديمة':'لم يتم الحفظ، حاول مرة أخرى');return false}
 }
 /* ---------- تسجيل الدخول: مستخدم واحد، الجلسة 24 ساعة ---------- */
 const LOGIN_DOMAIN='dithar.app';
@@ -786,7 +786,7 @@ async function wipeAndReload(){
   try{await fdb.terminate();await fdb.clearPersistence()}catch(e){}
   location.reload();
 }
-function checkSession(){if(auth&&auth.currentUser&&sessionLeft()<=0){toast('انتهت الجلسة، سجّل دخول مرة ثانية');wipeAndReload()}}
+function checkSession(){if(auth&&auth.currentUser&&sessionLeft()<=0){toast('انتهت الجلسة، سجّل الدخول مرة أخرى');wipeAndReload()}}
 async function initStore(){
   if(!firebaseConfig.apiKey||!window.firebase){
     store.loadLocal();ready=true;mount();renderSync();$('#devChip').hidden=false;seenDevice(true);
@@ -827,7 +827,7 @@ async function initStore(){
       if(!ready&&!navigator.onLine)openStale();
       if(ready)refresh();
     },e=>{if(OPTIONAL.includes(c)){LIVE[c]=[];LIVE[c].__got=1;merge(c);pending.delete(c);confirmed.add(c);if(!ready&&confirmed.size===COLS.length){ready=true;__mark('data')}if(ready)refresh();if(c==='devices')DEV_ERR=e&&e.code||'err';else if(c==='catRules')CAT_ERR=e&&e.code||'err';else CUST_ERR=e&&e.code||'err';return}
-      SYNC.err=e;renderSync();toast(e&&e.code==='permission-denied'?'هذا الحساب ما له صلاحية على البيانات':'ما قدرت أقرأ البيانات، تأكد من قواعد Firestore')})));
+      SYNC.err=e;renderSync();toast(e&&e.code==='permission-denied'?'هذا الحساب لا يملك صلاحية على البيانات':'تعذّرت قراءة البيانات، تأكد من قواعد Firestore')})));
   });
 }
 function togglePw(b){const i=$('#lgPass');const show=i.type==='password';i.type=show?'text':'password';b.classList.toggle('on',show);b.setAttribute('aria-label',show?'إخفاء كلمة المرور':'إظهار كلمة المرور')}
@@ -840,7 +840,7 @@ function showLogin(){
   <button class="back" data-act="resetPw" style="margin:10px auto 0">نسيت كلمة المرور؟</button></section>`;
   setTimeout(()=>{const e=savedEmail()?$('#lgPass'):$('#lgUser');if(e)e.focus()},50);
 }
-const AUTH_ERR={'auth/invalid-credential':'البريد أو كلمة المرور غلط','auth/invalid-login-credentials':'البريد أو كلمة المرور غلط','auth/wrong-password':'البريد أو كلمة المرور غلط','auth/user-not-found':'البريد أو كلمة المرور غلط','auth/invalid-email':'البريد غير صحيح','auth/too-many-requests':'محاولات كثيرة، جرّب بعد شوي','auth/network-request-failed':'ما فيه اتصال بالإنترنت','auth/operation-not-allowed':'فعّل Email/Password في Firebase Authentication'};
+const AUTH_ERR={'auth/invalid-credential':'البريد أو كلمة المرور غير صحيحة','auth/invalid-login-credentials':'البريد أو كلمة المرور غير صحيحة','auth/wrong-password':'البريد أو كلمة المرور غير صحيحة','auth/user-not-found':'البريد أو كلمة المرور غير صحيحة','auth/invalid-email':'البريد غير صحيح','auth/too-many-requests':'محاولات كثيرة، حاول مرة أخرى بعد قليل','auth/network-request-failed':'لا يوجد اتصال بالإنترنت','auth/operation-not-allowed':'فعّل Email/Password في Firebase Authentication'};
 
 /* ---------- calculations ---------- */
 /* عمولة نقاط البيع: مدى 0.8٪ وفيزا 2.5٪ */
@@ -887,7 +887,7 @@ async function ensureWorkerHistory(){
   WT_LOADING=true;
   try{const snap=await store.root.collection('workerTx').where('date','<',CUTOFF).get();
     snap.docs.forEach(d=>{OLD.workerTx[d.id]={...d.data(),id:d.id}});merge('workerTx');WT_ALL=true}
-  catch(e){toast('ما قدرت أجيب سجلات العمال القديمة، تأكد من النت')}
+  catch(e){toast('تعذّر جلب سجلات العمال القديمة، تأكد من الاتصال بالإنترنت')}
   WT_LOADING=false;refresh();
 }
 const balTxt=v=>WT_ALL?fmt(v):'…';
@@ -960,19 +960,19 @@ function mount(){
 function refresh(){if(ready){needData();const v=current();v.update&&v.update()}renderDevChip()}
 const back=(label)=>`<div class="detail-top"><button class="back" data-act="back">${svg('prev')}${label}</button><div style="display:flex;gap:8px"><button class="icon-btn del-btn" data-act="delCurrent" aria-label="حذف">${svg('trash')}</button><button class="icon-btn" data-act="menu" aria-label="تعديل الاسم">${svg('edit')}</button></div></div>`;
 const loading='<p class="loading">جارٍ التحميل…</p>';
-function amountOf(sel){const el=$(sel);const n=num(el.value);if(!(n>0)){el.classList.add('err');el.focus();toast('اكتب مبلغ صحيح');return null}return n}
+function amountOf(sel){const el=$(sel);const n=num(el.value);if(!(n>0)){el.classList.add('err');el.focus();toast('أدخل مبلغًا صحيحًا');return null}return n}
 
 /* ---------- views ---------- */
 const VIEWS={
 /* ===== branches list ===== */
 branches:{
-  html:()=>`<div class="page-head"><div><h1>اليومية</h1><p class="sub">دخل ومصروف المحل، يوم بيوم</p></div></div>
+  html:()=>`<div class="page-head"><div><h1>اليومية</h1><p class="sub">دخل المحل ومصروفاته يومًا بيوم</p></div></div>
   <div class="date-bar day-bar"><button class="icon-btn" data-act="dayMonthShift" data-n="-1" aria-label="الشهر السابق">${svg('prev2')}</button><button class="icon-btn" data-act="dayShift" data-n="-1" aria-label="اليوم السابق">${svg('prev')}</button><input type="date" id="day" value="${UI.date}" aria-label="التاريخ"><button class="icon-btn" data-act="dayShift" data-n="1" aria-label="اليوم التالي">${svg('next')}</button><button class="icon-btn" data-act="dayMonthShift" data-n="1" aria-label="الشهر التالي">${svg('next2')}</button><button class="btn ghost" data-act="dayToday">اليوم</button></div>
   <div class="grid2">
     <section class="panel"><h2>إضافة دخل</h2>
       <div class="seg" role="radiogroup" aria-label="طريقة الدفع">${METHODS.map(([k,l])=>`<label><input type="radio" name="method" value="${k}" ${UI.method===k?'checked':''}><span>${l}</span></label>`).join('')}</div>
       <div class="inline"><input type="text" id="incAmt" inputmode="decimal" placeholder="المبلغ" data-enter="addIncome" aria-label="مبلغ الدخل"><button class="btn" data-act="addIncome">إضافة</button></div>
-      <p class="sub">كل مبلغ يتسجل لحاله، تقدر تضيف أكثر من مرة.</p>
+      <p class="sub">يُسجَّل كل مبلغ على حدة، ويمكنك إضافة أكثر من مبلغ.</p>
     </section>
     <section class="panel"><h2>إضافة مصروف</h2>
       <label class="field"><span>المبلغ</span><input type="text" id="expAmt" inputmode="decimal" data-enter="addExpense"></label>
@@ -991,11 +991,11 @@ branches:{
     $('#dayStats').innerHTML=stat('الدخل',s.in,'pos')+stat('عمولة الشبكة',s.fee,'neg')+stat('المصروف',s.out,'neg')+stat('الصافي',s.net);
     $('#dayChips').innerHTML=METHODS.map(([k,l])=>`<span class="chip">${l} <b>${fmt(s[k])}</b></span>`).join('');
     $('#dayList').innerHTML=dayE.length?dayE.map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind}">${x.kind==='in'?ML[x.method]:'مصروف'}</span><span class="item-note">${x.kind==='out'?esc(x.note||'بدون ملاحظة'):esc(x.note||'')} ${x.src==='xlsx'?'<small>من Excel</small>':x.src==='img'?'<small>من صورة</small>':fmtTime(x.createdAt)}</span></div></div><div class="item-amt ${x.kind==='in'?'pos':'neg'}">${x.kind==='in'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delEntry" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
-      :'<p class="empty">ما فيه حركات لهذا اليوم. أضف أول مبلغ من فوق.</p>';
+      :'<p class="empty">لا توجد حركات في هذا اليوم. أضف أول مبلغ من الأعلى.</p>';
     const m=UI.date.slice(0,7);$('#monLabel').textContent=fmtMonth(m);
     const monE=ents.filter(x=>x.date.startsWith(m));
     const days=[...new Set(monE.map(x=>x.date))].sort();
-    if(!days.length){$('#dayTable').innerHTML='<p class="empty">ما فيه تسجيلات هذا الشهر.</p>';return}
+    if(!days.length){$('#dayTable').innerHTML='<p class="empty">لا توجد تسجيلات في هذا الشهر.</p>';return}
     const tot=sumEntries(monE);
     const cell=v=>`<td class="num">${fmt(v)}</td>`;
     $('#dayTable').innerHTML=withFootHead(`<table><thead><tr><th>اليوم</th>${METHODS.map(([,l])=>`<th class="num">${l}</th>`).join('')}<th class="num">الدخل</th><th class="num">العمولة</th><th class="num">المصروف</th><th class="num">الصافي</th></tr></thead><tbody>${
@@ -1005,10 +1005,10 @@ branches:{
 },
 /* ===== reps list ===== */
 reps:{
-  html:()=>`<div class="page-head"><div><h1>المناديب</h1><p class="sub">المبالغ اللي نزلها كل مندوب واللي سددته له</p></div><button class="btn" data-act="addRep">+ إضافة مندوب</button></div><div id="list" class="list">${loading}</div>`,
+  html:()=>`<div class="page-head"><div><h1>المناديب</h1><p class="sub">المبالغ المستلمة من كل مندوب والمبالغ المسددة له</p></div><button class="btn" data-act="addRep">+ إضافة مندوب</button></div><div id="list" class="list">${loading}</div>`,
   update(){
     const L=$('#list');
-    if(!S.reps.length){L.className='';L.innerHTML=`<div class="empty-big"><p>ما فيه مناديب بعد. أضف مندوب وسجّل مبالغه.</p><button class="btn brass" data-act="addRep">+ إضافة مندوب</button></div>`;return}
+    if(!S.reps.length){L.className='';L.innerHTML=`<div class="empty-big"><p>لا يوجد مناديب بعد. أضف مندوبًا وسجّل مبالغه.</p><button class="btn brass" data-act="addRep">+ إضافة مندوب</button></div>`;return}
     L.className='list';
     L.innerHTML=[...S.reps].sort(byName).map(r=>{
       const tx=S.repTx.filter(x=>x.repId===r.id);const bal=sum(tx,x=>x.kind==='add'?x.amount:-x.amount);
@@ -1041,49 +1041,49 @@ rep:{
     const added=sum(tx.filter(x=>x.kind==='add'),x=>x.amount),paid=sum(tx.filter(x=>x.kind==='pay'),x=>x.amount);
     $('#repBal').innerHTML=money(added-paid);
     $('#repSums').innerHTML=`<span>إجمالي المضاف <b>${fmt(added)}</b></span><span>إجمالي المسدد <b>${fmt(paid)}</b></span>`;
-    $('#repLog').innerHTML=rows.length?rows.reverse().map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind==='add'?'brass':'in'}">${x.kind==='add'?'إضافة':'تسديد'}</span><span>${fmtShort(x.date)}</span></div><div class="item-note">${x.note?esc(x.note)+' — ':''}الرصيد بعدها ${fmt(x.run)}</div></div><div class="item-amt ${x.kind==='add'?'':'pos'}">${x.kind==='add'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delRepTx" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
-      :'<p class="empty">ما فيه حركات. أضف أول مبلغ للمندوب من فوق.</p>';
+    $('#repLog').innerHTML=rows.length?rows.reverse().map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind==='add'?'brass':'in'}">${x.kind==='add'?'إضافة':'تسديد'}</span><span>${fmtShort(x.date)}</span></div><div class="item-note">${x.note?esc(x.note)+' — ':''}الرصيد بعد الحركة ${fmt(x.run)}</div></div><div class="item-amt ${x.kind==='add'?'':'pos'}">${x.kind==='add'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delRepTx" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
+      :'<p class="empty">لا توجد حركات. أضف أول مبلغ للمندوب من الأعلى.</p>';
   }
 },
-/* ===== مديونية الزباين ===== */
+/* ===== مديونية العملاء ===== */
 debts:{
-  html:()=>`<div class="page-head"><div><h1>مديونية الزباين</h1><p class="sub">اللي أخذوا قماش أو بضاعة بالدين، وكم باقي عليهم</p></div><button class="btn" data-act="addCustomer">+ إضافة زبون</button></div>
-  <div id="custErr"></div><section class="hero debt-hero"><span class="hero-label">إجمالي الديون اللي عند الزباين</span><strong class="hero-num" id="debtTot">—</strong><div class="hero-row" id="debtSums"></div></section>
-  <label class="field cust-search" id="custSearchW" hidden><input type="search" id="custQ" placeholder="ابحث باسم الزبون أو رقمه" value="${esc(UI.cq||'')}" autocomplete="off"></label>
+  html:()=>`<div class="page-head"><div><h1>مديونية العملاء</h1><p class="sub">العملاء الذين اشتروا بالآجل والمبالغ المتبقية عليهم</p></div><button class="btn" data-act="addCustomer">+ إضافة عميل</button></div>
+  <div id="custErr"></div><section class="hero debt-hero"><span class="hero-label">إجمالي الديون المستحقة على العملاء</span><strong class="hero-num" id="debtTot">—</strong><div class="hero-row" id="debtSums"></div></section>
+  <label class="field cust-search" id="custSearchW" hidden><input type="search" id="custQ" placeholder="ابحث باسم العميل أو رقمه" value="${esc(UI.cq||'')}" autocomplete="off"></label>
   <div id="list" class="list">${loading}</div>`,
   update(){
     const L=$('#list'),E=$('#custErr');
-    E.innerHTML=CUST_ERR?`<p class="warn-box">قواعد Firestore ما تسمح بقسم الديون للحين، فالتسجيلات ما بتنحفظ. أضف <b>customers</b> و <b>custTx</b> في القواعد.</p>`:'';
+    E.innerHTML=CUST_ERR?`<p class="warn-box">قواعد Firestore لا تسمح بقسم الديون حاليًا، لذلك لن تُحفظ التسجيلات. أضف <b>customers</b> و <b>custTx</b> في القواعد.</p>`:'';
     const all=S.customers.map(c=>({c,...custTotals(c.id)}));
     const owing=all.filter(x=>x.bal>0.004);
     $('#debtTot').innerHTML=money(sum(owing,x=>x.bal));
-    $('#debtSums').innerHTML=`<span>زباين عليهم دين <b>${owing.length}</b></span><span>خالصين <b>${all.length-owing.length}</b></span>`;
+    $('#debtSums').innerHTML=`<span>عملاء عليهم مستحقات <b>${owing.length}</b></span><span>مسددون <b>${all.length-owing.length}</b></span>`;
     $('#custSearchW').hidden=all.length<6;
-    if(!all.length){L.className='';L.innerHTML=`<div class="empty-big"><p>ما فيه زباين بعد. أضف زبون وسجّل اللي أخذه بالدين.</p><button class="btn brass" data-act="addCustomer">+ إضافة زبون</button></div>`;return}
+    if(!all.length){L.className='';L.innerHTML=`<div class="empty-big"><p>لا يوجد عملاء بعد. أضف عميلًا وسجّل ما اشتراه بالآجل.</p><button class="btn brass" data-act="addCustomer">+ إضافة عميل</button></div>`;return}
     const q=(UI.cq||'').trim(),qd=q.replace(/\D/g,'');
     const list=all.filter(x=>!q||x.c.name.includes(q)||(qd&&(x.c.phone||'').replace(/\D/g,'').includes(qd)))
       .sort((a,b)=>(b.bal>0.004)-(a.bal>0.004)||b.bal-a.bal||byName(a.c,b.c));
     L.className='list';
-    L.innerHTML=list.length?list.map(({c,bal,last})=>withDel(`<button class="row-card" data-act="openCust" data-id="${c.id}"><div><h3>${esc(c.name)}</h3><div class="row-meta">${c.phone?`<span dir="ltr">${esc(c.phone)}</span>`:''}<span>${last?'آخر حركة '+fmtShort(last.date):'ما فيه حركات'}</span></div></div><div class="row-val">${bal>0.004?`<strong class="neg">${fmt(bal)}</strong><span>عليه ر.س</span>`:bal<-0.004?`<strong class="pos">${fmt(-bal)}</strong><span>له ر.س</span>`:`<strong class="muted">خالص</strong><span>ما عليه شي</span>`}</div></button>`,'customers',c.id)).join('')
-      :'<p class="empty">ما فيه زبون بهذا الاسم أو الرقم.</p>';
+    L.innerHTML=list.length?list.map(({c,bal,last})=>withDel(`<button class="row-card" data-act="openCust" data-id="${c.id}"><div><h3>${esc(c.name)}</h3><div class="row-meta">${c.phone?`<span dir="ltr">${esc(c.phone)}</span>`:''}<span>${last?'آخر حركة '+fmtShort(last.date):'ما فيه حركات'}</span></div></div><div class="row-val">${bal>0.004?`<strong class="neg">${fmt(bal)}</strong><span>مستحق ر.س</span>`:bal<-0.004?`<strong class="pos">${fmt(-bal)}</strong><span>رصيد له ر.س</span>`:`<strong class="muted">مسدد</strong><span>لا توجد مستحقات</span>`}</div></button>`,'customers',c.id)).join('')
+      :'<p class="empty">لا يوجد عميل بهذا الاسم أو الرقم.</p>';
   }
 },
 cust:{
-  html:()=>`${back('مديونية الزباين')}<div class="page-head"><div><h1 id="dname">…</h1><div class="cust-contact" id="custContact"></div></div></div>
-  <section class="hero"><span class="hero-label" id="custBalL">المتبقي على الزبون</span><strong class="hero-num" id="custBal">—</strong><div class="hero-row" id="custSums"></div></section>
+  html:()=>`${back('مديونية العملاء')}<div class="page-head"><div><h1 id="dname">…</h1><div class="cust-contact" id="custContact"></div></div></div>
+  <section class="hero"><span class="hero-label" id="custBalL">المتبقي على العميل</span><strong class="hero-num" id="custBal">—</strong><div class="hero-row" id="custSums"></div></section>
   <div class="grid2">
     <section class="panel"><h2>دين جديد</h2>
       <div id="debtItems" class="debt-items">${debtItemRow()}</div>
-      <button class="btn ghost sm add-item" data-act="addDebtItem">+ صنف ثاني</button>
+      <button class="btn ghost sm add-item" data-act="addDebtItem">+ صنف آخر</button>
       <div class="debt-total"><span>المجموع</span><b id="debtSum">0</b></div>
       <div class="two"><label class="field"><span>التاريخ</span><input type="date" id="debtDate" value="${today()}"></label><label class="field"><span>ملاحظة</span><input type="text" id="debtNote" placeholder="اختياري" data-enter="custDebt"></label></div>
       <button class="btn block" data-act="custDebt">تسجيل الدين</button>
     </section>
-    <section class="panel"><h2>تسديد من الزبون</h2>
+    <section class="panel"><h2>سداد من العميل</h2>
       <label class="field"><span>المبلغ المسدد</span><input type="text" id="cpayAmt" inputmode="decimal" data-enter="custPay"></label>
       <div class="two"><label class="field"><span>التاريخ</span><input type="date" id="cpayDate" value="${today()}"></label><label class="field"><span>ملاحظة</span><input type="text" id="cpayNote" placeholder="مثال: كاش، تحويل" data-enter="custPay"></label></div>
       <button class="btn brass block" data-act="custPay">تسجيل التسديد</button>
-      <button class="btn ghost block sm" data-act="custPayAll" style="margin-top:8px">سدّد كامل المتبقي</button>
+      <button class="btn ghost block sm" data-act="custPayAll" style="margin-top:8px">سداد كامل المبلغ المتبقي</button>
     </section>
   </div>
   <section class="panel"><div class="panel-head"><h2>سجل الحركات</h2><span>الأحدث أولًا</span></div><div id="custLog">${loading}</div></section>`,
@@ -1093,12 +1093,12 @@ cust:{
     const ph=(c.phone||'').trim(),wa=waNum(ph);
     $('#custContact').innerHTML=ph?`<span dir="ltr">${esc(ph)}</span><a class="icon-btn sm" href="tel:${esc(ph.replace(/[^\d+]/g,''))}" aria-label="اتصال">${svg('phone')}</a>${wa?`<button class="icon-btn sm wa" data-act="custWA" aria-label="واتساب">${svg('chat')}</button>`:''}`:`<button class="link-btn" data-act="menu">+ أضف رقم الجوال</button>`;
     const t=custTotals(c.id);
-    $('#custBalL').textContent=t.bal<-0.004?'له عندك (دفع زيادة)':'المتبقي على الزبون';
+    $('#custBalL').textContent=t.bal<-0.004?'رصيد دائن للعميل (مبلغ زائد)':'المتبقي على العميل';
     $('#custBal').innerHTML=money(Math.abs(t.bal));
     $('#custSums').innerHTML=`<span>إجمالي الدين <b>${fmt(t.debt)}</b></span><span>إجمالي المسدد <b>${fmt(t.paid)}</b></span>`;
     let run=0;const rows=t.tx.map(x=>{run+=x.kind==='debt'?x.amount:-x.amount;return{...x,run}});
-    $('#custLog').innerHTML=rows.length?rows.reverse().map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind==='debt'?'out':'in'}">${x.kind==='debt'?'دين':'تسديد'}</span><span>${fmtLong(x.date)}</span></div>${x.kind==='debt'&&x.items&&x.items.length?`<ul class="debt-lines">${x.items.map(i=>`<li><span>${esc(i.d||'بدون تفاصيل')}</span><b>${fmt(i.p)}</b></li>`).join('')}</ul>`:''}<div class="item-note">${x.note?esc(x.note)+' — ':''}المتبقي بعدها ${fmt(x.run)}</div></div><div class="item-amt ${x.kind==='debt'?'neg':'pos'}">${x.kind==='debt'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delCustTx" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
-      :'<p class="empty">ما فيه حركات. سجّل أول دين للزبون من فوق.</p>';
+    $('#custLog').innerHTML=rows.length?rows.reverse().map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind==='debt'?'out':'in'}">${x.kind==='debt'?'دين':'تسديد'}</span><span>${fmtLong(x.date)}</span></div>${x.kind==='debt'&&x.items&&x.items.length?`<ul class="debt-lines">${x.items.map(i=>`<li><span>${esc(i.d||'بدون تفاصيل')}</span><b>${fmt(i.p)}</b></li>`).join('')}</ul>`:''}<div class="item-note">${x.note?esc(x.note)+' — ':''}المتبقي بعد الحركة ${fmt(x.run)}</div></div><div class="item-amt ${x.kind==='debt'?'neg':'pos'}">${x.kind==='debt'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delCustTx" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
+      :'<p class="empty">لا توجد حركات. سجّل أول دين للعميل من الأعلى.</p>';
   }
 },
 /* ===== workers list ===== */
@@ -1106,7 +1106,7 @@ workers:{
   html:()=>`<div class="page-head"><div><h1>العمال</h1><p class="sub">الراتب الشهري لكل عامل، والدفعات، والمتبقي له</p></div><button class="btn" data-act="addWorker">+ إضافة عامل</button></div><div id="list" class="list">${loading}</div>`,
   update(){
     const L=$('#list');const[a,b]=monthBounds(curMonth());
-    if(!S.workers.length){L.className='';L.innerHTML=`<div class="empty-big"><p>ما فيه عمال بعد. أضف عامل وحدد راتبه الشهري.</p><button class="btn brass" data-act="addWorker">+ إضافة عامل</button></div>`;return}
+    if(!S.workers.length){L.className='';L.innerHTML=`<div class="empty-big"><p>لا يوجد عمال بعد. أضف عاملًا وحدد راتبه الشهري.</p><button class="btn brass" data-act="addWorker">+ إضافة عامل</button></div>`;return}
     L.className='list';
     L.innerHTML=[...S.workers].sort((x,y)=>(wStopped(x)?1:0)-(wStopped(y)?1:0)||byName(x,y)).map(w=>{const bal=workerBalance(w,today()).balance;
       return withDel(`<button class="row-card" data-act="openWorker" data-id="${w.id}"><div><h3>${esc(w.name)}</h3><div class="row-meta"><span>الراتب ${fmt(salaryFor(w,curMonth()))}</span>${wStopped(w)?`<span class="tag out">متوقف من ${fmtMonth(shiftMonth(w.end,1))}</span>`:''}</div></div><div class="row-val"><strong class="${bal<0?'neg':''}">${balTxt(Math.abs(bal))}</strong><span>${bal<0?'عليه لك':'المستحق له'} ر.س</span></div></button>`,'workers',w.id)}).join('');
@@ -1135,12 +1135,12 @@ worker:{
     $('#stopBtn').textContent=wStopped(w)?'إعادة تفعيل العامل':'إيقاف العامل';
     $('#wHeroLabel').textContent=`${now<0?'عليه لك':'المستحق له'} حتى ${fmtShort(upto)}`;
     $('#wNet').innerHTML=WT_ALL?money(Math.abs(now)):'…';
-    $('#wSums').innerHTML=`<span>الباقي من قبل <b>${balTxt(before)}</b></span><span>راتب ${fmtMonth(UI.wMonth)} <b>${fmt(t.salary)}</b></span><span>المدفوع هالشهر <b>${fmt(t.ded)}</b></span>${wStopped(w)?`<span class="tag out">متوقف من ${fmtMonth(shiftMonth(w.end,1))}</span>`:''}`;
+    $('#wSums').innerHTML=`<span>رصيد سابق <b>${balTxt(before)}</b></span><span>راتب ${fmtMonth(UI.wMonth)} <b>${fmt(t.salary)}</b></span><span>المدفوع هذا الشهر <b>${fmt(t.ded)}</b></span>${wStopped(w)?`<span class="tag out">متوقف من ${fmtMonth(shiftMonth(w.end,1))}</span>`:''}`;
     $('#wMonLabel').textContent=fmtMonth(UI.wMonth);
     const tx=[...t.tx].sort(byDateAsc).reverse();
     $('#wLog').innerHTML=tx.length?tx.map(x=>
       `<div class="item"><div class="item-main"><div class="item-title"><span class="tag out">دفعة</span><span>${fmtShort(x.date)}</span></div><div class="item-note">${esc(x.note||'بدون ملاحظة')}</div></div><div class="item-amt neg">−${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delWTx" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
-      :'<p class="empty">ما فيه دفعات لهذا الشهر.</p>';
+      :'<p class="empty">لا توجد دفعات في هذا الشهر.</p>';
   }
 },
 /* ===== monthly report ===== */
@@ -1171,22 +1171,22 @@ report:{
     $('#rSums').innerHTML=`<span>إجمالي الدخل <b>${fmt(T.in)}</b></span><span>عمولة الشبكة <b>${fmt(T.fee)}</b></span><span>إجمالي المصروفات <b>${fmt(T.out)}</b></span>`;
     $('#rFees').innerHTML=`<div class="fee-row"><span>عمولة مدى</span><span>${fmt(T.mada)} × ${pct(FEES.mada)}</span><b>${fmt(T.madaFee)}</b></div><div class="fee-row"><span>عمولة فيزا</span><span>${fmt(T.visa)} × ${pct(FEES.visa)}</span><b>${fmt(T.visaFee)}</b></div><div class="fee-row total"><span>إجمالي العمولة</span><span></span><b>${fmt(T.fee)}</b></div>`;
     {const days=[...new Set(ents.map(x=>x.date))].sort();
-    $('#rBranches').innerHTML=!days.length?'<p class="empty">ما فيه تسجيلات في هذي الفترة.</p>':withFootHead(
+    $('#rBranches').innerHTML=!days.length?'<p class="empty">لا توجد تسجيلات في هذه الفترة.</p>':withFootHead(
       `<table><thead><tr><th>اليوم</th>${METHODS.map(([,l])=>`<th class="num">${l}</th>`).join('')}<th class="num">الدخل</th><th class="num">العمولة</th><th class="num">المصروفات</th><th class="num">الصافي</th></tr></thead><tbody>${
       days.map(d=>{const r=sumEntries(ents.filter(x=>x.date===d));return`<tr><td>${fmtShort(d)}</td>${cell(r.cash)}${cell(r.mada)}${cell(r.visa)}${cell(r.in,'pos')}${cell(r.fee,'neg')}${cell(r.out,'neg')}${cell(r.net)}</tr>`}).join('')
       }</tbody><tfoot><tr><td>الإجمالي</td>${cell(T.cash)}${cell(T.mada)}${cell(T.visa)}${cell(T.in,'pos')}${cell(T.fee,'neg')}${cell(T.out,'neg')}${cell(T.net)}</tr></tfoot></table>`);}
     // workers
-    if(!S.workers.length)$('#rWorkers').innerHTML='<p class="empty">ما فيه عمال مضافين.</p>';
+    if(!S.workers.length)$('#rWorkers').innerHTML='<p class="empty">لا يوجد عمال مضافون.</p>';
     else{const rows=[...S.workers].sort(byName).map(w=>({w,...workerTotals(w.id,a,b)}));
       rows.forEach(r=>{r.before=workerBalance(r.w,shiftDay(a,-1)).balance;r.bal=workerBalance(r.w,b).balance});
       const bc=v=>WT_ALL?cell(v,v<0?'neg':''):'<td class="num">…</td>';
-      $('#rWorkers').innerHTML=`<table><thead><tr><th>العامل</th><th class="num">الباقي من قبل</th><th class="num">راتب الفترة</th><th class="num">المدفوع بالفترة</th><th class="num">المستحق له</th></tr></thead><tbody>${
+      $('#rWorkers').innerHTML=`<table><thead><tr><th>العامل</th><th class="num">رصيد سابق</th><th class="num">راتب الفترة</th><th class="num">المدفوع خلال الفترة</th><th class="num">المستحق له</th></tr></thead><tbody>${
         rows.map(r=>`<tr><td>${esc(r.w.name)}${wStopped(r.w)?' <small>(متوقف)</small>':''}</td>${bc(r.before)}${cell(r.salary)}${cell(r.ded,'neg')}${bc(r.bal)}</tr>`).join('')
       }</tbody><tfoot><tr><td>الإجمالي</td>${bc(sum(rows,r=>r.before))}${cell(sum(rows,r=>r.salary))}${cell(sum(rows,r=>r.ded),'neg')}${bc(sum(rows,r=>r.bal))}</tr></tfoot></table>`}
     // reps
-    if(!S.reps.length)$('#rReps').innerHTML='<p class="empty">ما فيه مناديب مضافين.</p>';
+    if(!S.reps.length)$('#rReps').innerHTML='<p class="empty">لا يوجد مناديب مضافون.</p>';
     else{const rows=[...S.reps].sort(byName).map(r=>({r,...repTotals(r.id,a,b)}));
-      $('#rReps').innerHTML=`<table><thead><tr><th>المندوب</th><th class="num">نزل بالفترة</th><th class="num">دفعت له بالفترة</th><th class="num">المتبقي من المبلغ الرئيسي</th></tr></thead><tbody>${
+      $('#rReps').innerHTML=`<table><thead><tr><th>المندوب</th><th class="num">المستلم خلال الفترة</th><th class="num">المسدد له خلال الفترة</th><th class="num">المتبقي من المبلغ الرئيسي</th></tr></thead><tbody>${
         rows.map(x=>`<tr><td>${esc(x.r.name)}</td>${cell(x.added)}${cell(x.paid,'pos')}${cell(x.balance)}</tr>`).join('')
       }</tbody><tfoot><tr><td>الإجمالي</td>${cell(sum(rows,x=>x.added))}${cell(sum(rows,x=>x.paid),'pos')}${cell(sum(rows,x=>x.balance))}</tr></tfoot></table>`}
   }
@@ -1194,7 +1194,7 @@ report:{
 };
 
 
-/* ---------- مديونية الزباين ---------- */
+/* ---------- مديونية العملاء ---------- */
 function custTotals(id){const tx=S.custTx.filter(x=>x.custId===id).sort(byDateAsc);
   const debt=sum(tx.filter(x=>x.kind==='debt'),x=>x.amount),paid=sum(tx.filter(x=>x.kind==='pay'),x=>x.amount);
   return{tx,debt,paid,bal:debt-paid,last:tx[tx.length-1]}}
@@ -1209,12 +1209,12 @@ document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#de
 document.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target.closest||!e.target.closest('#debtItems'))return;e.preventDefault();
   const r=e.target.closest('.debt-item');if(e.target.classList.contains('di-d'))r.querySelector('.di-p').focus();else{const nx=r.nextElementSibling;if(nx)nx.querySelector('.di-d').focus();else ACT.custDebt()}});
 async function addCustomer(){
-  const r=await modal({title:'إضافة زبون',body:`<label class="field"><span>اسم الزبون</span><input type="text" name="name"></label><label class="field"><span>رقم الجوال</span><input type="tel" name="phone" inputmode="tel" dir="ltr" placeholder="05xxxxxxxx"></label>`,
+  const r=await modal({title:'إضافة عميل',body:`<label class="field"><span>اسم العميل</span><input type="text" name="name"></label><label class="field"><span>رقم الجوال</span><input type="tel" name="phone" inputmode="tel" dir="ltr" placeholder="05xxxxxxxx"></label>`,
     actions:[{key:'ok',label:'إضافة'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
-  if(!r)return;const name=r.values.name.trim(),phone=(r.values.phone||'').trim();if(!name){toast('اكتب اسم الزبون');return}
+  if(!r)return;const name=r.values.name.trim(),phone=(r.values.phone||'').trim();if(!name){toast('اكتب اسم العميل');return}
   let id=null;if(await safe(async()=>{id=await store.add('customers',{name,phone})})){toast(`تمت إضافة ${name}`);if(typeof id==='string')go('debts',{type:'cust',id})}}
 async function editCustomer(id){const c=S.customers.find(x=>x.id===id);if(!c)return;
-  const r=await modal({title:'تعديل بيانات الزبون',body:`<label class="field"><span>الاسم</span><input type="text" name="name" value="${esc(c.name)}"></label><label class="field"><span>رقم الجوال</span><input type="tel" name="phone" inputmode="tel" dir="ltr" value="${esc(c.phone||'')}" placeholder="05xxxxxxxx"></label>`,
+  const r=await modal({title:'تعديل بيانات العميل',body:`<label class="field"><span>الاسم</span><input type="text" name="name" value="${esc(c.name)}"></label><label class="field"><span>رقم الجوال</span><input type="tel" name="phone" inputmode="tel" dir="ltr" value="${esc(c.phone||'')}" placeholder="05xxxxxxxx"></label>`,
     actions:[{key:'save',label:'حفظ'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
   if(!r)return;const name=r.values.name.trim(),phone=(r.values.phone||'').trim();if(!name){toast('اكتب الاسم');return}
   if(name===c.name&&phone===(c.phone||''))return;
@@ -1293,13 +1293,13 @@ function pruneDevices(){const me=myDevice().id,now=Date.now(),old=(S.devices||[]
 /* لما ترجع للتطبيق من الخلفية نعتبرها فتحة جديدة (مرة كل 10 دقايق بالكثير) */
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&auth&&auth.currentUser)seenDevice(false)});
 async function renameDevice(){const d=myDevice(),auto=await autoName();
-  const r=await modal({title:'اسم هذا الجهاز',body:`<p>الاسم اللي يطلع في قائمة الأجهزة. لو تركته فاضي يرجع للاسم التلقائي «${esc(auto)}».</p><label class="field"><span>اسم الجهاز</span><input type="text" name="name" value="${esc(d.name||'')}" placeholder="${esc(auto)}"></label>`,
+  const r=await modal({title:'اسم هذا الجهاز',body:`<p>الاسم الذي يظهر في قائمة الأجهزة. إذا تركته فارغًا يعود للاسم التلقائي «${esc(auto)}».</p><label class="field"><span>اسم الجهاز</span><input type="text" name="name" value="${esc(d.name||'')}" placeholder="${esc(auto)}"></label>`,
     actions:[{key:'ok',label:'حفظ'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
   if(!r)return;const n=(r.values.name||'').trim().slice(0,40);
-  if(n===(d.name||''))return;d.name=n;saveMyDevice(d);seenDevice(true);toast(n?'تم حفظ اسم الجهاز':'رجع للاسم التلقائي')}
+  if(n===(d.name||''))return;d.name=n;saveMyDevice(d);seenDevice(true);toast(n?'تم حفظ اسم الجهاز':'تمت العودة للاسم التلقائي')}
 const DAY=24*60*60*1000;
 function devWhen(t){const now=Date.now(),m=Math.round((now-t)/60000);
-  if(m<2)return'الحين';if(m<60)return`قبل ${m} دقيقة`;
+  if(m<2)return'الآن';if(m<60)return`قبل ${m} دقيقة`;
   const d=new Date(t),td=new Date();const same=d.toDateString()===td.toDateString();
   const y=new Date(now-DAY).toDateString()===d.toDateString();
   return same?'اليوم '+fmtTime(t):y?'أمس '+fmtTime(t):d.toLocaleDateString(LOC,{day:'numeric',month:'short'})+' '+fmtTime(t)}
@@ -1310,10 +1310,10 @@ function devList(){const me=myDevice().id,now=Date.now(),L=(S.devices||[]).filte
   return L.sort((a,b)=>(b.id===me)-(a.id===me)||b.lastSeen-a.lastSeen)}
 function renderDevChip(){if(DEV_DEDUPE)dedupeDevices();const el=$('#devChip');if(!el)return;
   const n=devList().length||1;
-  el.querySelector('span').textContent=n;el.title=`${n} ${n===1?'جهاز':'أجهزة'} فتحت التطبيق آخر 24 ساعة`}
+  el.querySelector('span').textContent=n;el.title=`${n} ${n===1?'جهاز':'أجهزة'} فتحت التطبيق خلال آخر 24 ساعة`}
 function devicesInfo(){const me=myDevice().id,L=devList(),act=L.length;
-  const rows=L.length?L.map(x=>`<div class="dev-row"><i class="${Date.now()-x.lastSeen<15*60000?'on':''}"></i><div><b>${esc(x.label||x.name||x.kind||'جهاز')}</b>${x.id===me?' <span class="tag brass">هذا الجهاز</span>':''}<small>${esc(x.custom?(x.kind||''):(x.kind||'')+' (اسم تلقائي)')}</small></div><span>${devWhen(x.lastSeen)}</span></div>`).join(''):'<p class="empty">ما فيه أجهزة مسجلة للحين.</p>';
-  const p=modal({title:'الأجهزة',body:`<p>${act} ${act===1?'جهاز فتح':'أجهزة فتحت'} التطبيق آخر 24 ساعة. الجهاز اللي ما يفتح التطبيق 24 ساعة يختفي من القائمة، ويرجع لما ينفتح عليه.</p>${DEV_ERR?'<p class="warn-box">قواعد Firestore ما تسمح بقائمة الأجهزة للحين، فكل جهاز يشوف نفسه بس. أضف <b>devices</b> في القواعد.</p>':''}<div class="dev-list">${rows}</div>`,
+  const rows=L.length?L.map(x=>`<div class="dev-row"><i class="${Date.now()-x.lastSeen<15*60000?'on':''}"></i><div><b>${esc(x.label||x.name||x.kind||'جهاز')}</b>${x.id===me?' <span class="tag brass">هذا الجهاز</span>':''}<small>${esc(x.custom?(x.kind||''):(x.kind||'')+' (اسم تلقائي)')}</small></div><span>${devWhen(x.lastSeen)}</span></div>`).join(''):'<p class="empty">لا توجد أجهزة مسجلة حتى الآن.</p>';
+  const p=modal({title:'الأجهزة',body:`<p>${act} ${act===1?'جهاز فتح':'أجهزة فتحت'} التطبيق خلال آخر 24 ساعة. الجهاز الذي لا يُفتح عليه التطبيق 24 ساعة يختفي من القائمة، ويعود عند فتحه.</p>${DEV_ERR?'<p class="warn-box">قواعد Firestore لا تسمح بقائمة الأجهزة حاليًا، لذلك يرى كل جهاز نفسه فقط. أضف <b>devices</b> في القواعد.</p>':''}<div class="dev-list">${rows}</div>`,
     actions:[{key:'rename',label:'تغيير اسم هذا الجهاز',cls:'ghost'},{key:'cancel',label:'تم',cls:'ghost'}]});
   p.then(r=>{if(r&&r.key==='rename')setTimeout(()=>renameDevice(),260)})}
 
@@ -1340,17 +1340,17 @@ async function editName(col,id){
   if(n===ent.name)return;
   if(await safe(()=>store.update(col,id,{name:n})))toast('تم تعديل الاسم');
 }
-const ENT={branches:{label:'الفرع',child:'entries',fk:'branchId'},reps:{label:'المندوب',child:'repTx',fk:'repId'},workers:{label:'العامل',child:'workerTx',fk:'workerId'},customers:{label:'الزبون',child:'custTx',fk:'custId'}};
+const ENT={branches:{label:'الفرع',child:'entries',fk:'branchId'},reps:{label:'المندوب',child:'repTx',fk:'repId'},workers:{label:'العامل',child:'workerTx',fk:'workerId'},customers:{label:'العميل',child:'custTx',fk:'custId'}};
 const withDel=(html,col,id)=>`<div class="row-wrap">${html}<div class="row-btns"><button class="icon-btn edit-btn" data-act="editName" data-col="${col}" data-id="${id}" aria-label="تعديل الاسم">${svg('edit')}</button><button class="icon-btn del-btn" data-act="delEntity" data-col="${col}" data-id="${id}" aria-label="حذف">${svg('trash')}</button></div></div>`;
 async function deleteEntity(col,id){
   const c=ENT[col],ent=S[col].find(x=>x.id===id);if(!ent)return;
   let kids=S[c.child].filter(x=>x[c.fk]===id);
-  if(store.root&&WINDOWED.includes(c.child)){try{const sn=await store.root.collection(c.child).where(c.fk,'==',id).get();kids=sn.docs.map(d=>({...d.data(),id:d.id}))}catch(e){toast('تأكد من اتصال النت قبل الحذف');return}}
+  if(store.root&&WINDOWED.includes(c.child)){try{const sn=await store.root.collection(c.child).where(c.fk,'==',id).get();kids=sn.docs.map(d=>({...d.data(),id:d.id}))}catch(e){toast('تأكد من الاتصال بالإنترنت قبل الحذف');return}}
   const r=await modal({title:`حذف ${c.label} «${esc(ent.name)}»؟`,
-    body:`<p>${kids.length?`بينحذف ${c.label} ومعه <b>${kids.length}</b> سجل تابع له نهائيًا.`:`بينحذف ${c.label} نهائيًا.`} تقدر تتراجع خلال ثواني بعد الحذف.</p><label class="field"><span>للتأكيد اكتب كلمة <b>حذف</b></span><input type="text" name="confirm" autocomplete="off" placeholder="حذف"></label>`,
+    body:`<p>${kids.length?`سيُحذف ${c.label} ومعه <b>${kids.length}</b> سجل تابع له نهائيًا.`:`سيُحذف ${c.label} نهائيًا.`} يمكنك التراجع خلال ثوانٍ بعد الحذف.</p><label class="field"><span>للتأكيد اكتب كلمة <b>حذف</b></span><input type="text" name="confirm" autocomplete="off" placeholder="حذف"></label>`,
     actions:[{key:'del',label:'حذف نهائي',cls:'danger'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
   if(!r)return;
-  if(r.values.confirm.replace(/\s/g,'')!=='حذف'){toast('ما تم الحذف، لازم تكتب كلمة حذف');return}
+  if(r.values.confirm.replace(/\s/g,'')!=='حذف'){toast('لم يتم الحذف، يجب كتابة كلمة حذف');return}
   if(UI.detail&&UI.detail.id===id)go(UI.tab);
   if(await safe(async()=>{for(const k of kids)await store.remove(c.child,k.id);await store.remove(col,id)}))undoToast(`تم حذف ${ent.name}`,[{c:col,x:ent},...kids.map(k=>({c:c.child,x:k}))]);
 }
@@ -1411,7 +1411,7 @@ async function buildReportPDF(){
 async function sharePDF(name){
   toast('جارٍ تجهيز ملف PDF…');
   let blob;
-  try{blob=await buildReportPDF()}catch(e){toast('ما قدرت أجهز الملف، تأكد من اتصال النت وحاول مرة ثانية');return}
+  try{blob=await buildReportPDF()}catch(e){toast('تعذّر تجهيز الملف، تأكد من الاتصال بالإنترنت وحاول مرة أخرى');return}
   window.__lastPDF=blob;
   const file=new File([blob],name+'.pdf',{type:'application/pdf'}),url=URL.createObjectURL(blob);
   const canShare=!!(navigator.canShare&&navigator.canShare({files:[file]}));
@@ -1469,12 +1469,12 @@ const ACT={
       ?'• '+fmtShort(x.date)+': مشتريات بـ '+fmt(x.amount)+' ر.س\n'+its(x).map(i=>'   - '+(i.d||'بضاعة')+': '+fmt(i.p)+' ر.س').join('\n')
       :'• '+fmtShort(x.date)+': دفعت '+fmt(x.amount)+' ر.س'+(x.note?' ('+x.note+')':''));
     const msg='السلام عليكم '+c.name+'،\nمعك دثار للأقمشة، هذا كشف حسابك'+(t.tx.length>tx.length?' (آخر '+tx.length+' حركة)':'')+':\n\n'+lines.join('\n\n')
-      +'\n\nإجمالي المشتريات: '+fmt(t.debt)+' ر.س\nالمدفوع: '+fmt(t.paid)+' ر.س\n'+(t.bal>0.004?'المتبقي عليك: '+fmt(t.bal)+' ر.س':t.bal<-0.004?'لك عندنا: '+fmt(-t.bal)+' ر.س':'حسابك خالص، شكرًا لك.');
+      +'\n\nإجمالي المشتريات: '+fmt(t.debt)+' ر.س\nالمدفوع: '+fmt(t.paid)+' ر.س\n'+(t.bal>0.004?'المتبقي عليك: '+fmt(t.bal)+' ر.س':t.bal<-0.004?'رصيدك لدينا: '+fmt(-t.bal)+' ر.س':'حسابك مسدد بالكامل، شكرًا لك.');
     window.open('https://wa.me/'+waNum(c.phone)+'?text='+encodeURIComponent(msg),'_blank')},
   delCustTx:t=>delRow('custTx',t.dataset.id,'حذف هذه الحركة؟'),
   async setSalary(){const w=S.workers.find(x=>x.id===UI.detail.id);if(!w)return;const m0=UI.wMonth||curMonth(),fm=wFirstMonth(w);
-    const r=await modal({title:'الراتب الشهري',body:`<label class="field"><span>الراتب (ر.س)</span><input type="text" name="price" inputmode="decimal" value="${salaryFor(w,m0)||salaryFor(w,curMonth())}"></label><label class="field"><span>يبدأ من شهر</span><input type="month" name="from" value="${m0}"></label><p>الراتب ينحسب من الشهر اللي تختاره وبعده. لو اخترت شهر قبل ${fmtMonth(fm)}، يصير هو بداية حساب ${esc(w.name)}.</p>`,actions:[{key:'ok',label:'حفظ الراتب'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
-    if(!r)return;const p=num(r.values.price);if(!(p>=0)){toast('اكتب راتب صحيح');return}
+    const r=await modal({title:'الراتب الشهري',body:`<label class="field"><span>الراتب (ر.س)</span><input type="text" name="price" inputmode="decimal" value="${salaryFor(w,m0)||salaryFor(w,curMonth())}"></label><label class="field"><span>يبدأ من شهر</span><input type="month" name="from" value="${m0}"></label><p>يُحسب الراتب من الشهر الذي تختاره وما بعده. إذا اخترت شهرًا قبل ${fmtMonth(fm)}، يصبح بداية حساب ${esc(w.name)}.</p>`,actions:[{key:'ok',label:'حفظ الراتب'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+    if(!r)return;const p=num(r.values.price);if(!(p>=0)){toast('أدخل راتبًا صحيحًا');return}
     const m=/^\d{4}-\d{2}$/.test(r.values.from||'')?r.values.from:m0;
     const hist=(w.salaryHist&&w.salaryHist.length?w.salaryHist:[{from:w.startMonth||m,amount:w.salary||0}]).filter(x=>x.from!==m).concat([{from:m,amount:p}]).sort((a,b)=>a.from.localeCompare(b.from));
     const patch={salaryHist:hist,salary:salaryFor({salaryHist:hist},curMonth())};if(!w.startMonth||m<w.startMonth)patch.startMonth=m;
@@ -1482,18 +1482,18 @@ const ACT={
   async addWExp(){const a=amountOf('#wexAmt');if(a==null)return;
     if(await safe(()=>store.add('workerTx',{workerId:UI.detail.id,kind:'exp',amount:a,note:$('#wexNote').value.trim(),date:$('#wexDate').value||today()}))){$('#wexAmt').value='';$('#wexNote').value='';toast('تم تسجيل الدفعة')}},
   async toggleStop(){const w=S.workers.find(x=>x.id===UI.detail.id);if(!w)return;const m=curMonth();
-    if(wStopped(w)){if(await confirmBox(`إعادة تفعيل ${esc(w.name)}؟`,'راتبه يرجع ينحسب كل شهر من جديد.','إعادة التفعيل'))await safe(()=>store.update('workers',w.id,{end:null}))&&toast('تم إعادة التفعيل');return}
-    if(await confirmBox(`إيقاف ${esc(w.name)}؟`,`راتب ${fmtMonth(m)} ينحسب له، ومن الشهر الجاي يوقف. حساباته القديمة تبقى زي ما هي، وتقدر تسجل له دفعات عشان تصفّي حسابه.`,'إيقاف'))await safe(()=>store.update('workers',w.id,{end:m}))&&toast('تم إيقاف العامل')},
+    if(wStopped(w)){if(await confirmBox(`إعادة تفعيل ${esc(w.name)}؟`,'سيُحسب راتبه كل شهر من جديد.','إعادة التفعيل'))await safe(()=>store.update('workers',w.id,{end:null}))&&toast('تم إعادة التفعيل');return}
+    if(await confirmBox(`إيقاف ${esc(w.name)}؟`,`راتب ${fmtMonth(m)} يُحسب له، ويتوقف من الشهر القادم. تبقى حساباته السابقة كما هي، ويمكنك تسجيل دفعات له لتسوية حسابه.`,'إيقاف'))await safe(()=>store.update('workers',w.id,{end:m}))&&toast('تم إيقاف العامل')},
   delWTx:t=>delRow('workerTx',t.dataset.id,'حذف هذا التسجيل؟'),
   syncInfo:()=>syncInfo(),
   devices:()=>devicesInfo(),
   login:async()=>{const u=$('#lgUser').value,p=$('#lgPass').value;if(!u.trim()||!p){toast('اكتب البريد وكلمة المرور');return}
     const b=$('#lgBtn');b.disabled=true;b.textContent='جارٍ الدخول…';
-    try{await auth.signInWithEmailAndPassword(userToEmail(u),p);try{localStorage.setItem(EMAIL_KEY,userToEmail(u))}catch(e){}}catch(e){toast(AUTH_ERR[e&&e.code]||'صار خطأ، حاول مرة ثانية');b.disabled=false;b.textContent='دخول'}},
-  resetPw:async()=>{const u=$('#lgUser').value.trim();if(!u){toast('اكتب بريدك أول');return}
-    try{await auth.sendPasswordResetEmail(userToEmail(u));toast('أرسلنا رابط تغيير كلمة المرور لبريدك')}catch(e){toast(AUTH_ERR[e&&e.code]||'ما قدرنا نرسل الرابط، تأكد من البريد')}},
+    try{await auth.signInWithEmailAndPassword(userToEmail(u),p);try{localStorage.setItem(EMAIL_KEY,userToEmail(u))}catch(e){}}catch(e){toast(AUTH_ERR[e&&e.code]||'حدث خطأ، حاول مرة أخرى');b.disabled=false;b.textContent='دخول'}},
+  resetPw:async()=>{const u=$('#lgUser').value.trim();if(!u){toast('اكتب بريدك أولًا');return}
+    try{await auth.sendPasswordResetEmail(userToEmail(u));toast('أرسلنا رابط تغيير كلمة المرور لبريدك')}catch(e){toast(AUTH_ERR[e&&e.code]||'تعذّر إرسال الرابط، تأكد من البريد')}},
   logout:async()=>{
-    const msg=SYNC.pending?'فيه عمليات ما انرفعت للحين، لو طلعت الحين ممكن تضيع. متأكد؟':'بتحتاج تدخل اسم المستخدم وكلمة المرور مرة ثانية.';
+    const msg=SYNC.pending?'توجد عمليات لم تُرفع بعد، وقد تضيع إذا خرجت الآن. هل أنت متأكد؟':'ستحتاج إلى إدخال اسم المستخدم وكلمة المرور مرة أخرى.';
     if(await confirmBox('تسجيل الخروج؟',msg,'خروج'))wipeAndReload()},
   delEntity:t=>deleteEntity(t.dataset.col,t.dataset.id),
   delCurrent:()=>deleteEntity({branch:'branches',rep:'reps',worker:'workers',cust:'customers'}[UI.detail.type],UI.detail.id),
@@ -1520,7 +1520,7 @@ $('#view').innerHTML=loading;
   if(window.firebase)go();else{
     window.addEventListener('fb-ready',go,{once:true});
     window.addEventListener('fb-fail',()=>{if(location.protocol==='file:'){go();return}
-      started=true;$('#view').innerHTML=`<div class="empty-big" style="margin-top:12vh"><p>ما قدرت أحمّل التطبيق. تأكد من اتصال النت وحاول مرة ثانية.</p><button class="btn brass" onclick="location.reload()">إعادة المحاولة</button></div>`},{once:true});
+      started=true;$('#view').innerHTML=`<div class="empty-big" style="margin-top:12vh"><p>تعذّر تحميل التطبيق. تأكد من الاتصال بالإنترنت وحاول مرة أخرى.</p><button class="btn brass" onclick="location.reload()">إعادة المحاولة</button></div>`},{once:true});
   }})();
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
@@ -1556,7 +1556,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
       row('دخل المحل بعد العمولة','كاش + مدى + فيزا ('+fmt(T.in)+') بعد خصم عمولة الشبكة '+fmt(T.fee),T.in-T.fee)+
       row('مصروفات المحل','',T.out,'minus')+
       row('رواتب العمال','الراتب كامل قبل خصم السلف',wages,'minus')+
-      row('المدفوع للمناديب','اللي سددته لهم في الفترة',repPaid,'minus')+
+      row('المدفوع للمناديب','المسدد لهم خلال الفترة',repPaid,'minus')+
       row('الصافي النهائي','',net,'total');
     document.getElementById('sumNet').innerHTML=money(net);
   };
@@ -1606,7 +1606,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
   R.html=function(){
     return html0().replace('<h2 class="section-title">الملخص</h2>',
       '<h2 class="section-title">الرسومات</h2><section class="charts">'+
-      '<div class="chart-card"><h3 id="ch1T">دخل ومصروف كل يوم</h3><p class="note no-print">اضغط على أي عمود يطلع لك رقمه</p><div class="chart-box" id="ch1"></div>'+
+      '<div class="chart-card"><h3 id="ch1T">دخل ومصروف كل يوم</h3><p class="note no-print">اضغط على أي عمود لعرض قيمته</p><div class="chart-box" id="ch1"></div>'+
       '<div class="chart-legend"><span><i style="background:'+C.bar+'"></i>الدخل بعد عمولة مدى وفيزا</span><span><i style="background:'+C.out+'"></i>المصروف</span><span><i class="ln" style="border-color:'+C.muted+';border-top-style:dashed"></i>متوسط الدخل</span></div></div>'+
       '<div class="chart-card"><h3>مقارنة الدخل بالشهر الماضي</h3><p class="note" id="ch2N"></p><div class="chart-hero" id="ch2H"></div><div class="chart-box" id="ch2"></div><div class="chart-legend" id="ch2L"></div></div>'+
       '<div class="chart-card"><h3>طرق الدفع</h3><p class="note">من إجمالي دخل الفترة</p><div id="ch3"></div></div>'+
@@ -1629,7 +1629,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
       pts=Object.keys(ms).sort().map(function(m){var r=inNet(ents.filter(function(x){return x.date.slice(0,7)===m}));r.label=parseD(m+'-01').toLocaleDateString(LOC,{month:'short'});r.tip=parseD(m+'-01').toLocaleDateString(LOC,{month:'long',year:'numeric'});return r})}
     document.getElementById('ch1T').textContent=daily?'دخل ومصروف كل يوم':'دخل ومصروف كل شهر';
     var box1=document.getElementById('ch1');
-    if(!ents.length)box1.innerHTML='<p class="chart-empty">ما فيه تسجيلات في هذي الفترة.</p>';
+    if(!ents.length)box1.innerHTML='<p class="chart-empty">لا توجد تسجيلات في هذه الفترة.</p>';
     else{
       var rg=range(-Math.max.apply(null,pts.map(function(p){return p.o})),Math.max(0,Math.max.apply(null,pts.map(function(p){return p.v}))));
       var iw=W-P.l-P.r,ih=H-P.t-P.b,bw=iw/pts.length,y=function(v){return P.t+ih-(v-rg[0])/(rg[1]-rg[0])*ih},y0=y(0);
@@ -1655,19 +1655,19 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
 
     /* 2) المتراكم مقارنة بالشهر اللي قبل، لين اليوم لو الفترة ما خلصت */
     var end=b<today()?b:today(),box2=document.getElementById('ch2'),hero=document.getElementById('ch2H'),leg=document.getElementById('ch2L'),note=document.getElementById('ch2N');
-    if(end<a){box2.innerHTML='<p class="chart-empty">الفترة ما بدأت للحين.</p>';hero.innerHTML='';leg.innerHTML='';note.textContent=''}
+    if(end<a){box2.innerHTML='<p class="chart-empty">الفترة لم تبدأ بعد.</p>';hero.innerHTML='';leg.innerHTML='';note.textContent=''}
     else{
       var cd=days(a,end),pe=prevMonthDay(end),pd=days(pa,pe);
       var pents=S.entries.filter(function(x){return x.kind==='in'&&inRange(x.date,pa,pe)});
       var cum=function(list,ds){var c=0;return ds.map(function(d){var t=sumEntries(list.filter(function(x){return x.date===d}));c+=t.in-t.fee;return c})};   // الدخل بعد العمولة، بدون المصروفات
       var cs=cum(ents,cd),ps=cum(pents,pd),n=Math.max(cs.length,ps.length);
       var oneMonth=a.slice(0,7)===b.slice(0,7);
-      var curL=oneMonth?parseD(a).toLocaleDateString(LOC,{month:'long'}):'هذي الفترة',prvL=oneMonth?parseD(pa).toLocaleDateString(LOC,{month:'long'}):'الفترة اللي قبلها';
-      note.textContent='الدخل المتراكم بعد العمولة (كاش + مدى + فيزا) من '+fmtShort(a)+' لين '+fmtShort(end)+'، مقابل نفس الأيام من الشهر اللي قبل';
+      var curL=oneMonth?parseD(a).toLocaleDateString(LOC,{month:'long'}):'هذه الفترة',prvL=oneMonth?parseD(pa).toLocaleDateString(LOC,{month:'long'}):'الفترة السابقة';
+      note.textContent='الدخل المتراكم بعد العمولة (كاش + مدى + فيزا) من '+fmtShort(a)+' حتى '+fmtShort(end)+'، مقارنةً بالأيام نفسها من الشهر السابق';
       var cl=cs[cs.length-1]||0,pl=ps[ps.length-1]||0,diff=cl-pl;
       var oldMissing=store.root&&typeof LOADED!=='undefined'&&typeof CUTOFF_M!=='undefined'&&pa.slice(0,7)<CUTOFF_M&&LOADED[pa.slice(0,7)]!==true;
       if(oldMissing){hero.innerHTML='<span class="d">جارٍ جلب بيانات الشهر الماضي…</span>'}
-      else if(!pents.length){hero.innerHTML='<span class="chart-empty">ما فيه تسجيلات في '+esc2(prvL)+' للمقارنة.</span>'}
+      else if(!pents.length){hero.innerHTML='<span class="chart-empty">لا توجد تسجيلات في '+esc2(prvL)+' للمقارنة.</span>'}
       else{var pc=pl?Math.round(diff/Math.abs(pl)*100):0;
         hero.innerHTML='<b dir="ltr">'+(diff>=0?'+':'−')+Math.abs(pc)+'%</b><span class="d '+(diff>=0?'up':'down')+'">'+(diff>=0?'▲ ':'▼ ')+fmt(Math.abs(diff))+' ر.س '+(diff>=0?'زيادة':'نقص')+'</span>'}
       var lo=Math.min(0,Math.min.apply(null,cs.concat(ps))),hi=Math.max(1,Math.max.apply(null,cs.concat(ps))),rg2=range(lo,hi);
@@ -1688,7 +1688,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
 
     /* 3) طرق الدفع */
     var T=sumEntries(ents),box3=document.getElementById('ch3');
-    if(!T.in)box3.innerHTML='<p class="chart-empty">ما فيه دخل في هذي الفترة.</p>';
+    if(!T.in)box3.innerHTML='<p class="chart-empty">لا يوجد دخل في هذه الفترة.</p>';
     else{var parts=[['كاش',C.cash,T.cash||0],['مدى',C.mada,T.mada||0],['فيزا',C.visa,T.visa||0]];
       box3.innerHTML='<div class="pay-split">'+parts.filter(function(p){return p[2]>0}).map(function(p){return '<div style="flex:'+p[2]+';background:'+p[1]+'"></div>'}).join('')+'</div>'+
         '<div class="pay-rows">'+parts.map(function(p){return '<div><span><i style="background:'+p[1]+'"></i>'+p[0]+'</span><span><b>'+fmt(p[2])+' <small>ر.س</small></b><em>'+Math.round(p[2]/T.in*100)+'%</em></span></div>'}).join('')+'</div>'}
@@ -1753,29 +1753,29 @@ function catList(){var a=EXP_CATS.map(function(c){return c[0]});(S.catRules||[])
   (S.entries||[]).forEach(function(x){if(x.cat&&a.indexOf(x.cat)<0)a.push(x.cat)});a.push(CAT_OTHER);return a}
 async function recatEntry(id){var x=S.entries.find(function(y){return y.id===id});if(!x)return;
   var cur=catOf(x),k=catKey(x.note),list=catList();
-  var r=await modal({title:'نوع المصروف',body:'<p>'+(k?'«'+esc(x.note)+'» '+fmt(x.amount)+' ر.س. أي مصروف بنفس الملاحظة بعدين بينحط في النوع اللي تختاره.':'مصروف بدون ملاحظة بـ '+fmt(x.amount)+' ر.س.')+'</p>'+
+  var r=await modal({title:'نوع المصروف',body:'<p>'+(k?'«'+esc(x.note)+'» '+fmt(x.amount)+' ر.س. أي مصروف بالملاحظة نفسها لاحقًا سيُصنَّف في النوع الذي تختاره.':'مصروف بدون ملاحظة بـ '+fmt(x.amount)+' ر.س.')+'</p>'+
     '<div class="cat-opts">'+list.map(function(c){return '<label><input type="radio" name="cat" value="'+esc(c)+'"'+(c===cur?' checked':'')+'>'+esc(c)+'</label>'}).join('')+'</div>'+
     '<label class="field"><span>أو نوع جديد</span><input type="text" name="newcat" placeholder="مثال: ضيافة"></label>',
     actions:[{key:'ok',label:'حفظ'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
   if(!r)return;var c=(r.values.newcat||'').trim().slice(0,30)||r.values.cat;if(!c||c===cur)return;
   var ok=k?await safe(function(){return store.restore('catRules',{id:catRuleId(k),k:k,cat:c})}):await safe(function(){return store.update('entries',x.id,{cat:c})});
-  if(ok)toast('صار «'+c+'»'+(k?' لكل «'+x.note+'»':''))}
+  if(ok)toast('أصبح «'+c+'»'+(k?' لكل «'+x.note+'»':''))}
 (function(){
   if(typeof VIEWS==='undefined'||!VIEWS.report)return;
   var R=VIEWS.report,html0=R.html,upd0=R.update,open=null;
   R.html=function(){return html0().replace('</section><h2 class="section-title">الملخص</h2>',
-    '<div class="chart-card"><h3>أنواع المصروفات</h3><p class="note no-print">اضغط على أي نوع تشوف تفاصيله، وتقدر تغيّر نوع أي مصروف</p><div id="ch4"></div></div></section><h2 class="section-title">الملخص</h2>')};
+    '<div class="chart-card"><h3>أنواع المصروفات</h3><p class="note no-print">اضغط على أي نوع لعرض تفاصيله، ويمكنك تغيير نوع أي مصروف</p><div id="ch4"></div></div></section><h2 class="section-title">الملخص</h2>')};
   R.update=function(){upd0.apply(this,arguments);var box=document.getElementById('ch4');if(!box)return;
     var a=UI.rFrom,b=UI.rTo;if(a>b){var t=a;a=b;b=t}
     var outs=S.entries.filter(function(x){return x.kind==='out'&&inRange(x.date,a,b)});
-    if(!outs.length){box.innerHTML='<p class="chart-empty">ما فيه مصروفات في هذي الفترة.</p>';return}
+    if(!outs.length){box.innerHTML='<p class="chart-empty">لا توجد مصروفات في هذه الفترة.</p>';return}
     var g={};outs.forEach(function(x){var c=catOf(x);(g[c]=g[c]||{c:c,t:0,l:[]}).t+=x.amount;g[c].l.push(x)});
     var rows=Object.keys(g).map(function(k){return g[k]}).sort(function(x,y){return (x.c===CAT_OTHER)-(y.c===CAT_OTHER)||y.t-x.t});
     var tot=outs.reduce(function(s,x){return s+x.amount},0),mx=Math.max.apply(null,rows.map(function(r){return r.t}));
     box.innerHTML='<div class="cat-rows">'+rows.map(function(r,i){var col=r.c===CAT_OTHER?'#B9B7C8':catColor(r.c),on=open===r.c;
       return '<button type="button" class="cat-row" data-cat="'+esc(r.c)+'" aria-expanded="'+on+'"><span class="nm">'+esc(r.c)+'</span><span class="tr"><i style="width:'+(r.t/mx*100)+'%;background:'+col+'"></i></span><span class="vl">'+fmt(r.t)+'<em>'+Math.round(r.t/tot*100)+'%</em></span></button>'+
         (on?'<div class="cat-items">'+r.l.sort(byDateAsc).reverse().map(function(x){return '<div class="cat-it"><div class="n">'+(x.note?esc(x.note):'<span style="color:var(--muted)">بدون ملاحظة</span>')+'<small>'+fmtShort(x.date)+'</small></div><b>'+fmt(x.amount)+'</b><button type="button" data-recat="'+x.id+'">تغيير النوع</button></div>'}).join('')+'</div>':'')}).join('')+'</div>'+
-      (CAT_ERR?'<p class="warn-box" style="margin-top:8px">قواعد Firestore ما تسمح بحفظ الأنواع اللي تختارها. أضف <b>catRules</b> في القواعد.</p>':'');
+      (CAT_ERR?'<p class="warn-box" style="margin-top:8px">قواعد Firestore لا تسمح بحفظ الأنواع التي تختارها. أضف <b>catRules</b> في القواعد.</p>':'');
     box.onclick=function(e){var rc=e.target.closest('[data-recat]');if(rc){recatEntry(rc.dataset.recat);return}
       var row=e.target.closest('.cat-row');if(row){open=open===row.dataset.cat?null:row.dataset.cat;R.update()}}};
   if(typeof UI!=='undefined'&&UI.tab==='report'&&!UI.detail&&typeof mount==='function')mount();
@@ -1809,8 +1809,8 @@ async function recatEntry(id){var x=S.entries.find(function(y){return y.id===id}
   if(typeof VIEWS==='undefined'||!VIEWS.branches)return;
   var XLSX_URL='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
   var B=VIEWS.branches,h0=B.html;
-  B.html=function(){return h0().replace('<p class="sub">دخل ومصروف المحل، يوم بيوم</p></div></div>',
-    '<p class="sub">دخل ومصروف المحل، يوم بيوم</p></div><button class="btn xl-btn no-print" data-act="xlImport">+ استيراد<span class="hide-sm"> Excel أو صورة</span></button></div>')};
+  B.html=function(){return h0().replace('<p class="sub">دخل المحل ومصروفاته يومًا بيوم</p></div></div>',
+    '<p class="sub">دخل المحل ومصروفاته يومًا بيوم</p></div><button class="btn xl-btn no-print" data-act="xlImport">+ استيراد<span class="hide-sm"> Excel أو صورة</span></button></div>')};
 
   var norm=function(s){return String(s==null?'':s).replace(/[\s‏‎]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه')};
   var COLS_MAP={date:['التاريخ','تاريخ','اليوم'],mada:['مدى','مدي'],visa:['فيزا','visa'],cash:['كاش','نقد','نقدي'],out:['مصروفات','مصروف','المصروفات'],note:['ملاحظات','ملاحظه','الملاحظات']};
@@ -1855,7 +1855,7 @@ async function recatEntry(id){var x=S.entries.find(function(y){return y.id===id}
   function otsu(px){var h=new Array(256).fill(0);for(var i=0;i<px.length;i++)h[px[i]]++;var tot=px.length,sum=0;for(var t=0;t<256;t++)sum+=t*h[t];
     var sB=0,wB=0,best=0,th=128;for(t=0;t<256;t++){wB+=h[t];if(!wB)continue;var wF=tot-wB;if(!wF)break;sB+=t*h[t];var mB=sB/wB,mF=(sum-sB)/wF,v=wB*wF*(mB-mF)*(mB-mF);if(v>best){best=v;th=t}}return th}
   async function imageMonths(f){
-    var im;try{im=await loadImg(f)}catch(e){toast('ما قدرت أفتح الصورة');return null}
+    var im;try{im=await loadImg(f)}catch(e){toast('تعذّر فتح الصورة');return null}
     var sc=Math.min(1,2600/Math.max(im.naturalWidth,im.naturalHeight)),W=Math.round(im.naturalWidth*sc),H=Math.round(im.naturalHeight*sc);
     var cv=document.createElement('canvas');cv.width=W;cv.height=H;var cx=cv.getContext('2d',{willReadFrequently:true});cx.fillStyle='#fff';cx.fillRect(0,0,W,H);cx.drawImage(im,0,0,W,H);
     var d=cx.getImageData(0,0,W,H).data,g=new Uint8Array(W*H);for(var i=0;i<W*H;i++)g[i]=(d[i*4]*299+d[i*4+1]*587+d[i*4+2]*114)/1000;
@@ -1864,11 +1864,11 @@ async function recatEntry(id){var x=S.entries.find(function(y){return y.id===id}
     for(var x=0;x<W;x++){run=0;for(var y=0;y<H;y++){if(g[y*W+x]<DK){run++;if(run>vr[x])vr[x]=run}else run=0}}
     for(y=0;y<H;y++){run=0;for(x=0;x<W;x++){if(g[y*W+x]<DK){run++;if(run>hr[y])hr[y]=run}else run=0}}
     var V=lineGroups(vr,H*.35),Hh=lineGroups(hr,W*.35);
-    if(V.length<5||Hh.length<6){toast('ما قدرت ألقى خطوط الجدول في الصورة. صوّر الجدول كامل وواضح');return null}
+    if(V.length<5||Hh.length<6){toast('تعذّر العثور على خطوط الجدول في الصورة. صوّر الجدول كاملًا وبوضوح');return null}
     toast('جارٍ تجهيز قارئ الصور…');
-    try{await loadScript(TESS_URL)}catch(e){toast('قارئ الصور يحتاج نت أول مرة');return null}
+    try{await loadScript(TESS_URL)}catch(e){toast('قارئ الصور يحتاج اتصالًا بالإنترنت في أول مرة');return null}
     var worker;try{worker=await Tesseract.createWorker('eng');await worker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789/.,-'})}
-    catch(e){toast('ما قدرت أشغّل قارئ الصور، تأكد من النت');return null}
+    catch(e){toast('تعذّر تشغيل قارئ الصور، تأكد من الاتصال بالإنترنت');return null}
     var nc=V.length-1,nr=Hh.length-1,cells=[],done=0,todo=[];
     for(var r=0;r<nr;r++){cells.push([]);for(var c=0;c<nc;c++){var x0=V[c]+3,x1=V[c+1]-2,y0=Hh[r]+3,y1=Hh[r+1]-2,ink=0;
       if(x1-x0<6||y1-y0<6){cells[r].push(null);continue}
@@ -1888,14 +1888,14 @@ async function recatEntry(id){var x=S.entries.find(function(y){return y.id===id}
     // عمود التاريخ: أكثر عمود فيه تواريخ
     var isDate=function(s){return /^\d{1,2}\s*[\/\-.]\s*\d{1,2}/.test(s||'')};
     var dcol=-1,best=0;for(c=0;c<nc;c++){var cnt=0;for(r=0;r<nr;r++)if(cells[r][c]&&isDate(cells[r][c].text))cnt++;if(cnt>best){best=cnt;dcol=c}}
-    if(best<1||(dcol!==0&&dcol!==nc-1)){toast('ما لقيت عمود التاريخ في طرف الجدول');return null}
+    if(best<1||(dcol!==0&&dcol!==nc-1)){toast('لم يُعثر على عمود التاريخ في طرف الجدول');return null}
     var dir=dcol===0?1:-1,colOf=function(i){return dcol+dir*i};   // 1 مدى، 2 فيزا، 3 كاش، 4 مصروفات
     var numOf=function(cell){if(!cell||!cell.text)return'';var t=cell.text.replace(/,/g,'');var m=t.match(/\d+(\.\d+)?/);return m?m[0]:''};
     // الشهر والسنة: الأكثر تكرار
     var cntM={},rows=[];
     for(r=0;r<nr;r++){var dc=cells[r][dcol];if(!dc||!isDate(dc.text))continue;var p=dc.text.match(/\d+/g)||[];rows.push(r);
       var mm=+p[1],yy=p[2]?+p[2]:0;if(mm>12&&String(p[1]).length>2)mm=+String(p[1]).slice(0,1);if(yy>0&&yy<100)yy+=2000;var key=(yy||new Date().getFullYear())+'-'+p2(mm);if(mm>=1&&mm<=12)cntM[key]=(cntM[key]||0)+1}
-    var key0=Object.keys(cntM).sort(function(a,b){return cntM[b]-cntM[a]})[0];if(!key0){toast('ما قدرت أقرأ التواريخ');return null}
+    var key0=Object.keys(cntM).sort(function(a,b){return cntM[b]-cntM[a]})[0];if(!key0){toast('تعذّرت قراءة التواريخ');return null}
     var lastDay=new Date(+key0.slice(0,4),+key0.slice(5),0).getDate(),prev=0;
     var data=rows.map(function(r){var p=(cells[r][dcol].text.match(/\d+/g)||[]),day=+p[0];if(!(day>=1&&day<=lastDay)||day<=prev)day=prev+1;prev=day;
       var o={day:day,low:{}};['','mada','visa','cash','out'].forEach(function(k,i){if(!i)return;var cl=cells[r][colOf(i)];o[k]=numOf(cl);if(cl&&cl.text&&cl.conf<75)o.low[k]=1});return o});
@@ -1910,11 +1910,11 @@ async function recatEntry(id){var x=S.entries.find(function(y){return y.id===id}
     var sumOf=function(k){return data.reduce(function(t,o){return t+(+o[k]||0)},0)};
     var chk=function(k,lab){if(!tot||!tot[k])return '';var ok=Math.abs(sumOf(k)-(+tot[k]))<0.01;
       return '<span class="'+(ok?'ok':'bad')+'">'+lab+' '+(ok?'✓ يطابق المجموع':'⚠ مجموعها '+fmt(sumOf(k))+' والصورة '+fmt(+tot[k]))+'</span>'};
-    var body='<p>قريت '+data.length+' يوم من '+esc(monthName(key))+'. راجع الأرقام وصحح أي غلط قبل الاستيراد. الخانات الصفراء غير متأكد منها.</p>'+
+    var body='<p>تمت قراءة '+data.length+' يوم من '+esc(monthName(key))+'. راجع الأرقام وصحّح أي خطأ قبل الاستيراد. الخانات الصفراء غير مؤكدة.</p>'+
       (tot?'<div class="ocr-chk">'+chk('mada','مدى')+chk('visa','فيزا')+chk('cash','كاش')+chk('out','مصروفات')+'</div>':'')+
       '<div class="ocr-wrap"><table class="ocr-tbl"><thead><tr><th>اليوم</th><th>مدى</th><th>فيزا</th><th>كاش</th><th>مصروف</th></tr></thead><tbody>'+
       data.map(function(o,i){return '<tr><td>'+o.day+'</td>'+['mada','visa','cash','out'].map(function(k){return '<td><input name="r'+i+'_'+k+'" value="'+o[k]+'" size="4" inputmode="decimal" dir="ltr"'+(o.low[k]?' class="low"':'')+'></td>'}).join('')+'</tr>'}).join('')+
-      '</tbody></table></div><p style="font-size:.8rem;color:var(--muted);margin:8px 0 0">السحبيات والرواتب ما تنستورد، والصورة ما فيها ملاحظات الخلايا.</p>';
+      '</tbody></table></div><p style="font-size:.8rem;color:var(--muted);margin:8px 0 0">السحبيات والرواتب لا تُستورد، والصورة لا تتضمن ملاحظات الخلايا.</p>';
     setTimeout(function(){var a=document.activeElement;if(a&&a.closest&&a.closest('.ocr-tbl'))a.blur()},30);
     var r=await modal({title:'مراجعة الأرقام من الصورة',body:body,actions:[{key:'ok',label:'التالي'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
     if(!r)return null;
@@ -1926,14 +1926,14 @@ async function recatEntry(id){var x=S.entries.find(function(y){return y.id===id}
   }
   async function runImport(){
     var f=await pickFile();if(!f)return;
-    if(/^image\//.test(f.type)||/\.(png|jpe?g|heic|heif|webp)$/i.test(f.name)){var im=await imageMonths(f);if(im&&im[0].days.length)await commitMonths(im);else if(im)toast('ما فيه أرقام للاستيراد');return}
+    if(/^image\//.test(f.type)||/\.(png|jpe?g|heic|heif|webp)$/i.test(f.name)){var im=await imageMonths(f);if(im&&im[0].days.length)await commitMonths(im);else if(im)toast('لا توجد أرقام للاستيراد');return}
     toast('جارٍ قراءة الملف…');
     var months;
     try{await loadScript(XLSX_URL);
       var wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:false,cellComments:true});
       months=wb.SheetNames.map(function(n){return readSheet(n,wb.Sheets[n])}).filter(function(m){return m&&m.days.length});
-    }catch(e){toast('ما قدرت أقرأ الملف، تأكد إنه ملف Excel وإن النت شغال أول مرة');return}
-    if(!months.length){toast('ما لقيت في الملف أعمدة التاريخ ومدى وفيزا وكاش');return}
+    }catch(e){toast('تعذّرت قراءة الملف، تأكد أنه ملف Excel وأن الإنترنت متصل في أول مرة');return}
+    if(!months.length){toast('لم يُعثر في الملف على أعمدة التاريخ ومدى وفيزا وكاش');return}
     await commitMonths(months);
   }
   async function commitMonths(months){
@@ -1942,32 +1942,32 @@ async function recatEntry(id){var x=S.entries.find(function(y){return y.id===id}
     var sel=months;
     if(months.length>1){
       var opts='<div class="xl-list">'+(months.length>1?'<label><span>كل الأشهر <small>('+months.length+' أشهر)</small></span><input type="radio" name="m" value="all"></label>':'')+
-        months.slice().reverse().map(function(m,i){return '<label><span>'+esc(monthName(m.key))+' <small>('+m.days.length+' يوم فيه أرقام)</small></span><input type="radio" name="m" value="'+m.key+'"'+(i===0?' checked':'')+'></label>'}).join('')+'</div>';
-      var r=await modal({title:'أي شهر تبي تستورد؟',body:'<p>لقيت هذي الأشهر في الملف:</p>'+opts,actions:[{key:'ok',label:'التالي'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+        months.slice().reverse().map(function(m,i){return '<label><span>'+esc(monthName(m.key))+' <small>('+m.days.length+' يوم به أرقام)</small></span><input type="radio" name="m" value="'+m.key+'"'+(i===0?' checked':'')+'></label>'}).join('')+'</div>';
+      var r=await modal({title:'أي شهر تريد استيراده؟',body:'<p>وُجدت هذه الأشهر في الملف:</p>'+opts,actions:[{key:'ok',label:'التالي'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
       if(!r)return;sel=r.values.m==='all'?months:months.filter(function(m){return m.key===r.values.m});if(!sel.length)return}
     // نجيب بيانات الأشهر من القاعدة عشان نعرف الأيام المسجلة من قبل
     var keys=sel.map(function(m){return m.key}).sort();
     if(typeof ensureRange==='function'){try{await ensureRange(keys[0]+'-01',monthBounds(keys[keys.length-1])[1])}catch(e){}}
-    if(store.root&&typeof LOADED!=='undefined'&&keys.some(function(k){return k<CUTOFF_M&&LOADED[k]!==true})){toast('ما قدرت أتأكد من البيانات القديمة، تأكد من النت وحاول مرة ثانية');return}
+    if(store.root&&typeof LOADED!=='undefined'&&keys.some(function(k){return k<CUTOFF_M&&LOADED[k]!==true})){toast('تعذّر التحقق من البيانات السابقة، تأكد من الاتصال بالإنترنت وحاول مرة أخرى');return}
     var have={};S.entries.forEach(function(x){have[x.date]=1});
     var add=[],skipped=[];
     sel.forEach(function(m){m.days.forEach(function(d){if(have[d.date])skipped.push(d.date);else add=add.concat(d.items)})});
-    if(!add.length){await modal({title:'ما فيه شي جديد',body:'<p>كل الأيام اللي في الملف مسجلة في التطبيق من قبل ('+skipped.length+' يوم).</p>',actions:[{key:'ok',label:'تمام'}]});return}
+    if(!add.length){await modal({title:'لا توجد بيانات جديدة',body:'<p>جميع أيام الملف مسجلة في التطبيق مسبقًا ('+skipped.length+' يوم).</p>',actions:[{key:'ok',label:'حسنًا'}]});return}
     var t={mada:0,visa:0,cash:0,out:0},notes=[];
     add.forEach(function(x){if(x.kind==='in')t[x.method]+=x.amount;else t.out+=x.amount;if(x.note)notes.push((x.kind==='out'?'مصروف ':ML[x.method]+' ')+fmt(x.amount)+': '+esc(x.note)+' <small>('+fmtShort(x.date)+')</small>')});
     var dcount=new Set(add.map(function(x){return x.date})).size;
     var body='<p>'+esc(sel.length>1?sel.length+' أشهر':monthName(sel[0].key))+': <b>'+dcount+'</b> يوم، <b>'+add.length+'</b> حركة.</p>'+
-      (skipped.length?'<p class="xl-warn">بتخطى '+skipped.length+' يوم لأنها مسجلة في التطبيق من قبل.</p>':'')+
+      (skipped.length?'<p class="xl-warn">سيتم تخطي '+skipped.length+' يوم لأنها مسجلة في التطبيق مسبقًا.</p>':'')+
       '<div class="xl-sum"><span>مدى</span><b>'+fmt(t.mada)+'</b><span>فيزا</span><b>'+fmt(t.visa)+'</b><span>كاش</span><b>'+fmt(t.cash)+'</b><span>المصروفات</span><b>'+fmt(t.out)+'</b></div>'+
-      (notes.length?'<p style="margin:0 0 4px"><b>'+notes.length+'</b> ملاحظة انقرت من الملف:</p><ul class="xl-notes">'+notes.map(function(n){return '<li>'+n+'</li>'}).join('')+'</ul>':'')+
-      '<p style="font-size:.8rem;color:var(--muted);margin:10px 0 0">عمود السحبيات والرواتب ما ينستورد.</p>';
+      (notes.length?'<p style="margin:0 0 4px"><b>'+notes.length+'</b> ملاحظة قُرئت من الملف:</p><ul class="xl-notes">'+notes.map(function(n){return '<li>'+n+'</li>'}).join('')+'</ul>':'')+
+      '<p style="font-size:.8rem;color:var(--muted);margin:10px 0 0">عمود السحبيات والرواتب لا يُستورد.</p>';
     var ok=await modal({title:'تأكيد الاستيراد',body:body,actions:[{key:'ok',label:'استيراد '+add.length+' حركة'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
     if(!ok)return;
     var ids=[];
     var done=await safe(async function(){for(var i=0;i<add.length;i++){var id=await store.add('entries',add[i]);if(id)ids.push(id)}});
     if(!done&&!ids.length)return;
     var tt=$('#toast');clearTimeout(toastT);
-    tt.innerHTML='<span>انستوردت '+ids.length+' حركة</span><button type="button" class="undo-btn">تراجع</button>';tt.classList.add('undo','show');
+    tt.innerHTML='<span>تم استيراد '+ids.length+' حركة</span><button type="button" class="undo-btn">تراجع</button>';tt.classList.add('undo','show');
     var used=false;tt.querySelector('.undo-btn').onclick=async function(){if(used)return;used=true;tt.classList.remove('show','undo');
       if(await safe(async function(){for(var i=0;i<ids.length;i++)await store.remove('entries',ids[i])}))toast('تم التراجع عن الاستيراد')};
     toastT=setTimeout(function(){tt.classList.remove('show','undo')},10000);
@@ -2027,7 +2027,7 @@ async function recatEntry(id){var x=S.entries.find(function(y){return y.id===id}
         '<div><span>أعلى شهر</span><b>'+(best?mname(best.m):'—')+'</b>'+(best?' <small>'+fmt(best.inNet)+'</small>':'')+'</div><div><span>أقل شهر</span><b>'+(worst?mname(worst.m):'—')+'</b>'+(worst?' <small>'+fmt(worst.inNet)+'</small>':'')+'</div>';
       // الرسم: عمود لكل شهر مع الرقم فوقه
       var box=$('#yChart');
-      if(!hasIn.length)box.innerHTML='<p class="chart-empty">ما فيه دخل مسجل في '+y+'.</p>';
+      if(!hasIn.length)box.innerHTML='<p class="chart-empty">لا يوجد دخل مسجل في '+y+'.</p>';
       else{var mx=Math.max.apply(null,hasIn.map(function(r){return r.inNet})),st=step(mx),top=Math.ceil(mx*1.12/st)*st,iw=Wd-P.l-P.r,ih=Hd-P.t-P.b,bw=iw/12;
         var yy=function(v){return P.t+ih-v/top*ih},s='<svg viewBox="0 0 '+Wd+' '+Hd+'" direction="ltr" role="img" aria-label="الدخل لكل شهر">';
         for(var g=0;g<=top+1e-9;g+=st)s+='<line x1="'+P.l+'" x2="'+(Wd-P.r)+'" y1="'+yy(g)+'" y2="'+yy(g)+'" stroke="'+(g===0?'#D5D3E2':C.grid)+'"/><text x="'+(P.l-6)+'" y="'+(yy(g)+3.5)+'" font-size="10" fill="'+C.muted+'" text-anchor="end">'+kf(g)+'</text>';
@@ -2037,7 +2037,7 @@ async function recatEntry(id){var x=S.entries.find(function(y){return y.id===id}
           s+='<path d="M'+x+','+(P.t+ih)+'V'+(t0+rr)+'q0,-'+rr+' '+rr+',-'+rr+'h'+(w-2*rr)+'q'+rr+',0 '+rr+','+rr+'V'+(P.t+ih)+'z" fill="'+(r.m===curMonth()?C.barSoft:C.bar)+'"/>';
           s+='<text x="'+cx+'" y="'+(t0-4)+'" font-size="9" font-weight="'+(r===best?'700':'500')+'" fill="'+C.ink+'" text-anchor="middle">'+kf(r.inNet)+'</text>'});
         s+='<line x1="'+P.l+'" x2="'+(Wd-P.r)+'" y1="'+yy(avg)+'" y2="'+yy(avg)+'" stroke="'+C.muted+'" stroke-dasharray="4 3" stroke-width="1.2"/>';
-        box.innerHTML=s+'</svg>'+(rows.some(function(r){return r.m===curMonth()})?'<p class="note" style="margin:6px 0 0">العمود الفاتح هو الشهر الحالي، وما خلص للحين.</p>':'')}
+        box.innerHTML=s+'</svg>'+(rows.some(function(r){return r.m===curMonth()})?'<p class="note" style="margin:6px 0 0">العمود الفاتح هو الشهر الحالي، ولم ينتهِ بعد.</p>':'')}
       // الجدول
       var c=function(v,k){return '<td class="num '+(k||'')+'">'+fmt(v)+'</td>'};
       $('#yTable').innerHTML=withFootHead('<table class="yr-tbl"><thead><tr><th>الشهر</th><th class="num">كاش</th><th class="num">مدى</th><th class="num">فيزا</th><th class="num">الدخل</th><th class="num">العمولة</th><th class="num">المصروفات</th><th class="num">صافي المحل</th><th class="num">رواتب العمال</th><th class="num">المناديب</th><th class="num">الصافي النهائي</th></tr></thead><tbody>'+
@@ -2046,13 +2046,13 @@ async function recatEntry(id){var x=S.entries.find(function(y){return y.id===id}
         '</tbody><tfoot><tr><td>الإجمالي</td>'+c(sumK(function(r){return r.T.cash}))+c(sumK(function(r){return r.T.mada}))+c(sumK(function(r){return r.T.visa}))+c(tin,'pos')+c(sumK(function(r){return r.T.fee}),'neg')+c(sumK(function(r){return r.T.out}),'neg')+c(sumK(function(r){return r.shop}))+c(sumK(function(r){return r.wages}),'neg')+c(sumK(function(r){return r.rep}),'neg')+'<td class="num cur">'+fmt(sumK(function(r){return r.fin}))+'</td></tr></tfoot></table>');
     }
   };
-  var doPrintYear=function(){if(missing(yearOf())){toast('استنى لين تكتمل بيانات السنة');return}refresh();if(usePDF()){sharePDF('Dithar-'+yearOf());return}setTimeout(function(){window.print()},50)};
+  var doPrintYear=function(){if(missing(yearOf())){toast('انتظر حتى تكتمل بيانات السنة');return}refresh();if(usePDF()){sharePDF('Dithar-'+yearOf());return}setTimeout(function(){window.print()},50)};
   ACT.yearShift=function(t){UI.year=yearOf()+(+t.dataset.n);refresh()};
   ACT.printYear=doPrintYear;
   ACT.openYear=function(){UI.year=+UI.rFrom.slice(0,4)||yearOf();go('report',{type:'year'})};
   var monthly=ACT.printReport;
   ACT.printReport=async function(){
-    var r=await modal({title:'وش تبي تطبع؟',body:'<p>التقرير الشهري للفترة اللي اخترتها، أو التقرير السنوي كامل مع مقارنة الأشهر بالرسم.</p>',
+    var r=await modal({title:'ماذا تريد أن تطبع؟',body:'<p>التقرير الشهري للفترة التي اخترتها، أو التقرير السنوي كاملًا مع مقارنة الأشهر بالرسم.</p>',
       actions:[{key:'month',label:'التقرير الشهري'},{key:'year',label:'التقرير السنوي '+(+UI.rFrom.slice(0,4)||yearOf())},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
     if(!r)return;if(r.key==='month'){monthly();return}
     UI.year=+UI.rFrom.slice(0,4)||yearOf();go('report',{type:'year'});

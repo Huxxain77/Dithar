@@ -555,7 +555,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='24 أكتوبر - أ';
+const APP_VERSION='24 أكتوبر - ب';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1697,7 +1697,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
 })();
 </script>
 <!-- ===== نهاية الرسومات ===== -->
-<!-- ===== وين تروح المصروفات ===== -->
+<!-- ===== أنواع المصروفات ===== -->
 <style>
 .cat-rows{display:grid;gap:2px}
 .cat-row{appearance:none;width:100%;background:none;border:0;border-top:1px dashed var(--line);padding:9px 0;display:grid;grid-template-columns:1fr auto;grid-template-areas:'nm vl' 'tr tr';gap:6px 10px;align-items:center;text-align:start;font:inherit;color:inherit;cursor:pointer}
@@ -1764,7 +1764,7 @@ async function recatEntry(id){var x=S.entries.find(function(y){return y.id===id}
   if(typeof VIEWS==='undefined'||!VIEWS.report)return;
   var R=VIEWS.report,html0=R.html,upd0=R.update,open=null;
   R.html=function(){return html0().replace('</section><h2 class="section-title">الملخص</h2>',
-    '<div class="chart-card"><h3>وين تروح المصروفات</h3><p class="note no-print">اضغط على أي نوع تشوف تفاصيله، وتقدر تغيّر نوع أي مصروف</p><div id="ch4"></div></div></section><h2 class="section-title">الملخص</h2>')};
+    '<div class="chart-card"><h3>أنواع المصروفات</h3><p class="note no-print">اضغط على أي نوع تشوف تفاصيله، وتقدر تغيّر نوع أي مصروف</p><div id="ch4"></div></div></section><h2 class="section-title">الملخص</h2>')};
   R.update=function(){upd0.apply(this,arguments);var box=document.getElementById('ch4');if(!box)return;
     var a=UI.rFrom,b=UI.rTo;if(a>b){var t=a;a=b;b=t}
     var outs=S.entries.filter(function(x){return x.kind==='out'&&inRange(x.date,a,b)});

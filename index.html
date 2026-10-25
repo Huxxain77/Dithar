@@ -463,6 +463,12 @@ tfoot tr.foot-head td{font-size:.74rem;font-weight:500;color:var(--muted);border
 .pdf-mode tr.foot-head{display:none}
 /* الرقم السالب: الإشارة قبل الرقم (-18) مو بعده */
 td.num{direction:ltr;text-align:left}
+
+/* طريقة سداد العميل: 4 خيارات */
+.seg.four{grid-template-columns:repeat(4,1fr)}
+@supports selector(:has(a)){.seg.four::before{width:calc((100% - 20px)/4);inset-inline-start:calc(4px + var(--i,0) * ((100% - 20px)/4 + 4px))}
+.seg.four:has(label:nth-child(4) input:checked){--i:3}}
+.note-sm{font-size:.78rem;color:var(--muted);margin:-2px 0 10px}
 </style>
 </head>
 <body>
@@ -555,7 +561,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='24 أكتوبر - هـ';
+const APP_VERSION='25 أكتوبر - أ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -613,6 +619,7 @@ const BID='main';
 const TABS=[['branches','اليومية','اليومية'],['reps','المناديب','المناديب'],['workers','العمال','العمال'],['debts','مديونية العملاء','الديون'],['report','التقرير الشهري','التقرير']];
 const METHODS=[['cash','كاش'],['mada','مدى'],['visa','فيزا']];
 const ML=Object.fromEntries(METHODS);
+const PAY_METHODS=[['cash','كاش'],['mada','مدى'],['visa','فيزا'],['transfer','تحويل']],PML=Object.fromEntries(PAY_METHODS);
 
 let toastT;
 function toast(msg){const t=$('#toast');t.classList.remove('undo');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600)}
@@ -990,7 +997,7 @@ branches:{
     $('#dayLabel').textContent=fmtDay(UI.date);
     $('#dayStats').innerHTML=stat('الدخل',s.in,'pos')+stat('عمولة الشبكة',s.fee,'neg')+stat('المصروف',s.out,'neg')+stat('الصافي',s.net);
     $('#dayChips').innerHTML=METHODS.map(([k,l])=>`<span class="chip">${l} <b>${fmt(s[k])}</b></span>`).join('');
-    $('#dayList').innerHTML=dayE.length?dayE.map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind}">${x.kind==='in'?ML[x.method]:'مصروف'}</span><span class="item-note">${x.kind==='out'?esc(x.note||'بدون ملاحظة'):esc(x.note||'')} ${x.src==='xlsx'?'<small>من Excel</small>':x.src==='img'?'<small>من صورة</small>':fmtTime(x.createdAt)}</span></div></div><div class="item-amt ${x.kind==='in'?'pos':'neg'}">${x.kind==='in'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delEntry" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
+    $('#dayList').innerHTML=dayE.length?dayE.map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind}">${x.kind==='in'?(x.via==='transfer'?'تحويل':ML[x.method]):'مصروف'}</span><span class="item-note">${x.kind==='out'?esc(x.note||'بدون ملاحظة'):esc(x.note||'')} ${x.src==='xlsx'?'<small>من Excel</small>':x.src==='img'?'<small>من صورة</small>':fmtTime(x.createdAt)}</span></div></div><div class="item-amt ${x.kind==='in'?'pos':'neg'}">${x.kind==='in'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delEntry" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
       :'<p class="empty">لا توجد حركات في هذا اليوم. أضف أول مبلغ من الأعلى.</p>';
     const m=UI.date.slice(0,7);$('#monLabel').textContent=fmtMonth(m);
     const monE=ents.filter(x=>x.date.startsWith(m));
@@ -1080,8 +1087,10 @@ cust:{
       <button class="btn block" data-act="custDebt">تسجيل الدين</button>
     </section>
     <section class="panel"><h2>سداد من العميل</h2>
+      <div class="seg four" role="radiogroup" aria-label="طريقة السداد">${PAY_METHODS.map(([k,l])=>`<label><input type="radio" name="cmethod" value="${k}" ${(UI.cmethod||'cash')===k?'checked':''}><span>${l}</span></label>`).join('')}</div>
       <label class="field"><span>المبلغ المسدد</span><input type="text" id="cpayAmt" inputmode="decimal" data-enter="custPay"></label>
-      <div class="two"><label class="field"><span>التاريخ</span><input type="date" id="cpayDate" value="${today()}"></label><label class="field"><span>ملاحظة</span><input type="text" id="cpayNote" placeholder="مثال: كاش، تحويل" data-enter="custPay"></label></div>
+      <div class="two"><label class="field"><span>التاريخ</span><input type="date" id="cpayDate" value="${today()}"></label><label class="field"><span>ملاحظة</span><input type="text" id="cpayNote" placeholder="اختياري" data-enter="custPay"></label></div>
+      <p class="note-sm">يُضاف السداد إلى دخل اليومية بطريقة الدفع المختارة. التحويل يُحسب مع الكاش لأنه بدون عمولة.</p>
       <button class="btn brass block" data-act="custPay">تسجيل التسديد</button>
       <button class="btn ghost block sm" data-act="custPayAll" style="margin-top:8px">سداد كامل المبلغ المتبقي</button>
     </section>
@@ -1097,7 +1106,7 @@ cust:{
     $('#custBal').innerHTML=money(Math.abs(t.bal));
     $('#custSums').innerHTML=`<span>إجمالي الدين <b>${fmt(t.debt)}</b></span><span>إجمالي المسدد <b>${fmt(t.paid)}</b></span>`;
     let run=0;const rows=t.tx.map(x=>{run+=x.kind==='debt'?x.amount:-x.amount;return{...x,run}});
-    $('#custLog').innerHTML=rows.length?rows.reverse().map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind==='debt'?'out':'in'}">${x.kind==='debt'?'دين':'تسديد'}</span><span>${fmtLong(x.date)}</span></div>${x.kind==='debt'&&x.items&&x.items.length?`<ul class="debt-lines">${x.items.map(i=>`<li><span>${esc(i.d||'بدون تفاصيل')}</span><b>${fmt(i.p)}</b></li>`).join('')}</ul>`:''}<div class="item-note">${x.note?esc(x.note)+' — ':''}المتبقي بعد الحركة ${fmt(x.run)}</div></div><div class="item-amt ${x.kind==='debt'?'neg':'pos'}">${x.kind==='debt'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delCustTx" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
+    $('#custLog').innerHTML=rows.length?rows.reverse().map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind==='debt'?'out':'in'}">${x.kind==='debt'?'دين':'سداد'+(x.method?' · '+PML[x.method]:'')}</span><span>${fmtLong(x.date)}</span></div>${x.kind==='debt'&&x.items&&x.items.length?`<ul class="debt-lines">${x.items.map(i=>`<li><span>${esc(i.d||'بدون تفاصيل')}</span><b>${fmt(i.p)}</b></li>`).join('')}</ul>`:''}<div class="item-note">${x.note?esc(x.note)+' — ':''}المتبقي بعد الحركة ${fmt(x.run)}</div></div><div class="item-amt ${x.kind==='debt'?'neg':'pos'}">${x.kind==='debt'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delCustTx" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
       :'<p class="empty">لا توجد حركات. سجّل أول دين للعميل من الأعلى.</p>';
   }
 },
@@ -1354,6 +1363,14 @@ async function deleteEntity(col,id){
   if(UI.detail&&UI.detail.id===id)go(UI.tab);
   if(await safe(async()=>{for(const k of kids)await store.remove(c.child,k.id);await store.remove(col,id)}))undoToast(`تم حذف ${ent.name}`,[{c:col,x:ent},...kids.map(k=>({c:c.child,x:k}))]);
 }
+/* سداد العميل مربوط بدخل اليومية: حذف أي واحد منهم يحذف الثاني، والتراجع يرجعهم مع بعض */
+async function delLinked(col,id){const x=S[col].find(y=>y.id===id);if(!x){return delRow(col,id)}
+  let other=null;
+  if(col==='custTx'&&x.entryId)other={c:'entries',id:x.entryId,x:S.entries.find(y=>y.id===x.entryId)};
+  if(col==='entries'){const t=(S.custTx||[]).find(y=>y.entryId===id);if(t)other={c:'custTx',id:t.id,x:t}}
+  if(!other)return delRow(col,id);
+  const docs=[{c:col,x}];if(other.x)docs.push({c:other.c,x:other.x});
+  if(await safe(async()=>{await store.remove(col,id);await store.remove(other.c,other.id)}))undoToast(col==='custTx'?'تم حذف السداد ودخله من اليومية':'تم حذف الدخل وسداد العميل المرتبط به',docs)}
 async function delRow(col,id,title){const x=S[col].find(y=>y.id===id);
   if(await safe(()=>store.remove(col,id))&&x)undoToast('تم الحذف',[{c:col,x}])}
 
@@ -1444,7 +1461,7 @@ const ACT={
     if(await safe(()=>store.add('entries',{branchId:BID,kind:'in',amount:a,method:m,date:UI.date}))){$('#incAmt').value='';$('#incAmt').focus();toast(`أُضيف ${fmt(a)} ${ML[m]}`)}},
   async addExpense(){const a=amountOf('#expAmt');if(a==null)return;const note=$('#expNote').value.trim();
     if(await safe(()=>store.add('entries',{branchId:BID,kind:'out',amount:a,note,date:UI.date}))){$('#expAmt').value='';$('#expNote').value='';toast('أُضيف المصروف')}},
-  delEntry:t=>delRow('entries',t.dataset.id,'حذف هذه الحركة؟'),
+  delEntry:t=>delLinked('entries',t.dataset.id),
   async repAdd(){const a=amountOf('#addAmt');if(a==null)return;
     if(await safe(()=>store.add('repTx',{repId:UI.detail.id,kind:'add',amount:a,note:$('#addNote').value.trim(),date:$('#addDate').value||today()}))){$('#addAmt').value='';$('#addNote').value='';toast('أُضيف المبلغ')}},
   async repPay(){const a=amountOf('#payAmt');if(a==null)return;
@@ -1461,17 +1478,22 @@ const ACT={
     if(await safe(()=>store.add('custTx',{custId:UI.detail.id,kind:'debt',amount,items,note:$('#debtNote').value.trim(),date:$('#debtDate').value||today()}))){
       $('#debtItems').innerHTML=debtItemRow();$('#debtNote').value='';debtSumUpd();toast(`تم تسجيل دين ${fmt(amount)}`)}},
   async custPay(){const a=amountOf('#cpayAmt');if(a==null)return;
-    if(await safe(()=>store.add('custTx',{custId:UI.detail.id,kind:'pay',amount:a,note:$('#cpayNote').value.trim(),date:$('#cpayDate').value||today()}))){$('#cpayAmt').value='';$('#cpayNote').value='';toast('تم تسجيل التسديد')}},
-  custPayAll:()=>{const b=custTotals(UI.detail.id).bal;if(!(b>0)){toast('ما عليه شي');return}const el=$('#cpayAmt');el.value=String(Math.round(b*100)/100);el.focus()},
+    const m=(document.querySelector('input[name=cmethod]:checked')||{}).value||'cash',d=$('#cpayDate').value||today(),note=$('#cpayNote').value.trim();
+    const c=S.customers.find(x=>x.id===UI.detail.id)||{name:''};
+    /* السداد ينضاف لدخل اليومية: التحويل ينحسب كاش لأنه بدون عمولة */
+    if(await safe(async()=>{const eid=await store.add('entries',{branchId:BID,kind:'in',amount:a,method:m==='transfer'?'cash':m,via:m==='transfer'?'transfer':null,note:'سداد دين: '+c.name,date:d});
+      await store.add('custTx',{custId:UI.detail.id,kind:'pay',amount:a,method:m,entryId:typeof eid==='string'?eid:null,note,date:d})})){
+      $('#cpayAmt').value='';$('#cpayNote').value='';toast(`تم تسجيل السداد ${fmt(a)} ${PML[m]}، وأُضيف لليومية`)}},
+  custPayAll:()=>{const b=custTotals(UI.detail.id).bal;if(!(b>0)){toast('لا توجد مستحقات');return}const el=$('#cpayAmt');el.value=String(Math.round(b*100)/100);el.focus()},
   custWA:()=>{const c=S.customers.find(x=>x.id===UI.detail.id);if(!c)return;const t=custTotals(c.id);
     const tx=t.tx.slice(-12),its=x=>x.items&&x.items.length?x.items:[{d:x.note||'بضاعة',p:x.amount}];
     const lines=tx.map(x=>x.kind==='debt'
       ?'• '+fmtShort(x.date)+': مشتريات بـ '+fmt(x.amount)+' ر.س\n'+its(x).map(i=>'   - '+(i.d||'بضاعة')+': '+fmt(i.p)+' ر.س').join('\n')
-      :'• '+fmtShort(x.date)+': دفعت '+fmt(x.amount)+' ر.س'+(x.note?' ('+x.note+')':''));
+      :'• '+fmtShort(x.date)+': دفعت '+fmt(x.amount)+' ر.س'+((x.method||x.note)?' ('+[x.method?PML[x.method]:'',x.note||''].filter(Boolean).join('، ')+')':''));
     const msg='السلام عليكم '+c.name+'،\nمعك دثار للأقمشة، هذا كشف حسابك'+(t.tx.length>tx.length?' (آخر '+tx.length+' حركة)':'')+':\n\n'+lines.join('\n\n')
       +'\n\nإجمالي المشتريات: '+fmt(t.debt)+' ر.س\nالمدفوع: '+fmt(t.paid)+' ر.س\n'+(t.bal>0.004?'المتبقي عليك: '+fmt(t.bal)+' ر.س':t.bal<-0.004?'رصيدك لدينا: '+fmt(-t.bal)+' ر.س':'حسابك مسدد بالكامل، شكرًا لك.');
     window.open('https://wa.me/'+waNum(c.phone)+'?text='+encodeURIComponent(msg),'_blank')},
-  delCustTx:t=>delRow('custTx',t.dataset.id,'حذف هذه الحركة؟'),
+  delCustTx:t=>delLinked('custTx',t.dataset.id),
   async setSalary(){const w=S.workers.find(x=>x.id===UI.detail.id);if(!w)return;const m0=UI.wMonth||curMonth(),fm=wFirstMonth(w);
     const r=await modal({title:'الراتب الشهري',body:`<label class="field"><span>الراتب (ر.س)</span><input type="text" name="price" inputmode="decimal" value="${salaryFor(w,m0)||salaryFor(w,curMonth())}"></label><label class="field"><span>يبدأ من شهر</span><input type="month" name="from" value="${m0}"></label><p>يُحسب الراتب من الشهر الذي تختاره وما بعده. إذا اخترت شهرًا قبل ${fmtMonth(fm)}، يصبح بداية حساب ${esc(w.name)}.</p>`,actions:[{key:'ok',label:'حفظ الراتب'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
     if(!r)return;const p=num(r.values.price);if(!(p>=0)){toast('أدخل راتبًا صحيحًا');return}
@@ -1507,6 +1529,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset&&e.
 document.addEventListener('input',e=>{e.target.classList&&e.target.classList.remove('err');});
 document.addEventListener('change',e=>{const el=e.target,v=el.value;
   if(el.name==='method')UI.method=v;
+  if(el.name==='cmethod')UI.cmethod=v;
   if(!v)return;
   if(el.id==='day'){UI.date=v;refresh()}
   if(el.id==='wMonth'){UI.wMonth=v;refresh()}

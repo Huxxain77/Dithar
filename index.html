@@ -576,7 +576,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='27 أكتوبر - ب';
+const APP_VERSION='27 أكتوبر - ج';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1671,8 +1671,8 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
   R.html=function(){
     return html0().replace('<h2 class="section-title">الملخص</h2>',
       '<h2 class="section-title">الرسومات</h2><section class="charts">'+
-      '<div class="chart-card"><h3 id="ch1T">دخل ومصروف كل يوم</h3><p class="note no-print">اضغط على أي عمود لعرض قيمته</p><div class="chart-box" id="ch1"></div>'+
-      '<div class="chart-legend"><span><i style="background:'+C.bar+'"></i>الدخل بعد عمولة مدى وفيزا</span><span><i style="background:'+C.out+'"></i>المصروف</span><span><i class="ln" style="border-color:'+C.muted+';border-top-style:dashed"></i>متوسط الدخل</span></div></div>'+
+      '<div class="chart-card ch-daily"><h3 id="ch1T">دخل كل يوم</h3><p class="note">بعد عمولة مدى وفيزا<span class="no-print">. اضغط على أي عمود لعرض قيمته</span></p><div class="chart-box" id="ch1"></div>'+
+      '<h3 class="ch-sub" id="ch1bT">مصروف كل يوم</h3><div class="chart-box" id="ch1b"></div></div>'+
       '<div class="chart-card"><h3>مقارنة الدخل بالشهر الماضي</h3><p class="note" id="ch2N"></p><div class="chart-hero" id="ch2H"></div><div class="chart-box" id="ch2"></div><div class="chart-legend" id="ch2L"></div></div>'+
       '<div class="chart-card"><h3>طرق الدفع</h3><p class="note">من إجمالي دخل الفترة</p><div id="ch3"></div></div>'+
       '</section><h2 class="section-title">الملخص</h2>');
@@ -1692,30 +1692,37 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
     if(daily)pts=all.map(function(d){var r=inNet(ents.filter(function(x){return x.date===d}));r.label=String(parseD(d).getDate());r.tip=fmtDay(d);return r});
     else{var ms={};all.forEach(function(d){var m=d.slice(0,7);(ms[m]=ms[m]||[]).push(d)});
       pts=Object.keys(ms).sort().map(function(m){var r=inNet(ents.filter(function(x){return x.date.slice(0,7)===m}));r.label=parseD(m+'-01').toLocaleDateString(LOC,{month:'short'});r.tip=parseD(m+'-01').toLocaleDateString(LOC,{month:'long',year:'numeric'});return r})}
-    document.getElementById('ch1T').textContent=daily?'دخل ومصروف كل يوم':'دخل ومصروف كل شهر';
-    var box1=document.getElementById('ch1');
-    if(!ents.length)box1.innerHTML='<p class="chart-empty">لا توجد تسجيلات في هذه الفترة.</p>';
+    /* رسمين: الدخل بمقياسه، والمصروف تحته بمقياسه (عشان مصروف كبير ما يصغّر أعمدة الدخل) */
+    document.getElementById('ch1T').textContent=daily?'دخل كل يوم':'دخل كل شهر';
+    document.getElementById('ch1bT').textContent=daily?'مصروف كل يوم':'مصروف كل شهر';
+    var box1=document.getElementById('ch1'),box1b=document.getElementById('ch1b');
+    if(!ents.length){box1.innerHTML='<p class="chart-empty">لا توجد تسجيلات في هذه الفترة.</p>';box1b.innerHTML=''}
     else{
-      var rg=range(-Math.max.apply(null,pts.map(function(p){return p.o})),Math.max(0,Math.max.apply(null,pts.map(function(p){return p.v}))));
-      var iw=W-P.l-P.r,ih=H-P.t-P.b,bw=iw/pts.length,y=function(v){return P.t+ih-(v-rg[0])/(rg[1]-rg[0])*ih},y0=y(0);
-      var s='<svg viewBox="0 0 '+W+' '+H+'" direction="ltr" role="img" aria-label="الدخل والمصروف">'+grid(rg[0],rg[1],y);
-      var gap=bw>6?2:1;
-      pts.forEach(function(p,i){var x=P.l+i*bw+gap/2,w=Math.max(bw-gap,1);
-        if(p.v>0){var h=y0-y(p.v),r=Math.min(3,w/2,h);s+='<path d="M'+x+','+y0+'V'+(y0-h+r)+'q0,-'+r+' '+r+',-'+r+'h'+(w-2*r)+'q'+r+',0 '+r+','+r+'V'+y0+'z" fill="'+C.bar+'"/>'}
-        if(p.o>0){var h2=y(-p.o)-y0,r2=Math.min(3,w/2,h2);s+='<path d="M'+x+','+y0+'V'+(y0+h2-r2)+'q0,'+r2+' '+r2+','+r2+'h'+(w-2*r2)+'q'+r2+',0 '+r2+',-'+r2+'V'+y0+'z" fill="'+C.out+'"/>'}});
       var step=daily?(pts.length>20?5:pts.length>10?2:1):Math.ceil(pts.length/8);
-      pts.forEach(function(p,i){if(i===0||(i+1)%step===0||i===pts.length-1&&step===1)s+='<text x="'+(P.l+(i+.5)*bw)+'" y="'+(H-6)+'" font-size="10" fill="'+C.muted+'" text-anchor="middle">'+p.label+'</text>'});
-      var hv=pts.filter(function(p){return p.hasIn}),avg=hv.reduce(function(t,p){return t+p.v},0)/(hv.length||1);
-      if(hv.length){s+='<line x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y(avg)+'" y2="'+y(avg)+'" stroke="'+C.muted+'" stroke-dasharray="4 3" stroke-width="1.2"/>';
-      s+='<text x="'+(W-P.r-2)+'" text-anchor="end" y="'+(y(avg)-5)+'" font-size="10.5" font-weight="600" fill="'+C.ink+'" stroke="#fff" stroke-width="4" paint-order="stroke">متوسط الدخل '+fmt(Math.round(avg))+'</text>'}
-      pts.forEach(function(p,i){s+='<rect class="hit" data-i="'+i+'" x="'+(P.l+i*bw)+'" y="'+P.t+'" width="'+bw+'" height="'+ih+'" fill="transparent"/>'});
-      box1.innerHTML=s+'</svg>';
-      var svg1=box1.querySelector('svg'),tip=null,selI=-1;
-      box1.onclick=function(e){var h=e.target.closest&&e.target.closest('.hit');if(tip){tip.remove();tip=null}
-        if(!h||+h.dataset.i===selI){selI=-1;return}selI=+h.dataset.i;var p=pts[selI];if(!p.has){selI=-1;return}
-        var k=svg1.getBoundingClientRect().width/W;tip=document.createElement('div');tip.className='chart-tip';
-        tip.innerHTML='<span>'+esc2(p.tip)+'</span><b>دخل '+fmt(p.v)+'</b>'+(p.o?'<b class="o">مصروف '+fmt(p.o)+'</b>':'');
-        var tx=Math.min(Math.max((P.l+(selI+.5)*bw)*k,60),svg1.getBoundingClientRect().width-60);tip.style.left=tx+'px';tip.style.top=(Math.min(y(Math.max(p.v,0)),y0)*k-6)+'px';box1.appendChild(tip)};
+      var draw=function(box,key,color,H1,withAvg,label){
+        var vals=pts.map(function(p){return Math.max(0,p[key])}),mx=Math.max.apply(null,vals);
+        if(!(mx>0)){box.innerHTML='<p class="chart-empty">'+(key==='o'?'لا توجد مصروفات في هذه الفترة.':'لا يوجد دخل في هذه الفترة.')+'</p>';return}
+        var rg=range(0,mx),iw=W-P.l-P.r,ih=H1-P.t-P.b,bw=iw/pts.length,y=function(v){return P.t+ih-(v-rg[0])/(rg[1]-rg[0])*ih},y0=y(0),gap=bw>6?2:1;
+        var s='<svg viewBox="0 0 '+W+' '+H1+'" direction="ltr" role="img" aria-label="'+label+'">'+grid(rg[0],rg[1],y);
+        /* أكبر الأعمدة يُكتب رقمها فوقها (للمصروف) */
+        var big=key==='o'?vals.map(function(v,i){return [v,i]}).filter(function(x){return x[0]>=mx*.25}).sort(function(a,b){return b[0]-a[0]}).slice(0,5).map(function(x){return x[1]}):[];
+        pts.forEach(function(p,i){var v=vals[i];if(!v)return;var x=P.l+i*bw+gap/2,w=Math.max(bw-gap,1),h=y0-y(v),r=Math.min(3,w/2,h);
+          s+='<path d="M'+x+','+y0+'V'+(y0-h+r)+'q0,-'+r+' '+r+',-'+r+'h'+(w-2*r)+'q'+r+',0 '+r+','+r+'V'+y0+'z" fill="'+color+'"/>';
+          if(big.indexOf(i)>=0)s+='<text x="'+(x+w/2)+'" y="'+(y0-h-4)+'" font-size="9.5" font-weight="700" fill="'+C.neg+'" text-anchor="middle" stroke="#fff" stroke-width="3" paint-order="stroke">'+kfmt(v)+'</text>'});
+        pts.forEach(function(p,i){if(i===0||(i+1)%step===0||i===pts.length-1&&step===1)s+='<text x="'+(P.l+(i+.5)*bw)+'" y="'+(H1-6)+'" font-size="10" fill="'+C.muted+'" text-anchor="middle">'+p.label+'</text>'});
+        if(withAvg){var hv=pts.filter(function(p){return p.hasIn}),avg=hv.reduce(function(t,p){return t+p.v},0)/(hv.length||1);
+          if(hv.length){s+='<line x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y(avg)+'" y2="'+y(avg)+'" stroke="'+C.muted+'" stroke-dasharray="4 3" stroke-width="1.2"/>';
+          s+='<text x="'+(W-P.r-2)+'" text-anchor="end" y="'+(y(avg)-5)+'" font-size="10.5" font-weight="600" fill="'+C.ink+'" stroke="#fff" stroke-width="4" paint-order="stroke">متوسط الدخل '+fmt(Math.round(avg))+'</text>'}}
+        pts.forEach(function(p,i){s+='<rect class="hit" data-i="'+i+'" x="'+(P.l+i*bw)+'" y="'+P.t+'" width="'+bw+'" height="'+ih+'" fill="transparent"/>'});
+        box.innerHTML=s+'</svg>';
+        var svg=box.querySelector('svg'),tip=null,selI=-1;
+        box.onclick=function(e){var hh=e.target.closest&&e.target.closest('.hit');if(tip){tip.remove();tip=null}
+          if(!hh||+hh.dataset.i===selI){selI=-1;return}selI=+hh.dataset.i;var p=pts[selI];if(!p.has){selI=-1;return}
+          var k=svg.getBoundingClientRect().width/W;tip=document.createElement('div');tip.className='chart-tip';
+          tip.innerHTML='<span>'+esc2(p.tip)+'</span><b>دخل '+fmt(p.v)+'</b>'+(p.o?'<b class="o">مصروف '+fmt(p.o)+'</b>':'');
+          var tx=Math.min(Math.max((P.l+(selI+.5)*bw)*k,60),svg.getBoundingClientRect().width-60);tip.style.left=tx+'px';tip.style.top=(y(vals[selI])*k-6)+'px';box.appendChild(tip)}};
+      draw(box1,'v',C.bar,160,true,'الدخل');
+      draw(box1b,'o',C.out,105,false,'المصروف');
     }
 
     /* 2) المتراكم مقارنة بالشهر اللي قبل، لين اليوم لو الفترة ما خلصت */
@@ -1761,6 +1768,18 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
   if(typeof UI!=='undefined'&&UI.tab==='report'&&!UI.detail&&typeof mount==='function')mount();
 })();
 </script>
+<style>
+/* رسم الدخل والمصروف: المصروف رسم صغير تحت بمقياسه */
+.chart-card .ch-sub{font-size:.92rem;margin:10px 0 2px;color:var(--ink)}
+/* في ملف PDF: رسم الدخل بعرض الصفحة، والمقارنة وطرق الدفع جنب أنواع المصروفات */
+.pdf-paged .charts{grid-template-areas:"d d" "c k" "p k"}
+.pdf-paged .charts .chart-card:nth-child(1){grid-area:d!important}
+.pdf-paged .charts .chart-card:nth-child(2){grid-area:c!important}
+.pdf-paged .charts .chart-card:nth-child(3){grid-area:p!important}
+.pdf-paged .charts .chart-card:nth-child(4){grid-area:k!important}
+.pdf-paged .charts .ch-daily .chart-box{max-width:none}
+@media print{.charts .chart-card.ch-daily{grid-column:1/-1}}
+</style>
 <!-- ===== نهاية الرسومات ===== -->
 <!-- ===== أنواع المصروفات ===== -->
 <style>

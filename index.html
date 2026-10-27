@@ -621,7 +621,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='27 أكتوبر - و';
+const APP_VERSION='27 أكتوبر - ز';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1687,35 +1687,34 @@ async function goodsClear(){const all=[...(S.goods||[])];if(!all.length)return;
   if(await safe(async()=>{for(const g of all)await store.remove('goods',g.id)}))undoToast(`تم حذف ${all.length} كرتون`,all.map(x=>({c:'goods',x})))}
 
 /* قراءة الكراتين من صورة (قائمة التعبئة أو ملصق الكرتون). الأرقام تطلع في جدول تراجعه قبل الحفظ */
-function goodsHeader(t){const w=t.toLowerCase();if(!/(roll|pcs|piece|meter|metre|mtr|mts|yds|yard|kg|weight|qty|طاق|متر|أمتار)/.test(w)||(w.match(/\d/g)||[]).length>4)return null;
-  const out=[],re=/(rolls?|pcs|pieces?|طاق\S*|meters?|metres?|mtrs?|mts|أمتار|متر|yards?|yds|[ng]\.?\s?w\.?(?:\s*\(?kgs?\)?)?|kgs?|weight|qty|quantity)/g;let m;
-  while((m=re.exec(w)))out.push(/roll|pcs|piece|طاق/.test(m[1])?'rolls':/met|mtr|mts|متر|أمتار/.test(m[1])?'meters':/y(ar)?ds?/.test(m[1])?'yards':'other');
-  return out.length?out:null}
-function goodsLine(t,cols){
-  t=normPhone(t).replace(/[|\[\]{}"'`]/g,' ').replace(/(\d),(\d{3})\b/g,'$1$2').replace(/\s+/g,' ').trim();
-  if(!t||/total|sum|grand|المجموع|الإجمالي|إجمالي/i.test(t))return null;
-  let code,rest,cartons=1;const rg=t.match(/^(\d+)\s*[-~–]\s*(\d+)\b\s*(.*)$/);
-  if(rg&&+rg[2]>+rg[1]&&+rg[2]-+rg[1]<500){code=rg[1]+'-'+rg[2];cartons=+rg[2]-+rg[1]+1;rest=rg[3]}
-  else{const m=t.match(/^(\S+)\s*(.*)$/);code=m[1];rest=m[2];if(/^(no\.?|ctn|c\/no|#)$/i.test(code)){const m2=rest.match(/^(\S+)\s*(.*)$/);if(!m2)return null;code=m2[1];rest=m2[2]}}
-  if(!/\d/.test(code)&&!/[A-Za-z؀-ۿ]{2,}/.test(code))return null;
-  const nums=(rest.match(/\d+(\.\d+)?/g)||[]).map(Number);if(!nums.length||(!/\d/.test(code)&&nums.length<2))return null;
-  let rolls=0,meters=0;
-  if(cols&&cols.length===nums.length){cols.forEach((k,i)=>{if(k==='rolls'&&!rolls)rolls=nums[i];if(k==='meters'&&!meters)meters=nums[i]});
-    if(!meters){const y=cols.indexOf('yards');if(y>=0)meters=Math.round(nums[y]*0.9144*100)/100}}
-  else{const ri=nums.findIndex(n=>Number.isInteger(n)&&n>0&&n<=200);if(ri>=0&&nums.length>1)rolls=nums[ri];
-    const rest2=nums.filter((n,i)=>i!==ri||nums.length===1);meters=rest2.length?Math.max(...rest2):0;if(nums.length===1&&nums[0]<=60&&Number.isInteger(nums[0])){rolls=nums[0];meters=0}}
-  return{code,rolls,cartons,meters}}
-/* قوائم التعبئة غالبًا جدول بخطوط: نلقى الخطوط، نقرأ العناوين عشان نعرف كل عمود، وبعدين نقرأ كل خانة لحالها */
-function goodsColType(t){t=String(t||'').toLowerCase();
-  if(/carton|ctn|box|bale|كرتون|كراتين/.test(t))return'code';
-  if(/pcs|roll|piece|طاق|قطع/.test(t))return'rolls';
-  if(/met|mtr|mts|متر|أمتار/.test(t))return'meters';
-  if(/yds|yard|يارد/.test(t))return'yards';
-  if(/desc|quality|design|item|article|fabric|صنف|وصف|نوع/.test(t))return'desc';
-  if(/wt|weight|kg|وزن/.test(t))return'kg';
-  if(/^\W*(sr|s\.?\s?n|sl|serial|no\b|#|م\b)/.test(t))return'sr';
-  return null}
-async function goodsGrid(cv,W,H,prog){
+/* قراءة البضاعة من صورة. المهم أربع أشياء بس: رقم أو اسم الكرتون، الطاقات، الأمتار، عدد الكراتين. أي عمود ثاني يتجاهل.
+   كل قائمة تكتب العناوين بطريقتها، فنتعرف على العمود من كلمات كثيرة (إنجليزي أو عربي) وبأي ترتيب */
+function goodsColType(t){t=normPhone(t).toLowerCase().replace(/\s+/g,' ').trim();if(!t)return null;
+  if(/(no\.?\s*of\s*(ctn|carton|box|bale)|total\s*(ctn|carton)|qty\s*(of\s*)?(ctn|carton)|\bctns\b|cartons|boxes|bales|عدد\s*(ال)?(كراتين|كرتون)|كراتين)/.test(t))return'cartons';
+  if(/(carton|ctn|box|bale|c\/\s?no|كرتون|رقم)/.test(t))return'code';
+  if(/(yds|yard|يارد)/.test(t))return'yards';
+  if(/(met|mtr|mts|^m$|\(m\)|length|متر|أمتار|امتار|طول)/.test(t))return'meters';
+  if(/(pcs|roll|piece|than|طاق|قطع|ثوب|توب)/.test(t))return'rolls';
+  if(/(desc|quality|design|item|article|fabric|name|colou?r|shade|style|صنف|وصف|نوع|اسم|لون|موديل)/.test(t))return'name';
+  if(/(qty|quantity|كمية|العدد)/.test(t))return'qty';
+  return'other'}
+/* من أنواع الأعمدة نطلع الكرتون. tx: نص كل نوع */
+const gN=t=>{const m=normPhone(t).replace(/(\d),(\d{3})\b/g,'$1$2').replace(/,/g,'.').match(/\d+(\.\d+)?/);return m?+m[0]:0};
+const gHeadOK=m=>(m.code!=null||m.name!=null)&&(m.rolls!=null||m.meters!=null||m.yards!=null||m.qty!=null);
+function goodsRow(tx,m){
+  let code=String(tx.code!=null&&m.code!=null?tx.code:tx.name||'').replace(/\s+/g,' ').trim(),name=m.code!=null?String(tx.name||'').replace(/\s+/g,' ').trim():'';
+  code=code.replace(/^[^0-9A-Za-z؀-ۿ]+|[^0-9A-Za-z؀-ۿ]+$/g,'');if(/\d/.test(code)&&/^[\x00-\x7F]+$/.test(code))code=code.toUpperCase();name=name.replace(/^[^0-9A-Za-z؀-ۿ]+/,'');
+  const all=code+' '+name;
+  const rolls=m.rolls!=null?gN(tx.rolls):m.qty!=null?gN(tx.qty):0;
+  const meters=m.meters!=null?gN(tx.meters):m.yards!=null?Math.round(gN(tx.yards)*0.9144*100)/100:0;
+  let cartons=m.cartons!=null?Math.round(gN(tx.cartons)):0;
+  if(!cartons){const rg=code.match(/^(\d+)\s*[-~–]\s*(\d+)$/);cartons=rg&&+rg[2]>+rg[1]&&+rg[2]-+rg[1]<500?+rg[2]-+rg[1]+1:1}
+  if(/total|grand|المجموع|الإجمالي|إجمالي/i.test(all)||/^\**$/.test(code))return{total:true,count:gN(code),rolls,meters,cartons};
+  if(!code||(!rolls&&!meters))return null;
+  return{code,desc:name,rolls,cartons,meters}}
+
+/* الطريقة 1: جدول بخطوط. نلقى الخطوط ونقرأ كل خانة لحالها */
+function goodsLines(cv,W,H){
   const cx=cv.getContext('2d',{willReadFrequently:true}),d=cx.getImageData(0,0,W,H).data,g=new Uint8Array(W*H);
   for(let i=0;i<W*H;i++)g[i]=(d[i*4]*299+d[i*4+1]*587+d[i*4+2]*114)/1000;
   const DK=160,vr=new Array(W).fill(0),hr=new Array(H).fill(0);let run;
@@ -1724,14 +1723,28 @@ async function goodsGrid(cv,W,H,prog){
   const grp=(prof,min)=>{const out=[];let s0=-1;for(let i=0;i<=prof.length;i++){const on=i<prof.length&&prof[i]>=min;if(on&&s0<0)s0=i;if(!on&&s0>=0){out.push(Math.round((s0+i-1)/2));s0=-1}}return out};
   const V=grp(vr,H*.35),Hh=grp(hr,W*.35);
   if(V.length&&V[0]>W*.03)V.unshift(0);if(V.length&&W-1-V[V.length-1]>W*.03)V.push(W-1);
-  if(V.length<3||Hh.length<4)return null;
+  return{g,V,Hh}}
+async function goodsGrid(cv,W,H,prog,mkWorker){
+  const {g,V,Hh}=goodsLines(cv,W,H);if(V.length<3||Hh.length<4)return null;
   const cc=document.createElement('canvas'),q=cc.getContext('2d',{willReadFrequently:true});
-  const box=(r,c)=>{const x0=V[c]+2,x1=V[c+1]-1,y0=Hh[r]+2,y1=Hh[r+1]-1;if(x1-x0<5||y1-y0<5)return null;let ink=0;
-    for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++)if(g[y*W+x]<140)ink++;return ink>=6?{x0,x1,y0,y1}:null};
-  const w=await Tesseract.createWorker('eng');let wl=null;
-  const setWL=async v=>{if(v===wl)return;wl=v;await w.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:v})};
-  const read=async(r,c,v)=>{const b=box(r,c);if(!b)return'';await setWL(v);
-    const bw=b.x1-b.x0,bh=b.y1-b.y0,k=Math.max(2,Math.round(40/bh)),pad=15;
+  const BX={};
+  const box=(r,c,loose)=>{const key=r+'_'+c+(loose?'L':'');if(key in BX)return BX[key];
+    let x0=V[c]+2,x1=V[c+1]-1,y0=Hh[r]+2,y1=Hh[r+1]-1;
+    const dk=(ax,ay,bx,by)=>{let n=0,t=0;for(let y=ay;y<by;y++)for(let x=ax;x<bx;x++){t++;if(g[y*W+x]<140)n++}return t?n/t:0};
+    // بقايا خطوط الجدول على أطراف الخانة نشيلها
+    while(x1-x0>5&&dk(x0,y0,x0+1,y1)>.5)x0++;while(x1-x0>5&&dk(x1-1,y0,x1,y1)>.5)x1--;
+    while(y1-y0>5&&dk(x0,y0,x1,y0+1)>.5)y0++;while(y1-y0>5&&dk(x0,y1-1,x1,y1)>.5)y1--;
+    if(x1-x0<5||y1-y0<5)return BX[key]=null;
+    let ink=0,ax=1e9,ay=1e9,bx=-1,by=-1;
+    for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++)if(g[y*W+x]<140){ink++;if(x<ax)ax=x;if(x>bx)bx=x;if(y<ay)ay=y;if(y>by)by=y}
+    if(ink<6)return BX[key]=null;
+    if(loose)return BX[key]={x0,x1,y0,y1};
+    const m=Math.max(4,Math.round((by-ay)*.25));   // نقص على الكتابة نفسها مع هامش صغير
+    return BX[key]={x0:Math.max(x0,ax-m),x1:Math.min(x1,bx+m+1),y0:Math.max(y0,ay-m),y1:Math.min(y1,by+m+1)}};
+  const ws={};const getW=async l=>ws[l]||(ws[l]=await mkWorker(l));
+  const read=async(r,c,v,lang='eng',psm='7',loose)=>{const b=box(r,c,loose);if(!b)return'';const w=await getW(lang);
+    if(w.__p!==v+psm){w.__p=v+psm;await w.setParameters({tessedit_pageseg_mode:psm,tessedit_char_whitelist:v})}
+    const bw=b.x1-b.x0,bh=b.y1-b.y0,k=Math.max(1,Math.min(4,Math.round(48/bh))),pad=20;
     cc.width=bw*k+pad*2;cc.height=bh*k+pad*2;q.fillStyle='#fff';q.fillRect(0,0,cc.width,cc.height);q.imageSmoothingQuality='high';q.drawImage(cv,b.x0,b.y0,bw,bh,pad,pad,bw*k,bh*k);
     const id=q.getImageData(0,0,cc.width,cc.height),gg=new Uint8Array(cc.width*cc.height),hist=new Array(256).fill(0);
     for(let i=0;i<gg.length;i++){gg[i]=(id.data[i*4]*299+id.data[i*4+1]*587+id.data[i*4+2]*114)/1000;hist[gg[i]]++}
@@ -1741,33 +1754,69 @@ async function goodsGrid(cv,W,H,prog){
     for(let i=0;i<gg.length;i++){const v2=gg[i]>th?255:0;id.data[i*4]=id.data[i*4+1]=id.data[i*4+2]=v2}q.putImageData(id,0,0);
     try{const res=await w.recognize(cc);return String(res.data.text||'').replace(/\s+/g,' ').trim()}catch(e){return''}};
   const nc=V.length-1,nr=Hh.length-1;
-  // سطر العناوين
-  let hrow=-1,col={};
-  for(let r=0;r<Math.min(nr,15)&&hrow<0;r++){prog('جارٍ البحث عن عناوين الجدول…');const m={};
-    for(let c=0;c<nc;c++){const t=goodsColType(await read(r,c,''));if(t&&m[t]==null)m[t]=c}
-    if(m.code!=null&&(m.rolls!=null||m.meters!=null||m.yards!=null)){hrow=r;col=m}}
-  if(hrow<0){try{await w.terminate()}catch(e){}return null}
+  // سطر العناوين: نجرب إنجليزي، ولو ما لقينا نجرب عربي
+  let hrow=-1,col={},lang='eng';
+  for(const L of ['eng','ara+eng']){
+    for(let r=0;r<Math.min(nr,15)&&hrow<0;r++){prog('جارٍ البحث عن عناوين الجدول…');const m={};
+      for(let c=0;c<nc;c++){const t=goodsColType(await read(r,c,'',L,'6'));if(t&&t!=='other'&&m[t]==null)m[t]=c}
+      // العنوان ممكن ينقسم على سطرين (مثل CARTON وتحتها NO)
+      if(gHeadOK(m)){hrow=r;col=m;lang=L}}
+    if(hrow>=0)break}
+  if(hrow<0)return{noHeader:true};
   const AN='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-/.',NUM='0123456789.,';
+  const keyCol=col.code!=null?'code':'name';
   const R0=[];for(let r=hrow+1;r<nr;r++)R0.push(r);
-  const cells={};let done=0;const total=R0.length*(1+(col.desc!=null)+(col.rolls!=null)+(col.meters!=null||col.yards!=null));
-  const step=()=>{done++;if(done%3===0)prog('جارٍ قراءة الصورة… '+Math.round(done/total*100)+'%')};
-  for(const r of R0){cells[r]={code:await read(r,col.code,AN)};step()}
-  const live=R0.filter(r=>cells[r].code);
-  // لو أغلب أرقام الكراتين أرقام، أي خانة طلعت حروف نعيد قراءتها كأرقام بس (الرقم الواحد الصغير يتلخبط أحيانًا)
-  if(live.filter(r=>/^\d+$/.test(cells[r].code)).length>=live.length*.6)for(const r of live)if(!/^\d+$/.test(cells[r].code)&&!/total/i.test(cells[r].code)){
-    let t=await read(r,col.code,'0123456789');if(!/^\d+$/.test(t)){wl=null;await w.setParameters({tessedit_pageseg_mode:'8',tessedit_char_whitelist:'0123456789'});t=await read(r,col.code,'0123456789');wl=null}
-    if(/^\d+$/.test(t))cells[r].code=t}
-  for(const k of ['rolls','meters','yards'])if(col[k]!=null)for(const r of live){cells[r][k]=await read(r,col[k],k==='rolls'?NUM:NUM);step()}
-  if(col.desc!=null)for(const r of live){cells[r].desc=await read(r,col.desc,'');step()}
-  try{await w.terminate()}catch(e){}
-  const n=t=>{const m=String(t||'').replace(/,(\d{3})\b/g,'$1').replace(/,/g,'.').match(/\d+(\.\d+)?/);return m?+m[0]:0};
+  const tx={};let done=0;const need=['rolls','meters','yards','qty','cartons'].filter(k=>col[k]!=null);
+  const total=R0.length+R0.length*(need.length+(col.code!=null&&col.name!=null));
+  const step=()=>{done++;if(done%3===0)prog('جارٍ قراءة الصورة… '+Math.min(99,Math.round(done/total*100))+'%')};
+  const ar=lang!=='eng';
+  for(const r of R0){tx[r]={};tx[r][keyCol]=await read(r,col[keyCol],keyCol==='code'&&!ar?AN:'',keyCol==='name'?lang:'eng');step()}
+  const live=R0.filter(r=>tx[r][keyCol]);
+  // أغلب أرقام الكراتين أرقام؟ أي خانة طلعت حروف نعيد قراءتها كأرقام بس (الرقم الواحد الصغير يتلخبط أحيانًا)
+  if(keyCol==='code'&&live.filter(r=>/^\d+$/.test(tx[r].code)).length>=live.length*.6)for(const r of live)if(!/^\d+([-~]\d+)?$/.test(tx[r].code)){
+    for(const psm of ['7','8']){const t=await read(r,col.code,'0123456789-',"eng",psm);if(/^\d+([-~]\d+)?$/.test(t)){tx[r].code=t;break}}}
+  const readNum=async(r,c)=>{let t=await read(r,c,NUM);if(!/\d/.test(t)&&box(r,c))for(const [psm,lo] of [['8'],['10'],['7',1],['8',1]]){t=await read(r,c,NUM,'eng',psm,lo);if(/\d/.test(t))break}return t};
+  // صف المجموع: خانة الكرتون فيه غالبًا فاضية، فنشيك عمود الاسم
+  if(keyCol==='code'&&col.name!=null)for(const r of R0.slice(-6))if(!tx[r].code&&box(r,col.name)){const t=await read(r,col.name,'',lang);if(/total|grand|المجموع|الإجمالي|إجمالي/i.test(t)){tx[r].code='*';tx[r].name=t;live.push(r)}}
+  for(const k of need)for(const r of live){tx[r][k]=await readNum(r,col[k]);step()}
+  if(col.code!=null&&col.name!=null)for(const r of live)if(tx[r].name==null){tx[r].name=await read(r,col.name,'',lang);step()}
+  for(const w of Object.values(ws))try{await w.terminate()}catch(e){}
   const rows=[];let tot=null;
-  for(const r of live){const c=cells[r],meters=c.meters!=null?n(c.meters):c.yards!=null?Math.round(n(c.yards)*0.9144*100)/100:0,rolls=n(c.rolls);
-    if(/total|المجموع|الإجمالي/i.test((c.desc||'')+' '+c.code)||/^\*+$/.test(c.code)){tot={count:n(c.code),rolls,meters};continue}
-    if(!rolls&&!meters)continue;
-    rows.push({code:c.code.replace(/^[^0-9A-Za-z]+|[^0-9A-Za-z]+$/g,''),desc:(c.desc||'').replace(/^[^0-9A-Za-z؀-ۿ]+/,''),rolls,cartons:1,meters})}
-  return rows.length?{rows,tot}:null;
+  for(const r of live){const x=goodsRow(tx[r],col);if(!x)continue;if(x.total){tot=x;continue}rows.push(x)}
+  return{rows,tot};
 }
+
+/* الطريقة 2: بدون خطوط. نقرأ الصفحة كاملة، ونحط كل كلمة تحت العنوان الأقرب لها */
+function goodsByWords(lines){
+  const W=lines.map(l=>(l.words||[]).filter(w=>w.text&&w.text.trim()).map(w=>({t:w.text.trim(),x0:w.bbox.x0,x1:w.bbox.x1,y0:w.bbox.y0,y1:w.bbox.y1})));
+  let hi=-1,cols=null;
+  for(let i=0;i<W.length&&hi<0;i++){const ws=W[i];if(ws.length<2)continue;
+    const h=ws.reduce((a,w)=>a+(w.y1-w.y0),0)/ws.length,gs=[];
+    // كلمات العنوان القريبة من بعض = عنوان واحد (مثل NO OF CTNS)
+    [...ws].sort((a,b)=>a.x0-b.x0).forEach(w=>{const l=gs[gs.length-1];if(l&&w.x0-l.x1<h*.9){l.t+=' '+w.t;l.x1=w.x1}else gs.push({...w})});
+    if(gs.filter(c=>/\d/.test(c.t)).length>1)continue;
+    const m={};gs.forEach((c,j)=>{c.type=goodsColType(c.t);if(c.type!=='other'&&m[c.type]==null)m[c.type]=j});
+    if(gHeadOK(m)){hi=i;cols={gs,m}}}
+  if(hi<0)return null;
+  const {gs,m}=cols,cx=c=>(c.x0+c.x1)/2,rows=[];let tot=null;
+  for(let i=hi+1;i<W.length;i++){const tx={};
+    W[i].forEach(w=>{let bj=0,bd=1e9;gs.forEach((c,j)=>{const d=Math.abs(cx(w)-cx(c))-(w.x0<=c.x1&&w.x1>=c.x0?1e5:0);if(d<bd){bd=d;bj=j}});
+      const t=gs[bj].type;if(t&&t!=='other')tx[t]=(tx[t]?tx[t]+' ':'')+w.t});
+    const x=goodsRow(tx,m);if(!x)continue;if(x.total){tot=x;continue}rows.push(x)}
+  return{rows,tot}}
+
+/* الطريقة 3 (آخر حل): بدون عناوين. أول كلمة رقم الكرتون، وبعدها الأرقام */
+function goodsLine(t){
+  t=normPhone(t).replace(/[|\[\]{}"'`]/g,' ').replace(/(\d),(\d{3})\b/g,'$1$2').replace(/\s+/g,' ').trim();
+  if(!t||/total|sum|grand|المجموع|الإجمالي|إجمالي/i.test(t))return null;
+  let code,rest,cartons=1;const rg=t.match(/^(\d+)\s*[-~–]\s*(\d+)\b\s*(.*)$/);
+  if(rg&&+rg[2]>+rg[1]&&+rg[2]-+rg[1]<500){code=rg[1]+'-'+rg[2];cartons=+rg[2]-+rg[1]+1;rest=rg[3]}
+  else{const m=t.match(/^(\S+)\s*(.*)$/);code=m[1];rest=m[2]}
+  const nums=(rest.match(/\d+(\.\d+)?/g)||[]).map(Number);if(!nums.length||(!/\d/.test(code)&&nums.length<2))return null;
+  let rolls=0,meters=0;const ri=nums.findIndex(n=>Number.isInteger(n)&&n>0&&n<=200);if(ri>=0&&nums.length>1)rolls=nums[ri];
+  const r2=nums.filter((n,i)=>i!==ri||nums.length===1);meters=r2.length?Math.max(...r2):0;if(nums.length===1&&nums[0]<=60&&Number.isInteger(nums[0])){rolls=nums[0];meters=0}
+  return{code,desc:'',rolls,cartons,meters}}
+
 async function goodsImg(){
   const f=await new Promise(res=>{const i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=()=>res(i.files&&i.files[0]||null);i.click()});if(!f)return;
   const im=await new Promise(res=>{const u=URL.createObjectURL(f),x=new Image();x.onload=()=>res(x);x.onerror=()=>res(null);x.src=u});
@@ -1777,27 +1826,31 @@ async function goodsImg(){
   const prog=m=>{const t=$('#toast');t.classList.remove('undo');t.textContent=m;t.classList.add('show');clearTimeout(toastT)};
   prog('جارٍ تجهيز قارئ الصور…');
   try{await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js')}catch(e){toast('قارئ الصور يحتاج اتصالًا بالإنترنت في أول مرة');return}
-  let grid=null;
-  try{grid=await goodsGrid(cv,W,H,prog)}catch(e){grid=null}
-  if(grid){$('#toast').classList.remove('show');await goodsReview(grid.rows,grid.tot);return}
-  // بدون خطوط جدول: نقرأ الصورة كاملة سطر سطر
+  const mk=l=>Tesseract.createWorker(l);
+  let res=null;
+  try{res=await goodsGrid(cv,W,H,prog,mk)}catch(e){res=null}
+  if(res&&res.rows&&res.rows.length){$('#toast').classList.remove('show');await goodsReview(res.rows,res.tot);return}
+  // بدون خطوط جدول (أو ما لقينا العناوين داخل الخانات): نقرأ الصفحة كاملة
   const id=cx.getImageData(0,0,W,H),d=id.data,hist=new Array(256).fill(0),gr=new Uint8Array(W*H);
   for(let i=0;i<W*H;i++){gr[i]=(d[i*4]*299+d[i*4+1]*587+d[i*4+2]*114)/1000;hist[gr[i]]++}
   let tot=W*H,sm=0;for(let t=0;t<256;t++)sm+=t*hist[t];let sB=0,wB=0,best=0,th=128;
   for(let t=0;t<256;t++){wB+=hist[t];if(!wB)continue;const wF=tot-wB;if(!wF)break;sB+=t*hist[t];const v=wB*wF*(sB/wB-(sm-sB)/wF)**2;if(v>best){best=v;th=t}}
   for(let i=0;i<W*H;i++){const v=gr[i]>th?255:0;d[i*4]=d[i*4+1]=d[i*4+2]=v}cx.putImageData(id,0,0);
   let lines=[];
-  try{const w=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text')prog('جارٍ قراءة الصورة… '+Math.round(m.progress*100)+'%')}});
-    await w.setParameters({tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'});
-    const res=await w.recognize(cv);lines=(res.data.lines&&res.data.lines.length?res.data.lines.map(l=>l.text):String(res.data.text||'').split('\n'));
-    try{await w.terminate()}catch(e){}}
-  catch(e){toast('تعذّر تشغيل قارئ الصور، تأكد من الاتصال بالإنترنت');return}
+  const page=async l=>{const w=await Tesseract.createWorker(l,1,{logger:m=>{if(m.status==='recognizing text')prog('جارٍ قراءة الصورة… '+Math.round(m.progress*100)+'%')}});
+    await w.setParameters({tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'});const r=await w.recognize(cv);try{await w.terminate()}catch(e){}return r.data.lines||[]};
+  try{lines=await page('eng')}catch(e){toast('تعذّر تشغيل قارئ الصور، تأكد من الاتصال بالإنترنت');return}
+  let out=goodsByWords(lines);
+  if(!out||!out.rows.length){try{const la=await page('ara+eng');const o2=goodsByWords(la);if(o2&&o2.rows.length)out=o2}catch(e){}}
   $('#toast').classList.remove('show');
-  let cols=null,skip=false;const rows=[];
-  lines.forEach(t=>{const h=goodsHeader(t);if(h){cols=h;skip=/^\W*(sr|s\.?\s?no|sl)\b/i.test(t.trim());return}const r=goodsLine(skip?t.trim().replace(/^\S+\s+/,''):t,cols);if(r)rows.push(r)});
-  await goodsReview(rows);
+  if(out&&out.rows.length){await goodsReview(out.rows,out.tot);return}
+  await goodsReview(lines.map(l=>goodsLine(l.text||'')).filter(Boolean));
 }
 async function goodsReview(rows,tot){
+  // صف فيه أكثر من كرتون (مثل 4-6): الأرقام ممكن تكون للكرتون الواحد أو مجموع الصف. نختار اللي يطابق المجموع في الصورة
+  if(tot)for(const k of ['rolls','meters'])if(tot[k]&&rows.some(r=>r.cartons>1)){
+    const per=sum(rows,r=>(+r[k]||0)*(r.cartons||1)),whole=sum(rows,r=>+r[k]||0);
+    if(Math.abs(whole-tot[k])<0.01&&Math.abs(per-tot[k])>=0.01)rows.forEach(r=>{if(r.cartons>1)r[k]=Math.round(r[k]/r.cartons*100)/100})}
   if(!rows.length)rows=[{code:'',rolls:'',cartons:1,meters:''}];
   for(let i=0;i<4;i++)rows.push({code:'',desc:'',rolls:'',cartons:'',meters:''});
   const have=goodsDupes(),seen={};rows.forEach(r=>{const k=gKey(r.code);if(k)seen[k]=(seen[k]||0)+1});

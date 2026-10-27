@@ -91,7 +91,7 @@ small{font-size:.72em;color:var(--muted);font-weight:400}
 .topnav button[aria-current="page"]{color:var(--ink);font-weight:500}
 .topnav button[aria-current="page"]::after{content:"";position:absolute;bottom:-13px;left:12px;right:12px;border-top:2px dashed var(--brass)}
 
-.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-auto-flow:column;grid-auto-columns:1fr;padding-bottom:env(safe-area-inset-bottom,0px)}
 .tabbar button{appearance:none;border:0;background:none;color:var(--muted);font-size:.74rem;padding:10px 4px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;cursor:pointer}
 .tabbar button svg{width:22px;height:22px}
 @media (min-width:600px){.tabbar button{font-size:.85rem;padding:12px 4px 11px}}
@@ -488,6 +488,44 @@ td.num{direction:ltr;text-align:left}
 /* بطاقة العميل: الرقم في سطر وآخر حركة في سطر، عشان كل البطاقات نفس الحجم */
 .cust-meta{flex-direction:column;gap:2px}
 .cust-meta>span{text-align:right}
+
+/* ===== البضاعة ===== */
+.head-btns{display:flex;gap:8px;flex-wrap:wrap}
+.head-btns .btn svg{width:18px;height:18px;margin-inline-end:6px;vertical-align:-3px}
+.g-tot{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.g-tot div{display:flex;flex-direction:column;gap:2px}
+.g-tot strong{font-size:1.7rem;font-weight:600;line-height:1.15;color:var(--ink)}
+.g-tot span{font-size:.85rem;color:var(--muted)}
+.g-filters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:-4px -16px 14px;padding:0 16px}.g-filters::-webkit-scrollbar{display:none}
+.g-chip{flex:none;white-space:nowrap}
+@media (max-width:599px){.g-head{flex-direction:column;align-items:stretch}.g-head .head-btns{display:grid;grid-template-columns:1fr 1fr}}
+.g-chip{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:6px 12px;font:inherit;font-size:.85rem;cursor:pointer}
+.g-chip b{font-weight:500;color:var(--ink);margin-inline-start:2px}
+.g-chip[aria-checked="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.g-chip[aria-checked="true"] b{color:var(--surface)}
+.g-card{display:flex;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.g-card.st-ok{border-color:color-mix(in srgb,var(--pos) 45%,var(--line));background:color-mix(in srgb,var(--pos-soft) 55%,var(--surface))}
+.g-card.st-issue{border-color:color-mix(in srgb,var(--brass) 60%,var(--line));background:color-mix(in srgb,var(--brass-soft) 70%,var(--surface))}
+.g-main{appearance:none;border:0;background:none;font:inherit;color:inherit;text-align:start;flex:1;min-width:0;padding:14px 16px;cursor:pointer;display:flex;flex-direction:column;gap:6px}
+.g-code{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.g-code b{font-size:1.12rem;font-weight:600}
+.g-dup{display:inline-block;font-size:.74rem;font-weight:500;padding:2px 9px;border-radius:999px;background:var(--neg-soft);color:var(--neg)}
+.g-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:.86rem;color:var(--muted)}
+.g-meta b{color:var(--ink);font-weight:500;margin-inline-start:3px}
+.g-sub{font-size:.8rem;color:var(--muted)}
+.g-note{font-size:.84rem;color:var(--ink);background:color-mix(in srgb,var(--surface) 60%,transparent);border-radius:8px;padding:4px 8px;align-self:flex-start}
+.g-st{display:flex;flex-direction:column;border-inline-start:1px solid var(--line)}
+.g-btn{appearance:none;border:0;background:none;flex:1;width:58px;font-size:1.35rem;cursor:pointer;filter:grayscale(1);opacity:.32;transition:opacity .16s,filter .16s,transform .16s var(--ease-out),background-color .16s}
+.g-btn+.g-btn{border-top:1px solid var(--line)}
+.g-btn[aria-pressed="true"]{filter:none;opacity:1}
+.g-btn.ok[aria-pressed="true"]{background:var(--pos-soft)}
+.g-btn.issue[aria-pressed="true"]{background:var(--brass-soft)}
+.g-btn:active{transform:scale(.88)}
+@media (hover:hover){.g-btn:hover{opacity:.7}.g-main:hover .g-code b{color:var(--brass)}}
+.g-clear{margin-top:22px;color:var(--neg)!important;border-color:color-mix(in srgb,var(--neg) 35%,var(--line))!important}
+.g-clear svg{width:18px;height:18px;margin-inline-end:6px;vertical-align:-3px}
+.goods-tbl th:first-child,.goods-tbl td:first-child{width:auto!important;color:inherit!important}
+.goods-tbl th:not(:first-child),.goods-tbl td:not(:first-child){width:21%}
 </style>
 </head>
 <body>
@@ -580,7 +618,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='27 أكتوبر - د';
+const APP_VERSION='27 أكتوبر - هـ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -625,6 +663,8 @@ const ICON={
   workers:'<circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="M8 7.5 20 18M8 16.5 20 6"/>',
   report:'<path d="M3 20h18M6 16v-5M11 16V6M16 16v-8"/>',
   debts:'<circle cx="9" cy="8" r="3.2"/><path d="M3 19.5c.6-3.3 2.9-5.2 6-5.2s5.4 1.9 6 5.2M17 7.5h4.5M17 11.5h4.5M18.5 15.5h3"/>',
+  goods:'<path d="M3.5 7.5 12 3.5l8.5 4v9L12 20.5l-8.5-4z"/><path d="M3.5 7.5 12 11.5l8.5-4M12 11.5v9M7.8 5.5l8.4 4"/>',
+  camera:'<path d="M4 7.5h3l1.6-2.5h6.8L17 7.5h3v11H4z"/><circle cx="12" cy="13" r="3.4"/>',
   phone:'<path d="M5 4h3.5l1.6 4.2-2.2 1.4a11 11 0 0 0 6.5 6.5l1.4-2.2L20 15.5V19a1.5 1.5 0 0 1-1.6 1.5C10.6 20 4 13.4 3.5 5.6A1.5 1.5 0 0 1 5 4z"/>',
   chat:'<path d="M4 19.5l1.3-3.8A8 8 0 1 1 8.4 18.5z"/>',
   prev:'<path d="m9 6 6 6-6 6"/>',next:'<path d="m15 6-6 6 6 6"/>',prev2:'<path d="m7 6 6 6-6 6"/><path d="M17 6v12"/>',next2:'<path d="m17 6-6 6 6 6"/><path d="M7 6v12"/>',
@@ -635,7 +675,7 @@ const ICON={
 };
 const svg=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
 const BID='main';
-const TABS=[['branches','اليومية','اليومية'],['reps','المناديب','المناديب'],['workers','العمال','العمال'],['debts','مديونية العملاء','الديون'],['report','التقرير الشهري','التقرير']];
+const TABS=[['branches','اليومية','اليومية'],['reps','المناديب','المناديب'],['workers','العمال','العمال'],['debts','مديونية العملاء','الديون'],['goods','البضاعة','البضاعة'],['report','التقرير الشهري','التقرير']];
 const METHODS=[['cash','كاش'],['mada','مدى'],['visa','فيزا']];
 const ML=Object.fromEntries(METHODS);
 const PAY_METHODS=[['cash','كاش'],['mada','مدى'],['visa','فيزا'],['transfer','تحويل']],PML=Object.fromEntries(PAY_METHODS);
@@ -688,10 +728,10 @@ function modal({title,body='',actions}){
 const confirmBox=(title,text,label='حذف')=>modal({title,body:`<p>${text}</p>`,actions:[{key:'ok',label,cls:'danger'},{key:'cancel',label:'إلغاء',cls:'ghost'}]}).then(r=>!!r);
 
 /* ---------- data store ---------- */
-const COLS=['branches','entries','reps','repTx','workers','workerTx','customers','custTx','devices','catRules'];
-const OPTIONAL=['customers','custTx','devices','catRules'];   // أقسام جديدة: لو قواعد Firestore ما تسمح فيها ما نعطّل باقي التطبيق
+const COLS=['branches','entries','reps','repTx','workers','workerTx','customers','custTx','devices','catRules','goods'];
+const OPTIONAL=['customers','custTx','devices','catRules','goods'];   // أقسام جديدة: لو قواعد Firestore ما تسمح فيها ما نعطّل باقي التطبيق
 const S={};COLS.forEach(c=>S[c]=[]);
-let ready=false,STALE=false,CUST_ERR=null,DEV_ERR=null,CAT_ERR=null;
+let ready=false,STALE=false,CUST_ERR=null,DEV_ERR=null,CAT_ERR=null,GOODS_ERR=null;
 /* تحميل آخر 4 شهور فقط (الشهر الحالي + 3 قبله). الأقدم ينجاب وقت الحاجة، وما ينمسح شي */
 const WINDOWED=['entries','workerTx'];
 const CUTOFF_M=shiftMonth(curMonth(),-3),CUTOFF=CUTOFF_M+'-01';
@@ -852,7 +892,7 @@ async function initStore(){
       if(STALE&&confirmed.size===COLS.length)showStale(false);
       if(!ready&&!navigator.onLine)openStale();
       if(ready)refresh();
-    },e=>{if(OPTIONAL.includes(c)){LIVE[c]=[];LIVE[c].__got=1;merge(c);pending.delete(c);confirmed.add(c);if(!ready&&confirmed.size===COLS.length){ready=true;__mark('data')}if(ready)refresh();if(c==='devices')DEV_ERR=e&&e.code||'err';else if(c==='catRules')CAT_ERR=e&&e.code||'err';else CUST_ERR=e&&e.code||'err';return}
+    },e=>{if(OPTIONAL.includes(c)){LIVE[c]=[];LIVE[c].__got=1;merge(c);pending.delete(c);confirmed.add(c);if(!ready&&confirmed.size===COLS.length){ready=true;__mark('data')}if(ready)refresh();if(c==='devices')DEV_ERR=e&&e.code||'err';else if(c==='catRules')CAT_ERR=e&&e.code||'err';else if(c==='goods')GOODS_ERR=e&&e.code||'err';else CUST_ERR=e&&e.code||'err';return}
       SYNC.err=e;renderSync();toast(e&&e.code==='permission-denied'?'هذا الحساب لا يملك صلاحية على البيانات':'تعذّرت قراءة البيانات، تأكد من قواعد Firestore')})));
   });
 }
@@ -1127,6 +1167,39 @@ cust:{
     let run=0;const rows=t.tx.map(x=>{run+=x.kind==='debt'?x.amount:-x.amount;return{...x,run}});
     $('#custLog').innerHTML=rows.length?rows.reverse().map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind==='debt'?'out':'in'}">${x.kind==='debt'?'دين':'سداد'+(x.method?' · '+PML[x.method]:'')}</span><span>${fmtLong(x.date)}</span></div>${x.kind==='debt'&&x.items&&x.items.length?`<ul class="debt-lines">${x.items.map(i=>`<li><span>${esc(i.d||'بدون تفاصيل')}</span><b>${fmt(i.p)}</b></li>`).join('')}</ul>`:''}<div class="item-note">${x.note?esc(x.note)+' — ':''}المتبقي بعد الحركة ${fmt(x.run)}</div></div><div class="item-amt ${x.kind==='debt'?'neg':'pos'}">${x.kind==='debt'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delCustTx" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
       :'<p class="empty">لا توجد حركات. سجّل أول دين للعميل من الأعلى.</p>';
+  }
+},
+/* ===== البضاعة ===== */
+goods:{
+  html:()=>`<div class="page-head g-head"><div><h1>البضاعة</h1><p class="sub">الكراتين وما فيها من طاقات وأمتار، وتشييك كل كرتون</p></div><div class="head-btns"><button class="btn ghost" data-act="goodsImg">${svg('camera')}من صورة</button><button class="btn" data-act="addGoods">+ إضافة كرتون</button></div></div>
+  <div id="goodsErr"></div>
+  <section class="hero goods-hero"><div class="g-tot" id="gTot"></div><div class="hero-row" id="gSums"></div></section>
+  <div id="gTools" hidden><label class="field cust-search"><input type="search" id="goodsQ" placeholder="ابحث برقم الكرتون أو اسمه" value="${esc(UI.gq||'')}" autocomplete="off"></label><div class="g-filters" id="gFilters" role="radiogroup" aria-label="تصفية"></div></div>
+  <div id="list" class="list">${loading}</div><div id="gFoot"></div>`,
+  update(){
+    const L=$('#list');
+    $('#goodsErr').innerHTML=GOODS_ERR?`<p class="warn-box">قواعد Firestore لا تسمح بقسم البضاعة حاليًا، لذلك لن تُحفظ التسجيلات. أضف <b>goods</b> في القواعد.</p>`:'';
+    const all=S.goods||[],dup=goodsDupes(),T=goodsTotals(all);
+    $('#gTot').innerHTML=[['الكراتين',T.ctn],['الطاقات',T.rolls],['الأمتار',T.m]].map(([l,v])=>`<div><strong class="mnum">${fmt(v)}</strong><span>${l}</span></div>`).join('');
+    const ok=all.filter(g=>g.st==='ok').length,bad=all.filter(g=>g.st==='issue').length,dn=all.filter(g=>(dup[gKey(g.code)]||0)>1).length;
+    $('#gSums').innerHTML=all.length?`<span>✅ تم التشييك <b>${ok}</b></span><span>❓ فيها خلل <b>${bad}</b></span><span>لم تُشيَّك <b>${all.length-ok-bad}</b></span>`:'';
+    $('#gTools').hidden=!all.length;
+    if(!all.length){L.className='';L.innerHTML=`<div class="empty-big"><p>لا توجد بضاعة بعد. أضف الكراتين يدويًا أو صوّر قائمة التعبئة.</p><div class="head-btns" style="justify-content:center"><button class="btn ghost" data-act="goodsImg">${svg('camera')}من صورة</button><button class="btn brass" data-act="addGoods">+ إضافة كرتون</button></div></div>`;$('#gFoot').innerHTML='';return}
+    const F=UI.gf||'all',fl=[['all','الكل',all.length],['todo','لم تُشيَّك',all.length-ok-bad],['ok','✅',ok],['issue','❓',bad]];if(dn)fl.push(['dup','مكرر',dn]);
+    $('#gFilters').innerHTML=fl.map(([k,l,n])=>`<button class="g-chip" role="radio" aria-checked="${F===k}" data-act="gFilter" data-f="${k}">${l} <b>${n}</b></button>`).join('');
+    const q=gKey(UI.gq||'');
+    const list=all.filter(g=>(!q||gKey(g.code).includes(q))&&(F==='all'||(F==='todo'&&!g.st)||g.st===F||(F==='dup'&&(dup[gKey(g.code)]||0)>1)))
+      .sort((a,b)=>gKey(a.code).localeCompare(gKey(b.code),'en',{numeric:true})||(a.createdAt||0)-(b.createdAt||0));
+    L.className='list';
+    L.innerHTML=list.length?list.map(g=>{const n=dup[gKey(g.code)]||0,c=g.cartons||1;
+      return `<div class="g-card${g.st?' st-'+g.st:''}"><button class="g-main" data-act="editGoods" data-id="${g.id}">
+        <div class="g-code"><b dir="auto">${esc(g.code)}</b>${n>1?`<span class="g-dup" title="هذا الرقم مسجل ${n} مرات">مكرر</span>`:''}</div>
+        <div class="g-meta"><span>الطاقات <b class="mnum">${fmt(g.rolls||0)}</b></span><span>الكراتين <b class="mnum">${fmt(c)}</b></span><span>الأمتار <b class="mnum">${fmt(g.meters||0)}</b></span></div>
+        ${c>1?`<div class="g-sub">المجموع ${fmt((g.rolls||0)*c)} طاقة و ${fmt((g.meters||0)*c)} متر</div>`:''}
+        ${g.note?`<div class="g-note">${esc(g.note)}</div>`:''}</button>
+        <div class="g-st"><button class="g-btn ok" data-act="gOk" data-id="${g.id}" aria-pressed="${g.st==='ok'}" aria-label="تم التشييك">✅</button><button class="g-btn issue" data-act="gIssue" data-id="${g.id}" aria-pressed="${g.st==='issue'}" aria-label="فيه خلل">❓</button></div></div>`}).join('')
+      :'<p class="empty">لا يوجد كرتون بهذا الرقم أو الاسم.</p>';
+    $('#gFoot').innerHTML=`<button class="btn ghost block g-clear" data-act="goodsClear">${svg('trash')}حذف كل البضاعة (${all.length})</button>`;
   }
 },
 /* ===== workers list ===== */
@@ -1572,6 +1645,111 @@ const ACT={
   rMonthShift:t=>{UI.rMonth=shiftMonth(UI.rMonth,+t.dataset.n);[UI.rFrom,UI.rTo]=monthBounds(UI.rMonth);refresh()}
 };
 
+/* ===== البضاعة: كراتين وطاقات وأمتار، والتشييك. ما لها علاقة بالفلوس ولا اليومية ===== */
+const gKey=c=>normPhone(c).toLowerCase().replace(/\s+/g,' ');
+function goodsDupes(){const m={};(S.goods||[]).forEach(g=>{const k=gKey(g.code);if(k)m[k]=(m[k]||0)+1});return m}
+function goodsTotals(list){let ctn=0,rolls=0,m=0;list.forEach(g=>{const c=g.cartons||1;ctn+=c;rolls+=(g.rolls||0)*c;m+=(g.meters||0)*c});return{ctn,rolls,m}}
+const gNum=v=>{const n=num(v);return n>0?Math.round(n*100)/100:0};
+const goodsFields=(g={})=>`<label class="field"><span>رقم الكرتون أو اسمه</span><input type="text" name="code" value="${esc(g.code||'')}" autocomplete="off" dir="auto"></label>
+  <div class="two"><label class="field"><span>عدد الطاقات في الكرتون</span><input type="text" name="rolls" inputmode="decimal" value="${g.rolls||''}"></label><label class="field"><span>عدد الكراتين</span><input type="text" name="cartons" inputmode="numeric" value="${g.cartons||1}"></label></div>
+  <label class="field"><span>عدد الأمتار في الكرتون</span><input type="text" name="meters" inputmode="decimal" value="${g.meters||''}"></label>
+  <label class="field"><span>ملاحظة</span><input type="text" name="note" value="${esc(g.note||'')}" placeholder="اختياري"></label>`;
+const goodsOf=v=>({code:normPhone(v.code).replace(/\s+/g,' '),rolls:gNum(v.rolls),cartons:Math.max(1,Math.round(gNum(v.cartons))||1),meters:gNum(v.meters),note:(v.note||'').trim()});
+async function addGoods(){
+  for(;;){
+    const r=await modal({title:'إضافة كرتون',body:goodsFields(),actions:[{key:'ok',label:'إضافة'},{key:'more',label:'إضافة وكرتون آخر',cls:'ghost'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+    if(!r)return;const g=goodsOf(r.values);if(!g.code){toast('اكتب رقم الكرتون أو اسمه');continue}
+    const was=(goodsDupes()[gKey(g.code)]||0)>0;
+    if(!await safe(()=>store.add('goods',{...g,st:''})))return;
+    toast(was?`تمت الإضافة. الكرتون ${g.code} مسجل من قبل، وعليه علامة «مكرر»`:`تمت إضافة الكرتون ${g.code}`);
+    if(r.key!=='more')return}
+}
+async function editGoods(id){const g=(S.goods||[]).find(x=>x.id===id);if(!g)return;
+  const r=await modal({title:'تعديل الكرتون',body:goodsFields(g),actions:[{key:'save',label:'حفظ'},{key:'del',label:'حذف',cls:'danger'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+  if(!r)return;
+  if(r.key==='del'){if(await safe(()=>store.remove('goods',id)))undoToast(`تم حذف الكرتون ${g.code}`,[{c:'goods',x:g}]);return}
+  const n=goodsOf(r.values);if(!n.code){toast('اكتب رقم الكرتون أو اسمه');return}
+  if(await safe(()=>store.update('goods',id,n)))toast('تم الحفظ')}
+async function goodsIssue(id){const g=(S.goods||[]).find(x=>x.id===id);if(!g)return;
+  if(g.st==='issue'){await safe(()=>store.update('goods',id,{st:''}));return}
+  const r=await modal({title:`❓ خلل في الكرتون ${esc(g.code)}`,body:`<label class="field"><span>ما الخلل؟</span><input type="text" name="note" value="${esc(g.note||'')}" placeholder="اختياري، مثل: ناقص طاقتين"></label>`,
+    actions:[{key:'ok',label:'حفظ'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+  if(!r)return;await safe(()=>store.update('goods',id,{st:'issue',note:r.values.note.trim()}))}
+async function goodsClear(){const all=[...(S.goods||[])];if(!all.length)return;
+  const r=await modal({title:'حذف كل البضاعة',body:`<p>سيُحذف <b>${all.length}</b> كرتون من قائمة البضاعة. يمكنك التراجع خلال ثوانٍ بعد الحذف.</p><label class="field"><span>للتأكيد اكتب كلمة <b>حذف</b></span><input type="text" name="confirm" autocomplete="off" placeholder="حذف"></label>`,
+    actions:[{key:'del',label:'حذف الكل',cls:'danger'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+  if(!r)return;if(r.values.confirm.replace(/\s/g,'')!=='حذف'){toast('لم يتم الحذف، يجب كتابة كلمة حذف');return}
+  UI.gq='';UI.gf='all';
+  if(await safe(async()=>{for(const g of all)await store.remove('goods',g.id)}))undoToast(`تم حذف ${all.length} كرتون`,all.map(x=>({c:'goods',x})))}
+
+/* قراءة الكراتين من صورة (قائمة التعبئة أو ملصق الكرتون). الأرقام تطلع في جدول تراجعه قبل الحفظ */
+function goodsHeader(t){const w=t.toLowerCase();if(!/(roll|pcs|piece|meter|metre|mtr|mts|yds|yard|kg|weight|qty|طاق|متر|أمتار)/.test(w)||(w.match(/\d/g)||[]).length>4)return null;
+  const out=[],re=/(rolls?|pcs|pieces?|طاق\S*|meters?|metres?|mtrs?|mts|أمتار|متر|yards?|yds|[ng]\.?\s?w\.?(?:\s*\(?kgs?\)?)?|kgs?|weight|qty|quantity)/g;let m;
+  while((m=re.exec(w)))out.push(/roll|pcs|piece|طاق/.test(m[1])?'rolls':/met|mtr|mts|متر|أمتار/.test(m[1])?'meters':/y(ar)?ds?/.test(m[1])?'yards':'other');
+  return out.length?out:null}
+function goodsLine(t,cols){
+  t=normPhone(t).replace(/[|\[\]{}"'`]/g,' ').replace(/(\d),(\d{3})\b/g,'$1$2').replace(/\s+/g,' ').trim();
+  if(!t||/total|sum|grand|المجموع|الإجمالي|إجمالي/i.test(t))return null;
+  let code,rest,cartons=1;const rg=t.match(/^(\d+)\s*[-~–]\s*(\d+)\b\s*(.*)$/);
+  if(rg&&+rg[2]>+rg[1]&&+rg[2]-+rg[1]<500){code=rg[1]+'-'+rg[2];cartons=+rg[2]-+rg[1]+1;rest=rg[3]}
+  else{const m=t.match(/^(\S+)\s*(.*)$/);code=m[1];rest=m[2];if(/^(no\.?|ctn|c\/no|#)$/i.test(code)){const m2=rest.match(/^(\S+)\s*(.*)$/);if(!m2)return null;code=m2[1];rest=m2[2]}}
+  if(!/\d/.test(code)&&!/[A-Za-z؀-ۿ]{2,}/.test(code))return null;
+  const nums=(rest.match(/\d+(\.\d+)?/g)||[]).map(Number);if(!nums.length||(!/\d/.test(code)&&nums.length<2))return null;
+  let rolls=0,meters=0;
+  if(cols&&cols.length===nums.length){cols.forEach((k,i)=>{if(k==='rolls'&&!rolls)rolls=nums[i];if(k==='meters'&&!meters)meters=nums[i]});
+    if(!meters){const y=cols.indexOf('yards');if(y>=0)meters=Math.round(nums[y]*0.9144*100)/100}}
+  else{const ri=nums.findIndex(n=>Number.isInteger(n)&&n>0&&n<=200);if(ri>=0&&nums.length>1)rolls=nums[ri];
+    const rest2=nums.filter((n,i)=>i!==ri||nums.length===1);meters=rest2.length?Math.max(...rest2):0;if(nums.length===1&&nums[0]<=60&&Number.isInteger(nums[0])){rolls=nums[0];meters=0}}
+  return{code,rolls,cartons,meters}}
+async function goodsImg(){
+  const f=await new Promise(res=>{const i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=()=>res(i.files&&i.files[0]||null);i.click()});if(!f)return;
+  const im=await new Promise(res=>{const u=URL.createObjectURL(f),x=new Image();x.onload=()=>res(x);x.onerror=()=>res(null);x.src=u});
+  if(!im){toast('تعذّر فتح الصورة');return}
+  const L=Math.max(im.naturalWidth,im.naturalHeight),sc=Math.min(2.2,Math.max(1,1800/L),2600/L),W=Math.round(im.naturalWidth*sc),H=Math.round(im.naturalHeight*sc);
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;const cx=cv.getContext('2d',{willReadFrequently:true});cx.fillStyle='#fff';cx.fillRect(0,0,W,H);cx.imageSmoothingQuality='high';cx.drawImage(im,0,0,W,H);
+  const id=cx.getImageData(0,0,W,H),d=id.data,hist=new Array(256).fill(0),gr=new Uint8Array(W*H);
+  for(let i=0;i<W*H;i++){gr[i]=(d[i*4]*299+d[i*4+1]*587+d[i*4+2]*114)/1000;hist[gr[i]]++}
+  let tot=W*H,sm=0;for(let t=0;t<256;t++)sm+=t*hist[t];let sB=0,wB=0,best=0,th=128;
+  for(let t=0;t<256;t++){wB+=hist[t];if(!wB)continue;const wF=tot-wB;if(!wF)break;sB+=t*hist[t];const v=wB*wF*(sB/wB-(sm-sB)/wF)**2;if(v>best){best=v;th=t}}
+  for(let i=0;i<W*H;i++){const v=gr[i]>th?255:0;d[i*4]=d[i*4+1]=d[i*4+2]=v}cx.putImageData(id,0,0);
+  const prog=m=>{const t=$('#toast');t.classList.remove('undo');t.textContent=m;t.classList.add('show');clearTimeout(toastT)};
+  prog('جارٍ تجهيز قارئ الصور…');
+  try{await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js')}catch(e){toast('قارئ الصور يحتاج اتصالًا بالإنترنت في أول مرة');return}
+  let lines=[];
+  try{const w=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text')prog('جارٍ قراءة الصورة… '+Math.round(m.progress*100)+'%')}});
+    await w.setParameters({tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'});
+    const res=await w.recognize(cv);lines=(res.data.lines&&res.data.lines.length?res.data.lines.map(l=>l.text):String(res.data.text||'').split('\n'));
+    try{await w.terminate()}catch(e){}}
+  catch(e){toast('تعذّر تشغيل قارئ الصور، تأكد من الاتصال بالإنترنت');return}
+  $('#toast').classList.remove('show');
+  let cols=null;const rows=[];
+  lines.forEach(t=>{const h=goodsHeader(t);if(h){cols=h;return}const r=goodsLine(t,cols);if(r)rows.push(r)});
+  await goodsReview(rows);
+}
+async function goodsReview(rows){
+  if(!rows.length)rows=[{code:'',rolls:'',cartons:1,meters:''}];
+  for(let i=0;i<4;i++)rows.push({code:'',rolls:'',cartons:'',meters:''});
+  const have=goodsDupes(),seen={};rows.forEach(r=>{const k=gKey(r.code);if(k)seen[k]=(seen[k]||0)+1});
+  const found=rows.filter(r=>r.code).length;
+  const body=`<p>${found?`تمت قراءة <b>${found}</b> كرتون من الصورة. راجع الأرقام وصحّح أي خطأ قبل الإضافة.`:'لم تُقرأ كراتين واضحة من الصورة. اكتبها في الجدول، أو صوّر القائمة بإضاءة أوضح.'} لاستبعاد صف امسح رقم الكرتون فيه. الخانات الصفراء أرقام مكررة.</p>
+    <div class="ocr-wrap"><table class="ocr-tbl goods-tbl"><thead><tr><th>الكرتون</th><th>الطاقات</th><th>الكراتين</th><th>الأمتار</th></tr></thead><tbody>${rows.map((r,i)=>{const k=gKey(r.code),dp=k&&(have[k]||seen[k]>1);
+      return `<tr><td><input name="g${i}_code" value="${esc(r.code)}" dir="auto"${dp?' class="low"':''}></td><td><input name="g${i}_rolls" value="${r.rolls||''}" inputmode="decimal" dir="ltr"></td><td><input name="g${i}_cartons" value="${r.cartons||''}" inputmode="numeric" dir="ltr" placeholder="${r.code?'':'1'}"></td><td><input name="g${i}_meters" value="${r.meters||''}" inputmode="decimal" dir="ltr"></td></tr>`}).join('')}</tbody></table></div>`;
+  setTimeout(()=>{const a=document.activeElement;if(a&&a.closest&&a.closest('.ocr-tbl'))a.blur()},30);
+  const r=await modal({title:'مراجعة الكراتين من الصورة',body,actions:[{key:'ok',label:'إضافة الكراتين'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+  if(!r)return;
+  const list=rows.map((_,i)=>goodsOf({code:r.values[`g${i}_code`],rolls:r.values[`g${i}_rolls`],cartons:r.values[`g${i}_cartons`],meters:r.values[`g${i}_meters`]})).filter(g=>g.code);
+  if(!list.length){toast('لا توجد كراتين للإضافة');return}
+  if(await safe(async()=>{for(const g of list)await store.add('goods',{...g,st:''})}))toast(`تمت إضافة ${list.length} كرتون`)}
+document.addEventListener('input',e=>{if(e.target.id==='goodsQ'){UI.gq=e.target.value;refresh()}});
+Object.assign(ACT,{
+  addGoods:()=>addGoods(),
+  goodsImg:()=>goodsImg(),
+  editGoods:t=>editGoods(t.dataset.id),
+  gOk:t=>{const g=(S.goods||[]).find(x=>x.id===t.dataset.id);if(g)safe(()=>store.update('goods',g.id,{st:g.st==='ok'?'':'ok'}))},
+  gIssue:t=>goodsIssue(t.dataset.id),
+  gFilter:t=>{UI.gf=t.dataset.f;refresh()},
+  goodsClear:()=>goodsClear()
+});
 document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t||t.closest('#modal-root'))return;const f=ACT[t.dataset.act];if(f){e.preventDefault();f(t)}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.enter&&!e.target.closest('#modal-root')){e.preventDefault();ACT[e.target.dataset.enter](e.target)}});
 document.addEventListener('input',e=>{e.target.classList&&e.target.classList.remove('err');});

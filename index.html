@@ -494,7 +494,7 @@ td.num{direction:ltr;text-align:left}
 .head-btns .btn svg{width:18px;height:18px;margin-inline-end:6px;vertical-align:-3px}
 .g-tot{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
 .g-tot div{display:flex;flex-direction:column;gap:2px}
-.g-tot strong{font-size:1.7rem;font-weight:600;line-height:1.15;color:var(--ink)}
+.g-tot strong{font-size:clamp(1.1rem,5.4vw,1.7rem);white-space:nowrap;font-weight:600;line-height:1.15;color:var(--ink)}
 .g-tot span{font-size:.85rem;color:var(--muted)}
 .g-filters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:-4px -16px 14px;padding:0 16px}.g-filters::-webkit-scrollbar{display:none}
 .g-chip{flex:none;white-space:nowrap}
@@ -524,6 +524,9 @@ td.num{direction:ltr;text-align:left}
 @media (hover:hover){.g-btn:hover{opacity:.7}.g-main:hover .g-code b{color:var(--brass)}}
 .g-clear{margin-top:22px;color:var(--neg)!important;border-color:color-mix(in srgb,var(--neg) 35%,var(--line))!important}
 .g-clear svg{width:18px;height:18px;margin-inline-end:6px;vertical-align:-3px}
+.g-desc{font-size:.84rem;color:var(--muted)}
+.goods-tbl td:first-child input{display:block}
+.goods-tbl input.g-desc-in{height:26px;margin-top:-4px;font-size:13px;color:var(--muted)}
 .goods-tbl th:first-child,.goods-tbl td:first-child{width:auto!important;color:inherit!important}
 .goods-tbl th:not(:first-child),.goods-tbl td:not(:first-child){width:21%}
 </style>
@@ -618,7 +621,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='27 أكتوبر - هـ';
+const APP_VERSION='27 أكتوبر - و';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1174,7 +1177,7 @@ goods:{
   html:()=>`<div class="page-head g-head"><div><h1>البضاعة</h1><p class="sub">الكراتين وما فيها من طاقات وأمتار، وتشييك كل كرتون</p></div><div class="head-btns"><button class="btn ghost" data-act="goodsImg">${svg('camera')}من صورة</button><button class="btn" data-act="addGoods">+ إضافة كرتون</button></div></div>
   <div id="goodsErr"></div>
   <section class="hero goods-hero"><div class="g-tot" id="gTot"></div><div class="hero-row" id="gSums"></div></section>
-  <div id="gTools" hidden><label class="field cust-search"><input type="search" id="goodsQ" placeholder="ابحث برقم الكرتون أو اسمه" value="${esc(UI.gq||'')}" autocomplete="off"></label><div class="g-filters" id="gFilters" role="radiogroup" aria-label="تصفية"></div></div>
+  <div id="gTools" hidden><label class="field cust-search"><input type="search" id="goodsQ" placeholder="ابحث برقم الكرتون أو الصنف" value="${esc(UI.gq||'')}" autocomplete="off"></label><div class="g-filters" id="gFilters" role="radiogroup" aria-label="تصفية"></div></div>
   <div id="list" class="list">${loading}</div><div id="gFoot"></div>`,
   update(){
     const L=$('#list');
@@ -1188,17 +1191,17 @@ goods:{
     const F=UI.gf||'all',fl=[['all','الكل',all.length],['todo','لم تُشيَّك',all.length-ok-bad],['ok','✅',ok],['issue','❓',bad]];if(dn)fl.push(['dup','مكرر',dn]);
     $('#gFilters').innerHTML=fl.map(([k,l,n])=>`<button class="g-chip" role="radio" aria-checked="${F===k}" data-act="gFilter" data-f="${k}">${l} <b>${n}</b></button>`).join('');
     const q=gKey(UI.gq||'');
-    const list=all.filter(g=>(!q||gKey(g.code).includes(q))&&(F==='all'||(F==='todo'&&!g.st)||g.st===F||(F==='dup'&&(dup[gKey(g.code)]||0)>1)))
+    const list=all.filter(g=>(!q||gKey(g.code).includes(q)||gKey(g.desc||'').includes(q))&&(F==='all'||(F==='todo'&&!g.st)||g.st===F||(F==='dup'&&(dup[gKey(g.code)]||0)>1)))
       .sort((a,b)=>gKey(a.code).localeCompare(gKey(b.code),'en',{numeric:true})||(a.createdAt||0)-(b.createdAt||0));
     L.className='list';
     L.innerHTML=list.length?list.map(g=>{const n=dup[gKey(g.code)]||0,c=g.cartons||1;
       return `<div class="g-card${g.st?' st-'+g.st:''}"><button class="g-main" data-act="editGoods" data-id="${g.id}">
-        <div class="g-code"><b dir="auto">${esc(g.code)}</b>${n>1?`<span class="g-dup" title="هذا الرقم مسجل ${n} مرات">مكرر</span>`:''}</div>
+        <div class="g-code"><b dir="auto">${esc(g.code)}</b>${g.desc?`<span class="g-desc" dir="auto">${esc(g.desc)}</span>`:''}${n>1?`<span class="g-dup" title="هذا الرقم مسجل ${n} مرات">مكرر</span>`:''}</div>
         <div class="g-meta"><span>الطاقات <b class="mnum">${fmt(g.rolls||0)}</b></span><span>الكراتين <b class="mnum">${fmt(c)}</b></span><span>الأمتار <b class="mnum">${fmt(g.meters||0)}</b></span></div>
         ${c>1?`<div class="g-sub">المجموع ${fmt((g.rolls||0)*c)} طاقة و ${fmt((g.meters||0)*c)} متر</div>`:''}
         ${g.note?`<div class="g-note">${esc(g.note)}</div>`:''}</button>
         <div class="g-st"><button class="g-btn ok" data-act="gOk" data-id="${g.id}" aria-pressed="${g.st==='ok'}" aria-label="تم التشييك">✅</button><button class="g-btn issue" data-act="gIssue" data-id="${g.id}" aria-pressed="${g.st==='issue'}" aria-label="فيه خلل">❓</button></div></div>`}).join('')
-      :'<p class="empty">لا يوجد كرتون بهذا الرقم أو الاسم.</p>';
+      :'<p class="empty">لا يوجد كرتون بهذا الرقم أو الصنف.</p>';
     $('#gFoot').innerHTML=`<button class="btn ghost block g-clear" data-act="goodsClear">${svg('trash')}حذف كل البضاعة (${all.length})</button>`;
   }
 },
@@ -1651,10 +1654,11 @@ function goodsDupes(){const m={};(S.goods||[]).forEach(g=>{const k=gKey(g.code);
 function goodsTotals(list){let ctn=0,rolls=0,m=0;list.forEach(g=>{const c=g.cartons||1;ctn+=c;rolls+=(g.rolls||0)*c;m+=(g.meters||0)*c});return{ctn,rolls,m}}
 const gNum=v=>{const n=num(v);return n>0?Math.round(n*100)/100:0};
 const goodsFields=(g={})=>`<label class="field"><span>رقم الكرتون أو اسمه</span><input type="text" name="code" value="${esc(g.code||'')}" autocomplete="off" dir="auto"></label>
+  <label class="field"><span>الصنف</span><input type="text" name="desc" value="${esc(g.desc||'')}" placeholder="اختياري، مثل: كحلي ياباني" dir="auto"></label>
   <div class="two"><label class="field"><span>عدد الطاقات في الكرتون</span><input type="text" name="rolls" inputmode="decimal" value="${g.rolls||''}"></label><label class="field"><span>عدد الكراتين</span><input type="text" name="cartons" inputmode="numeric" value="${g.cartons||1}"></label></div>
   <label class="field"><span>عدد الأمتار في الكرتون</span><input type="text" name="meters" inputmode="decimal" value="${g.meters||''}"></label>
   <label class="field"><span>ملاحظة</span><input type="text" name="note" value="${esc(g.note||'')}" placeholder="اختياري"></label>`;
-const goodsOf=v=>({code:normPhone(v.code).replace(/\s+/g,' '),rolls:gNum(v.rolls),cartons:Math.max(1,Math.round(gNum(v.cartons))||1),meters:gNum(v.meters),note:(v.note||'').trim()});
+const goodsOf=v=>({code:normPhone(v.code).replace(/\s+/g,' '),desc:(v.desc||'').trim(),rolls:gNum(v.rolls),cartons:Math.max(1,Math.round(gNum(v.cartons))||1),meters:gNum(v.meters),note:(v.note||'').trim()});
 async function addGoods(){
   for(;;){
     const r=await modal({title:'إضافة كرتون',body:goodsFields(),actions:[{key:'ok',label:'إضافة'},{key:'more',label:'إضافة وكرتون آخر',cls:'ghost'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
@@ -1701,20 +1705,87 @@ function goodsLine(t,cols){
   else{const ri=nums.findIndex(n=>Number.isInteger(n)&&n>0&&n<=200);if(ri>=0&&nums.length>1)rolls=nums[ri];
     const rest2=nums.filter((n,i)=>i!==ri||nums.length===1);meters=rest2.length?Math.max(...rest2):0;if(nums.length===1&&nums[0]<=60&&Number.isInteger(nums[0])){rolls=nums[0];meters=0}}
   return{code,rolls,cartons,meters}}
+/* قوائم التعبئة غالبًا جدول بخطوط: نلقى الخطوط، نقرأ العناوين عشان نعرف كل عمود، وبعدين نقرأ كل خانة لحالها */
+function goodsColType(t){t=String(t||'').toLowerCase();
+  if(/carton|ctn|box|bale|كرتون|كراتين/.test(t))return'code';
+  if(/pcs|roll|piece|طاق|قطع/.test(t))return'rolls';
+  if(/met|mtr|mts|متر|أمتار/.test(t))return'meters';
+  if(/yds|yard|يارد/.test(t))return'yards';
+  if(/desc|quality|design|item|article|fabric|صنف|وصف|نوع/.test(t))return'desc';
+  if(/wt|weight|kg|وزن/.test(t))return'kg';
+  if(/^\W*(sr|s\.?\s?n|sl|serial|no\b|#|م\b)/.test(t))return'sr';
+  return null}
+async function goodsGrid(cv,W,H,prog){
+  const cx=cv.getContext('2d',{willReadFrequently:true}),d=cx.getImageData(0,0,W,H).data,g=new Uint8Array(W*H);
+  for(let i=0;i<W*H;i++)g[i]=(d[i*4]*299+d[i*4+1]*587+d[i*4+2]*114)/1000;
+  const DK=160,vr=new Array(W).fill(0),hr=new Array(H).fill(0);let run;
+  for(let x=0;x<W;x++){run=0;for(let y=0;y<H;y++){if(g[y*W+x]<DK){if(++run>vr[x])vr[x]=run}else run=0}}
+  for(let y=0;y<H;y++){run=0;for(let x=0;x<W;x++){if(g[y*W+x]<DK){if(++run>hr[y])hr[y]=run}else run=0}}
+  const grp=(prof,min)=>{const out=[];let s0=-1;for(let i=0;i<=prof.length;i++){const on=i<prof.length&&prof[i]>=min;if(on&&s0<0)s0=i;if(!on&&s0>=0){out.push(Math.round((s0+i-1)/2));s0=-1}}return out};
+  const V=grp(vr,H*.35),Hh=grp(hr,W*.35);
+  if(V.length&&V[0]>W*.03)V.unshift(0);if(V.length&&W-1-V[V.length-1]>W*.03)V.push(W-1);
+  if(V.length<3||Hh.length<4)return null;
+  const cc=document.createElement('canvas'),q=cc.getContext('2d',{willReadFrequently:true});
+  const box=(r,c)=>{const x0=V[c]+2,x1=V[c+1]-1,y0=Hh[r]+2,y1=Hh[r+1]-1;if(x1-x0<5||y1-y0<5)return null;let ink=0;
+    for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++)if(g[y*W+x]<140)ink++;return ink>=6?{x0,x1,y0,y1}:null};
+  const w=await Tesseract.createWorker('eng');let wl=null;
+  const setWL=async v=>{if(v===wl)return;wl=v;await w.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:v})};
+  const read=async(r,c,v)=>{const b=box(r,c);if(!b)return'';await setWL(v);
+    const bw=b.x1-b.x0,bh=b.y1-b.y0,k=Math.max(2,Math.round(40/bh)),pad=15;
+    cc.width=bw*k+pad*2;cc.height=bh*k+pad*2;q.fillStyle='#fff';q.fillRect(0,0,cc.width,cc.height);q.imageSmoothingQuality='high';q.drawImage(cv,b.x0,b.y0,bw,bh,pad,pad,bw*k,bh*k);
+    const id=q.getImageData(0,0,cc.width,cc.height),gg=new Uint8Array(cc.width*cc.height),hist=new Array(256).fill(0);
+    for(let i=0;i<gg.length;i++){gg[i]=(id.data[i*4]*299+id.data[i*4+1]*587+id.data[i*4+2]*114)/1000;hist[gg[i]]++}
+    let sm=0;for(let t=0;t<256;t++)sm+=t*hist[t];let sB=0,wB=0,best=0,th=128;
+    for(let t=0;t<256;t++){wB+=hist[t];if(!wB)continue;const wF=gg.length-wB;if(!wF)break;sB+=t*hist[t];const vv=wB*wF*(sB/wB-(sm-sB)/wF)**2;if(vv>best){best=vv;th=t}}
+    th=Math.min(th,165);   // خانة شبه فاضية فيها رقم صغير: الحد التلقائي يطلع عالي ويخرب الرقم
+    for(let i=0;i<gg.length;i++){const v2=gg[i]>th?255:0;id.data[i*4]=id.data[i*4+1]=id.data[i*4+2]=v2}q.putImageData(id,0,0);
+    try{const res=await w.recognize(cc);return String(res.data.text||'').replace(/\s+/g,' ').trim()}catch(e){return''}};
+  const nc=V.length-1,nr=Hh.length-1;
+  // سطر العناوين
+  let hrow=-1,col={};
+  for(let r=0;r<Math.min(nr,15)&&hrow<0;r++){prog('جارٍ البحث عن عناوين الجدول…');const m={};
+    for(let c=0;c<nc;c++){const t=goodsColType(await read(r,c,''));if(t&&m[t]==null)m[t]=c}
+    if(m.code!=null&&(m.rolls!=null||m.meters!=null||m.yards!=null)){hrow=r;col=m}}
+  if(hrow<0){try{await w.terminate()}catch(e){}return null}
+  const AN='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-/.',NUM='0123456789.,';
+  const R0=[];for(let r=hrow+1;r<nr;r++)R0.push(r);
+  const cells={};let done=0;const total=R0.length*(1+(col.desc!=null)+(col.rolls!=null)+(col.meters!=null||col.yards!=null));
+  const step=()=>{done++;if(done%3===0)prog('جارٍ قراءة الصورة… '+Math.round(done/total*100)+'%')};
+  for(const r of R0){cells[r]={code:await read(r,col.code,AN)};step()}
+  const live=R0.filter(r=>cells[r].code);
+  // لو أغلب أرقام الكراتين أرقام، أي خانة طلعت حروف نعيد قراءتها كأرقام بس (الرقم الواحد الصغير يتلخبط أحيانًا)
+  if(live.filter(r=>/^\d+$/.test(cells[r].code)).length>=live.length*.6)for(const r of live)if(!/^\d+$/.test(cells[r].code)&&!/total/i.test(cells[r].code)){
+    let t=await read(r,col.code,'0123456789');if(!/^\d+$/.test(t)){wl=null;await w.setParameters({tessedit_pageseg_mode:'8',tessedit_char_whitelist:'0123456789'});t=await read(r,col.code,'0123456789');wl=null}
+    if(/^\d+$/.test(t))cells[r].code=t}
+  for(const k of ['rolls','meters','yards'])if(col[k]!=null)for(const r of live){cells[r][k]=await read(r,col[k],k==='rolls'?NUM:NUM);step()}
+  if(col.desc!=null)for(const r of live){cells[r].desc=await read(r,col.desc,'');step()}
+  try{await w.terminate()}catch(e){}
+  const n=t=>{const m=String(t||'').replace(/,(\d{3})\b/g,'$1').replace(/,/g,'.').match(/\d+(\.\d+)?/);return m?+m[0]:0};
+  const rows=[];let tot=null;
+  for(const r of live){const c=cells[r],meters=c.meters!=null?n(c.meters):c.yards!=null?Math.round(n(c.yards)*0.9144*100)/100:0,rolls=n(c.rolls);
+    if(/total|المجموع|الإجمالي/i.test((c.desc||'')+' '+c.code)||/^\*+$/.test(c.code)){tot={count:n(c.code),rolls,meters};continue}
+    if(!rolls&&!meters)continue;
+    rows.push({code:c.code.replace(/^[^0-9A-Za-z]+|[^0-9A-Za-z]+$/g,''),desc:(c.desc||'').replace(/^[^0-9A-Za-z؀-ۿ]+/,''),rolls,cartons:1,meters})}
+  return rows.length?{rows,tot}:null;
+}
 async function goodsImg(){
   const f=await new Promise(res=>{const i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=()=>res(i.files&&i.files[0]||null);i.click()});if(!f)return;
   const im=await new Promise(res=>{const u=URL.createObjectURL(f),x=new Image();x.onload=()=>res(x);x.onerror=()=>res(null);x.src=u});
   if(!im){toast('تعذّر فتح الصورة');return}
   const L=Math.max(im.naturalWidth,im.naturalHeight),sc=Math.min(2.2,Math.max(1,1800/L),2600/L),W=Math.round(im.naturalWidth*sc),H=Math.round(im.naturalHeight*sc);
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const cx=cv.getContext('2d',{willReadFrequently:true});cx.fillStyle='#fff';cx.fillRect(0,0,W,H);cx.imageSmoothingQuality='high';cx.drawImage(im,0,0,W,H);
+  const prog=m=>{const t=$('#toast');t.classList.remove('undo');t.textContent=m;t.classList.add('show');clearTimeout(toastT)};
+  prog('جارٍ تجهيز قارئ الصور…');
+  try{await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js')}catch(e){toast('قارئ الصور يحتاج اتصالًا بالإنترنت في أول مرة');return}
+  let grid=null;
+  try{grid=await goodsGrid(cv,W,H,prog)}catch(e){grid=null}
+  if(grid){$('#toast').classList.remove('show');await goodsReview(grid.rows,grid.tot);return}
+  // بدون خطوط جدول: نقرأ الصورة كاملة سطر سطر
   const id=cx.getImageData(0,0,W,H),d=id.data,hist=new Array(256).fill(0),gr=new Uint8Array(W*H);
   for(let i=0;i<W*H;i++){gr[i]=(d[i*4]*299+d[i*4+1]*587+d[i*4+2]*114)/1000;hist[gr[i]]++}
   let tot=W*H,sm=0;for(let t=0;t<256;t++)sm+=t*hist[t];let sB=0,wB=0,best=0,th=128;
   for(let t=0;t<256;t++){wB+=hist[t];if(!wB)continue;const wF=tot-wB;if(!wF)break;sB+=t*hist[t];const v=wB*wF*(sB/wB-(sm-sB)/wF)**2;if(v>best){best=v;th=t}}
   for(let i=0;i<W*H;i++){const v=gr[i]>th?255:0;d[i*4]=d[i*4+1]=d[i*4+2]=v}cx.putImageData(id,0,0);
-  const prog=m=>{const t=$('#toast');t.classList.remove('undo');t.textContent=m;t.classList.add('show');clearTimeout(toastT)};
-  prog('جارٍ تجهيز قارئ الصور…');
-  try{await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js')}catch(e){toast('قارئ الصور يحتاج اتصالًا بالإنترنت في أول مرة');return}
   let lines=[];
   try{const w=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text')prog('جارٍ قراءة الصورة… '+Math.round(m.progress*100)+'%')}});
     await w.setParameters({tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'});
@@ -1722,22 +1793,25 @@ async function goodsImg(){
     try{await w.terminate()}catch(e){}}
   catch(e){toast('تعذّر تشغيل قارئ الصور، تأكد من الاتصال بالإنترنت');return}
   $('#toast').classList.remove('show');
-  let cols=null;const rows=[];
-  lines.forEach(t=>{const h=goodsHeader(t);if(h){cols=h;return}const r=goodsLine(t,cols);if(r)rows.push(r)});
+  let cols=null,skip=false;const rows=[];
+  lines.forEach(t=>{const h=goodsHeader(t);if(h){cols=h;skip=/^\W*(sr|s\.?\s?no|sl)\b/i.test(t.trim());return}const r=goodsLine(skip?t.trim().replace(/^\S+\s+/,''):t,cols);if(r)rows.push(r)});
   await goodsReview(rows);
 }
-async function goodsReview(rows){
+async function goodsReview(rows,tot){
   if(!rows.length)rows=[{code:'',rolls:'',cartons:1,meters:''}];
-  for(let i=0;i<4;i++)rows.push({code:'',rolls:'',cartons:'',meters:''});
+  for(let i=0;i<4;i++)rows.push({code:'',desc:'',rolls:'',cartons:'',meters:''});
   const have=goodsDupes(),seen={};rows.forEach(r=>{const k=gKey(r.code);if(k)seen[k]=(seen[k]||0)+1});
   const found=rows.filter(r=>r.code).length;
-  const body=`<p>${found?`تمت قراءة <b>${found}</b> كرتون من الصورة. راجع الأرقام وصحّح أي خطأ قبل الإضافة.`:'لم تُقرأ كراتين واضحة من الصورة. اكتبها في الجدول، أو صوّر القائمة بإضاءة أوضح.'} لاستبعاد صف امسح رقم الكرتون فيه. الخانات الصفراء أرقام مكررة.</p>
+  const sumR=sum(rows,r=>(+r.rolls||0)*(+r.cartons||1)),sumM=Math.round(sum(rows,r=>(+r.meters||0)*(+r.cartons||1))*100)/100;
+  const chk=(lab,a,b)=>b?`<span class="${Math.abs(a-b)<0.01?'ok':'bad'}">${lab} ${Math.abs(a-b)<0.01?'✓ يطابق المجموع في الصورة':`⚠ مجموعها ${fmt(a)} وفي الصورة ${fmt(b)}`}</span>`:'';
+  const checks=tot?`<div class="ocr-chk">${tot.count?chk('عدد الكراتين',found,tot.count):''}${chk('الطاقات',sumR,tot.rolls)}${chk('الأمتار',sumM,tot.meters)}</div>`:'';
+  const body=`<p>${found?`تمت قراءة <b>${found}</b> كرتون من الصورة. راجع الأرقام وصحّح أي خطأ قبل الإضافة.`:'لم تُقرأ كراتين واضحة من الصورة. اكتبها في الجدول، أو صوّر القائمة بإضاءة أوضح.'} لاستبعاد صف امسح رقم الكرتون فيه. الخانات الصفراء أرقام مكررة.</p>${checks}
     <div class="ocr-wrap"><table class="ocr-tbl goods-tbl"><thead><tr><th>الكرتون</th><th>الطاقات</th><th>الكراتين</th><th>الأمتار</th></tr></thead><tbody>${rows.map((r,i)=>{const k=gKey(r.code),dp=k&&(have[k]||seen[k]>1);
-      return `<tr><td><input name="g${i}_code" value="${esc(r.code)}" dir="auto"${dp?' class="low"':''}></td><td><input name="g${i}_rolls" value="${r.rolls||''}" inputmode="decimal" dir="ltr"></td><td><input name="g${i}_cartons" value="${r.cartons||''}" inputmode="numeric" dir="ltr" placeholder="${r.code?'':'1'}"></td><td><input name="g${i}_meters" value="${r.meters||''}" inputmode="decimal" dir="ltr"></td></tr>`}).join('')}</tbody></table></div>`;
+      return `<tr><td><input name="g${i}_code" value="${esc(r.code)}" dir="auto"${dp?' class="low"':''}>${r.desc?`<input name="g${i}_desc" value="${esc(r.desc)}" dir="auto" class="g-desc-in">`:''}</td><td><input name="g${i}_rolls" value="${r.rolls||''}" inputmode="decimal" dir="ltr"></td><td><input name="g${i}_cartons" value="${r.cartons||''}" inputmode="numeric" dir="ltr" placeholder="${r.code?'':'1'}"></td><td><input name="g${i}_meters" value="${r.meters||''}" inputmode="decimal" dir="ltr"></td></tr>`}).join('')}</tbody></table></div>`;
   setTimeout(()=>{const a=document.activeElement;if(a&&a.closest&&a.closest('.ocr-tbl'))a.blur()},30);
   const r=await modal({title:'مراجعة الكراتين من الصورة',body,actions:[{key:'ok',label:'إضافة الكراتين'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
   if(!r)return;
-  const list=rows.map((_,i)=>goodsOf({code:r.values[`g${i}_code`],rolls:r.values[`g${i}_rolls`],cartons:r.values[`g${i}_cartons`],meters:r.values[`g${i}_meters`]})).filter(g=>g.code);
+  const list=rows.map((_,i)=>goodsOf({code:r.values[`g${i}_code`],desc:r.values[`g${i}_desc`],rolls:r.values[`g${i}_rolls`],cartons:r.values[`g${i}_cartons`],meters:r.values[`g${i}_meters`]})).filter(g=>g.code);
   if(!list.length){toast('لا توجد كراتين للإضافة');return}
   if(await safe(async()=>{for(const g of list)await store.add('goods',{...g,st:''})}))toast(`تمت إضافة ${list.length} كرتون`)}
 document.addEventListener('input',e=>{if(e.target.id==='goodsQ'){UI.gq=e.target.value;refresh()}});

@@ -469,6 +469,12 @@ td.num{direction:ltr;text-align:left}
 @supports selector(:has(a)){.seg.four::before{width:calc((100% - 20px)/4);inset-inline-start:calc(4px + var(--i,0) * ((100% - 20px)/4 + 4px))}
 .seg.four:has(label:nth-child(4) input:checked){--i:3}}
 .note-sm{font-size:.78rem;color:var(--muted);margin:-2px 0 10px}
+
+/* ملف PDF: الرسومات عمود واحد، كل رسم لحاله (عشان تتوزع على الصفحات بدون فراغات) */
+.pdf-mode .charts{display:block!important}
+.pdf-mode .charts .chart-card{margin:0 0 12px!important}
+.pdf-mode .charts .chart-box{max-width:540px;margin:0 auto}
+.mnum{direction:ltr;unicode-bidi:isolate;display:inline-block}
 </style>
 </head>
 <body>
@@ -561,7 +567,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='25 أكتوبر - أ';
+const APP_VERSION='27 أكتوبر - أ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -579,7 +585,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const AR='٠١٢٣٤٥٦٧٨٩';
 const num=v=>{v=String(v??'').replace(/[٠-٩]/g,d=>AR.indexOf(d)).replace(/٫/g,'.').replace(/[,،\s]/g,'');const n=parseFloat(v);return isFinite(n)?n:NaN};
 const fmt=n=>(Math.round((n||0)*100)/100).toLocaleString('en-US',{maximumFractionDigits:2});
-const money=n=>`${fmt(n)} <small>ر.س</small>`;
+const money=n=>`<span class="mnum">${fmt(n)}</span> <small>ر.س</small>`;   // الرقم السالب: الإشارة قبل الرقم
 const pad=n=>String(n).padStart(2,'0');
 const isoDate=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const today=()=>isoDate(new Date());
@@ -1390,7 +1396,7 @@ async function buildReportPDF(){
   document.body.appendChild(root);
   try{
     const blocks=[],vis=el=>getComputedStyle(el).display!=='none';
-    const walk=el=>{for(const c of el.children){if(!vis(c))continue;if(c.hasAttribute('data-sec')||c.classList.contains('print-only'))walk(c);else blocks.push(c)}};
+    const walk=el=>{for(const c of el.children){if(!vis(c))continue;if(c.hasAttribute('data-sec')||c.classList.contains('print-only')||c.classList.contains('charts'))walk(c);else blocks.push(c)}};   // الرسومات كل واحد لحاله عشان ما تنترك صفحات فاضية
     walk(root);
     const {jsPDF}=window.jspdf,pdf=new jsPDF({unit:'pt',format:'a4'});
     const PW=pdf.internal.pageSize.getWidth(),PH=pdf.internal.pageSize.getHeight(),M=28,CW=PW-2*M,BOT=PH-M;
@@ -1400,9 +1406,10 @@ async function buildReportPDF(){
     for(const el of blocks){const cv=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',logging:false,useCORS:true});if(!cv.width||!cv.height)continue;
       const top=el.getBoundingClientRect().top,sc=cv.height/el.getBoundingClientRect().height;
       const cuts=[...el.querySelectorAll('tr')].map(tr=>Math.round((tr.getBoundingClientRect().bottom-top)*sc));   // نقص الجدول بين الصفوف مو وسطها
-      shots.push({el,cv,h:cv.height*CW/cv.width,cuts})}
+      const th=el.querySelector('thead'),head=th?{y:Math.round((th.getBoundingClientRect().top-top)*sc),h:Math.round(th.getBoundingClientRect().height*sc)}:null;   // رأس الجدول يتكرر في كل صفحة
+      shots.push({el,cv,h:cv.height*CW/cv.width,cuts,head})}
     for(let i=0;i<shots.length;i++){
-      const {el,cv,h,cuts}=shots[i],k=CW/cv.width,gap=el.classList.contains('section-title')?4:10;
+      const {el,cv,h,cuts,head}=shots[i],k=CW/cv.width,gap=el.classList.contains('section-title')?4:10;
       if(el.classList.contains('pdf-newpage')&&pageUsed)newPage();
       if(el.classList.contains('section-title')&&pageUsed&&shots[i+1]){const nh=Math.min(shots[i+1].h,BOT-M-h-gap);if(y+h+gap+Math.max(nh,0)>BOT)newPage()}   // العنوان ما ينفصل عن اللي تحته
       const splitTable=cuts.length>3&&y+h>BOT&&BOT-y>160;   // جدول ما يكفيه الباقي من الصفحة: يكمل في الصفحة الجاية بدل ما يترك فراغ
@@ -1413,6 +1420,9 @@ async function buildReportPDF(){
         let off=0;
         while(off<cv.height){
           if(BOT-y<120&&pageUsed)newPage();
+          const rep=off>0&&head&&off>head.y+head.h;   // صفحة تكملة: نحط أسماء الأعمدة فوق
+          if(rep){const hc=document.createElement('canvas');hc.width=cv.width;hc.height=head.h;hc.getContext('2d').drawImage(cv,0,head.y,cv.width,head.h,0,0,cv.width,head.h);
+            pdf.addImage(hc.toDataURL('image/jpeg',0.9),'JPEG',M,y,CW,head.h*k,undefined,'FAST');y+=head.h*k}
           let sh=Math.min(Math.floor((BOT-y)/k),cv.height-off);
           if(off+sh<cv.height){const c=cuts.filter(v=>v>off+40&&v<=off+sh).pop();if(c)sh=c-off}
           const part=document.createElement('canvas');part.width=cv.width;part.height=sh;

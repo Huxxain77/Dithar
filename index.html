@@ -493,7 +493,7 @@ td.num{direction:ltr;text-align:left}
 .head-btns{display:flex;gap:8px;flex-wrap:wrap}
 .head-btns .btn svg{width:18px;height:18px;margin-inline-end:6px;vertical-align:-3px}
 .g-tot{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
-.g-tot div{display:flex;flex-direction:column;gap:2px}
+.g-tot div{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
 .g-tot strong{font-size:clamp(1.1rem,5.4vw,1.7rem);white-space:nowrap;font-weight:600;line-height:1.15;color:var(--ink)}
 .g-tot span{font-size:.85rem;color:var(--muted)}
 .g-filters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:-4px -16px 14px;padding:0 16px}.g-filters::-webkit-scrollbar{display:none}
@@ -529,6 +529,30 @@ td.num{direction:ltr;text-align:left}
 .goods-tbl input.g-desc-in{height:26px;margin-top:-4px;font-size:13px;color:var(--muted)}
 .goods-tbl th:first-child,.goods-tbl td:first-child{width:auto!important;color:inherit!important}
 .goods-tbl th:not(:first-child),.goods-tbl td:not(:first-child){width:21%}
+
+.ship-card{appearance:none;font:inherit;color:inherit;text-align:start;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:8px;cursor:pointer}
+@media (hover:hover){.ship-card:hover{border-color:var(--brass)}}
+.ship-card:active{border-color:var(--brass);transform:scale(.99)}
+.sc-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.sc-top h3{font-size:1.1rem;font-weight:600}
+.sc-top span{font-size:.84rem;color:var(--muted);white-space:nowrap}
+.sc-bar{display:flex;height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.sc-bar i{display:block;height:100%}.sc-bar .ok{background:var(--pos)}.sc-bar .bad{background:var(--brass)}
+.sc-st{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem;color:var(--muted)}
+.g-ship{display:flex;align-items:center;gap:5px;font-size:.8rem;color:var(--muted)}.g-ship svg{width:14px;height:14px}
+.g-lowmsg{background:#FFF1C9;color:#6B4E00;border-radius:10px;padding:8px 12px;font-size:.88rem}
+.g-img{margin:0 0 10px}.g-img summary{cursor:pointer;color:var(--brass);font-size:.9rem;padding:4px 0}
+.g-img img{display:block;width:100%;max-height:60vh;object-fit:contain;border:1px solid var(--line);border-radius:10px;margin-top:6px;background:#fff}
+.ocr-tbl input.dup{box-shadow:inset 0 0 0 1.5px var(--neg)}
+
+.g-same{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:500;padding:2px 9px;border-radius:999px}
+.g-same b{font-weight:600;opacity:.75}
+.gc0{background:#E3EEFB;color:#1F4E8C}.gc1{background:#E6F4EA;color:#1E6B3A}.gc2{background:#FBEAD9;color:#8A4A12}.gc3{background:#F0E6FA;color:#5B2D8C}
+.gc4{background:#DDF3F3;color:#16656B}.gc5{background:#FBE4EC;color:#8C1F4A}.gc6{background:#EEF2D9;color:#55611A}.gc7{background:#F6EDC9;color:#7A5900}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .g-same{filter:brightness(.82) saturate(1.2)}}
+:root[data-theme="dark"] .g-same{filter:brightness(.82) saturate(1.2)}
+.goods-tbl input.g-desc-in[class*=" gt"]{font-weight:600}
+.gt0{color:#1F4E8C!important}.gt1{color:#1E6B3A!important}.gt2{color:#8A4A12!important}.gt3{color:#5B2D8C!important}.gt4{color:#16656B!important}.gt5{color:#8C1F4A!important}.gt6{color:#55611A!important}.gt7{color:#9A7000!important}
 </style>
 </head>
 <body>
@@ -621,7 +645,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='27 أكتوبر - ز';
+const APP_VERSION='27 أكتوبر - ح';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1172,37 +1196,47 @@ cust:{
       :'<p class="empty">لا توجد حركات. سجّل أول دين للعميل من الأعلى.</p>';
   }
 },
-/* ===== البضاعة ===== */
+/* ===== البضاعة: كل شحنة لحالها ===== */
 goods:{
-  html:()=>`<div class="page-head g-head"><div><h1>البضاعة</h1><p class="sub">الكراتين وما فيها من طاقات وأمتار، وتشييك كل كرتون</p></div><div class="head-btns"><button class="btn ghost" data-act="goodsImg">${svg('camera')}من صورة</button><button class="btn" data-act="addGoods">+ إضافة كرتون</button></div></div>
+  html:()=>`<div class="page-head g-head"><div><h1>البضاعة</h1><p class="sub">كل شحنة لحالها: الكراتين والطاقات والأمتار، وتشييك كل كرتون</p></div><div class="head-btns"><button class="btn ghost" data-act="goodsImg">${svg('camera')}شحنة من صورة</button><button class="btn" data-act="addShip">+ شحنة جديدة</button></div></div>
   <div id="goodsErr"></div>
-  <section class="hero goods-hero"><div class="g-tot" id="gTot"></div><div class="hero-row" id="gSums"></div></section>
-  <div id="gTools" hidden><label class="field cust-search"><input type="search" id="goodsQ" placeholder="ابحث برقم الكرتون أو الصنف" value="${esc(UI.gq||'')}" autocomplete="off"></label><div class="g-filters" id="gFilters" role="radiogroup" aria-label="تصفية"></div></div>
-  <div id="list" class="list">${loading}</div><div id="gFoot"></div>`,
+  <label class="field cust-search" id="gSearchW" hidden><input type="search" id="goodsQ" placeholder="ابحث برقم الكرتون أو الصنف في كل الشحنات" value="${esc(UI.gq||'')}" autocomplete="off"></label>
+  <div id="list" class="list">${loading}</div>`,
   update(){
+    goodsMigrate();
     const L=$('#list');
     $('#goodsErr').innerHTML=GOODS_ERR?`<p class="warn-box">قواعد Firestore لا تسمح بقسم البضاعة حاليًا، لذلك لن تُحفظ التسجيلات. أضف <b>goods</b> في القواعد.</p>`:'';
-    const all=S.goods||[],dup=goodsDupes(),T=goodsTotals(all);
+    const ships=shipList(),cart=allCartons();
+    $('#gSearchW').hidden=!cart.length;
+    const q=gKey(UI.gq||'');
+    if(q){const res=cart.filter(g=>gKey(g.code).includes(q)||gKey(g.desc||'').includes(q)).sort(gSort);L.className='list';
+      L.innerHTML=res.length?res.map(g=>{const c=cartonsOf(g.shipId);return goodsCard(g,goodsDupes(c),true,goodsNames(c))}).join(''):'<p class="empty">لا يوجد كرتون بهذا الرقم أو الصنف.</p>';return}
+    if(!ships.length){L.className='';L.innerHTML=`<div class="empty-big"><p>لا توجد شحنات بعد. أنشئ شحنة جديدة وأضف كراتينها، أو صوّر قائمة التعبئة.</p><div class="head-btns" style="justify-content:center"><button class="btn ghost" data-act="goodsImg">${svg('camera')}شحنة من صورة</button><button class="btn brass" data-act="addShip">+ شحنة جديدة</button></div></div>`;return}
+    L.className='list';L.innerHTML=ships.map(shipCard).join('');
+  }
+},
+ship:{
+  html:()=>`${back('البضاعة')}<div class="page-head g-head"><div><h1 id="dname">…</h1><p class="sub" id="shipSub"></p></div><div class="head-btns"><button class="btn ghost" data-act="goodsImg">${svg('camera')}من صورة</button><button class="btn" data-act="addGoods">+ إضافة كرتون</button></div></div>
+  <section class="hero goods-hero"><div class="g-tot" id="gTot"></div><div class="hero-row" id="gSums"></div></section>
+  <div id="gTools" hidden><label class="field cust-search"><input type="search" id="goodsQ2" placeholder="ابحث برقم الكرتون أو الصنف" value="${esc(UI.gq2||'')}" autocomplete="off"></label><div class="g-filters" id="gFilters" role="radiogroup" aria-label="تصفية"></div></div>
+  <div id="list" class="list">${loading}</div><div id="gFoot"></div>`,
+  update(){
+    const sh=(S.goods||[]).find(x=>x.id===UI.detail.id&&isShip(x));if(!sh){go('goods');return}
+    $('#dname').textContent=sh.name;$('#shipSub').textContent=sh.date?fmtLong(sh.date):'';
+    const L=$('#list'),all=cartonsOf(sh.id),dup=goodsDupes(all),nm=goodsNames(all),T=goodsTotals(all);
     $('#gTot').innerHTML=[['الكراتين',T.ctn],['الطاقات',T.rolls],['الأمتار',T.m]].map(([l,v])=>`<div><strong class="mnum">${fmt(v)}</strong><span>${l}</span></div>`).join('');
-    const ok=all.filter(g=>g.st==='ok').length,bad=all.filter(g=>g.st==='issue').length,dn=all.filter(g=>(dup[gKey(g.code)]||0)>1).length;
+    const ok=all.filter(g=>g.st==='ok').length,bad=all.filter(g=>g.st==='issue').length,dn=all.filter(g=>(dup[gKey(g.code)]||0)>1).length,sn=all.filter(g=>(nm.n[gKey(g.desc||'')]||0)>1).length;
     $('#gSums').innerHTML=all.length?`<span>✅ تم التشييك <b>${ok}</b></span><span>❓ فيها خلل <b>${bad}</b></span><span>لم تُشيَّك <b>${all.length-ok-bad}</b></span>`:'';
     $('#gTools').hidden=!all.length;
-    if(!all.length){L.className='';L.innerHTML=`<div class="empty-big"><p>لا توجد بضاعة بعد. أضف الكراتين يدويًا أو صوّر قائمة التعبئة.</p><div class="head-btns" style="justify-content:center"><button class="btn ghost" data-act="goodsImg">${svg('camera')}من صورة</button><button class="btn brass" data-act="addGoods">+ إضافة كرتون</button></div></div>`;$('#gFoot').innerHTML='';return}
-    const F=UI.gf||'all',fl=[['all','الكل',all.length],['todo','لم تُشيَّك',all.length-ok-bad],['ok','✅',ok],['issue','❓',bad]];if(dn)fl.push(['dup','مكرر',dn]);
+    if(!all.length){L.className='';L.innerHTML=`<div class="empty-big"><p>لا توجد كراتين في هذه الشحنة. أضفها يدويًا أو صوّر قائمة التعبئة.</p><div class="head-btns" style="justify-content:center"><button class="btn ghost" data-act="goodsImg">${svg('camera')}من صورة</button><button class="btn brass" data-act="addGoods">+ إضافة كرتون</button></div></div>`;
+      $('#gFoot').innerHTML=`<button class="btn ghost block g-clear" data-act="delCurrent">${svg('trash')}حذف الشحنة</button>`;return}
+    const F=UI.gf||'all',fl=[['all','الكل',all.length],['todo','لم تُشيَّك',all.length-ok-bad],['ok','✅',ok],['issue','❓',bad]];if(dn)fl.push(['dup','رقم مكرر',dn]);if(sn)fl.push(['same','نفس الصنف',sn]);
     $('#gFilters').innerHTML=fl.map(([k,l,n])=>`<button class="g-chip" role="radio" aria-checked="${F===k}" data-act="gFilter" data-f="${k}">${l} <b>${n}</b></button>`).join('');
-    const q=gKey(UI.gq||'');
-    const list=all.filter(g=>(!q||gKey(g.code).includes(q)||gKey(g.desc||'').includes(q))&&(F==='all'||(F==='todo'&&!g.st)||g.st===F||(F==='dup'&&(dup[gKey(g.code)]||0)>1)))
-      .sort((a,b)=>gKey(a.code).localeCompare(gKey(b.code),'en',{numeric:true})||(a.createdAt||0)-(b.createdAt||0));
+    const q=gKey(UI.gq2||'');
+    const list=all.filter(g=>(!q||gKey(g.code).includes(q)||gKey(g.desc||'').includes(q))&&(F==='all'||(F==='todo'&&!g.st)||g.st===F||(F==='dup'&&(dup[gKey(g.code)]||0)>1)||(F==='same'&&(nm.n[gKey(g.desc||'')]||0)>1))).sort(F==='same'?(a,b)=>gKey(a.desc||'').localeCompare(gKey(b.desc||''),'en',{numeric:true})||gSort(a,b):gSort);
     L.className='list';
-    L.innerHTML=list.length?list.map(g=>{const n=dup[gKey(g.code)]||0,c=g.cartons||1;
-      return `<div class="g-card${g.st?' st-'+g.st:''}"><button class="g-main" data-act="editGoods" data-id="${g.id}">
-        <div class="g-code"><b dir="auto">${esc(g.code)}</b>${g.desc?`<span class="g-desc" dir="auto">${esc(g.desc)}</span>`:''}${n>1?`<span class="g-dup" title="هذا الرقم مسجل ${n} مرات">مكرر</span>`:''}</div>
-        <div class="g-meta"><span>الطاقات <b class="mnum">${fmt(g.rolls||0)}</b></span><span>الكراتين <b class="mnum">${fmt(c)}</b></span><span>الأمتار <b class="mnum">${fmt(g.meters||0)}</b></span></div>
-        ${c>1?`<div class="g-sub">المجموع ${fmt((g.rolls||0)*c)} طاقة و ${fmt((g.meters||0)*c)} متر</div>`:''}
-        ${g.note?`<div class="g-note">${esc(g.note)}</div>`:''}</button>
-        <div class="g-st"><button class="g-btn ok" data-act="gOk" data-id="${g.id}" aria-pressed="${g.st==='ok'}" aria-label="تم التشييك">✅</button><button class="g-btn issue" data-act="gIssue" data-id="${g.id}" aria-pressed="${g.st==='issue'}" aria-label="فيه خلل">❓</button></div></div>`}).join('')
-      :'<p class="empty">لا يوجد كرتون بهذا الرقم أو الصنف.</p>';
-    $('#gFoot').innerHTML=`<button class="btn ghost block g-clear" data-act="goodsClear">${svg('trash')}حذف كل البضاعة (${all.length})</button>`;
+    L.innerHTML=list.length?list.map(g=>goodsCard(g,dup,false,nm)).join(''):'<p class="empty">لا يوجد كرتون بهذا الرقم أو الصنف.</p>';
+    $('#gFoot').innerHTML=`<button class="btn ghost block g-clear" data-act="delCurrent">${svg('trash')}حذف الشحنة كاملة (${all.length} كرتون)</button>`;
   }
 },
 /* ===== workers list ===== */
@@ -1650,8 +1684,50 @@ const ACT={
 
 /* ===== البضاعة: كراتين وطاقات وأمتار، والتشييك. ما لها علاقة بالفلوس ولا اليومية ===== */
 const gKey=c=>normPhone(c).toLowerCase().replace(/\s+/g,' ');
-function goodsDupes(){const m={};(S.goods||[]).forEach(g=>{const k=gKey(g.code);if(k)m[k]=(m[k]||0)+1});return m}
-function goodsTotals(list){let ctn=0,rolls=0,m=0;list.forEach(g=>{const c=g.cartons||1;ctn+=c;rolls+=(g.rolls||0)*c;m+=(g.meters||0)*c});return{ctn,rolls,m}}
+/* الشحنة نفسها محفوظة في نفس مجموعة goods (kind:'ship') عشان ما تحتاج تعديل قواعد Firestore، وكل كرتون فيه shipId */
+const isShip=g=>g&&g.kind==='ship';
+const shipList=()=>(S.goods||[]).filter(isShip).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||0)-(a.createdAt||0));
+const allCartons=()=>(S.goods||[]).filter(g=>!isShip(g));
+const cartonsOf=sid=>allCartons().filter(g=>g.shipId===sid);
+const gSort=(a,b)=>gKey(a.code).localeCompare(gKey(b.code),'en',{numeric:true})||(a.createdAt||0)-(b.createdAt||0);
+/* نفس الصنف: كل صنف مكرر ياخذ لون، فالكراتين اللي لها نفس اللون نفس الصنف */
+function goodsNames(list){const m={},col={};let i=0;list.forEach(g=>{const k=gKey(g.desc||'');if(k)m[k]=(m[k]||0)+1});
+  Object.keys(m).sort((a,b)=>a.localeCompare(b,'en',{numeric:true})).forEach(k=>{if(m[k]>1)col[k]=i++%8});return{n:m,c:col}}
+function goodsDupes(list){const m={};list.forEach(g=>{const k=gKey(g.code);if(k)m[k]=(m[k]||0)+1});return m}
+function goodsTotals(list){let ctn=0,rolls=0,m=0;list.forEach(g=>{const c=g.cartons||1;ctn+=c;rolls+=(g.rolls||0)*c;m+=(g.meters||0)*c});return{ctn,rolls,m:Math.round(m*100)/100}}
+/* الكراتين اللي انضافت قبل الشحنات تنحط في شحنة وحدة */
+let G_MIG=false;
+async function goodsMigrate(){if(G_MIG)return;const ids=new Set(shipList().map(x=>x.id)),orph=allCartons().filter(g=>!ids.has(g.shipId));if(!orph.length)return;
+  G_MIG=true;try{let t0=Math.min(...orph.map(g=>g.createdAt||Date.now()));if(t0<1.6e12)t0=Date.now();const d=new Date(t0),date=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const sid=await store.add('goods',{kind:'ship',name:'الشحنة الأولى',date});for(const g of orph)await store.update('goods',g.id,{shipId:sid})}catch(e){}G_MIG=false}
+function goodsCard(g,dup,showShip,nm){const nk=gKey(g.desc||''),nn=nm&&nm.n[nk]||0,n=dup[gKey(g.code)]||0,c=g.cartons||1,sh=showShip&&(S.goods||[]).find(x=>x.id===g.shipId);
+  return `<div class="g-card${g.st?' st-'+g.st:''}"><button class="g-main" data-act="editGoods" data-id="${g.id}">
+    <div class="g-code"><b dir="auto">${esc(g.code)}</b>${g.desc?(nn>1?`<span class="g-same gc${nm.c[nk]}" dir="auto" title="${nn} كراتين بنفس الصنف">${esc(g.desc)} <b>×${nn}</b></span>`:`<span class="g-desc" dir="auto">${esc(g.desc)}</span>`):''}${n>1?`<span class="g-dup" title="هذا الرقم مسجل ${n} مرات في الشحنة">رقم مكرر ×${n}</span>`:''}</div>
+    <div class="g-meta"><span>الطاقات <b class="mnum">${fmt(g.rolls||0)}</b></span><span>الكراتين <b class="mnum">${fmt(c)}</b></span><span>الأمتار <b class="mnum">${fmt(g.meters||0)}</b></span></div>
+    ${c>1?`<div class="g-sub">المجموع ${fmt((g.rolls||0)*c)} طاقة و ${fmt((g.meters||0)*c)} متر</div>`:''}
+    ${g.note?`<div class="g-note">${esc(g.note)}</div>`:''}${sh?`<div class="g-ship">${svg('goods')}${esc(sh.name)}</div>`:''}</button>
+    <div class="g-st"><button class="g-btn ok" data-act="gOk" data-id="${g.id}" aria-pressed="${g.st==='ok'}" aria-label="تم التشييك">✅</button><button class="g-btn issue" data-act="gIssue" data-id="${g.id}" aria-pressed="${g.st==='issue'}" aria-label="فيه خلل">❓</button></div></div>`}
+function shipCard(sh){const c=cartonsOf(sh.id),T=goodsTotals(c),n=c.length,ok=c.filter(g=>g.st==='ok').length,bad=c.filter(g=>g.st==='issue').length;
+  const pct=x=>n?(x/n*100).toFixed(1):0;
+  return `<button class="ship-card" data-act="openShip" data-id="${sh.id}"><div class="sc-top"><h3>${esc(sh.name)}</h3>${sh.date?`<span>${fmtShort(sh.date)}</span>`:''}</div>
+    <div class="g-meta"><span>الكراتين <b class="mnum">${fmt(T.ctn)}</b></span><span>الطاقات <b class="mnum">${fmt(T.rolls)}</b></span><span>الأمتار <b class="mnum">${fmt(T.m)}</b></span></div>
+    ${n?`<div class="sc-bar" aria-hidden="true"><i class="ok" style="width:${pct(ok)}%"></i><i class="bad" style="width:${pct(bad)}%"></i></div>
+    <div class="sc-st">${ok===n?'✅ تم تشييك كل الكراتين':`<span>✅ ${ok} من ${n}</span>`}${bad?`<span>❓ ${bad} فيها خلل</span>`:''}</div>`:'<div class="sc-st">لا توجد كراتين بعد</div>'}</button>`}
+const shipFields=(sh={})=>`<label class="field"><span>اسم الشحنة</span><input type="text" name="name" value="${esc(sh.name||'')}" placeholder="مثل: فاتورة 89060 أو شحنة الهند"></label><label class="field"><span>تاريخ الوصول</span><input type="date" name="date" value="${sh.date||today()}"></label>`;
+async function addShip(){
+  const r=await modal({title:'شحنة جديدة',body:shipFields({name:'شحنة '+fmtShort(today())}),actions:[{key:'ok',label:'إنشاء الشحنة'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+  if(!r)return;const name=r.values.name.trim()||'شحنة '+fmtShort(today());let id=null;
+  if(await safe(async()=>{id=await store.add('goods',{kind:'ship',name,date:r.values.date||today()})})&&typeof id==='string'){UI.gf='all';UI.gq2='';go('goods',{type:'ship',id})}}
+async function editShip(id){const sh=(S.goods||[]).find(x=>x.id===id);if(!sh)return;
+  const r=await modal({title:'تعديل الشحنة',body:shipFields(sh),actions:[{key:'ok',label:'حفظ'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+  if(!r)return;const name=r.values.name.trim();if(!name){toast('اكتب اسم الشحنة');return}
+  if(await safe(()=>store.update('goods',id,{name,date:r.values.date||sh.date||today()})))toast('تم الحفظ')}
+async function deleteShip(id){const sh=(S.goods||[]).find(x=>x.id===id);if(!sh)return;const kids=cartonsOf(id);
+  const r=await modal({title:`حذف ${esc(sh.name)}`,body:`<p>${kids.length?`ستُحذف الشحنة ومعها <b>${kids.length}</b> كرتون.`:'ستُحذف الشحنة.'} يمكنك التراجع خلال ثوانٍ بعد الحذف.</p><label class="field"><span>للتأكيد اكتب كلمة <b>حذف</b></span><input type="text" name="confirm" autocomplete="off" placeholder="حذف"></label>`,
+    actions:[{key:'del',label:'حذف الشحنة',cls:'danger'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+  if(!r)return;if(r.values.confirm.replace(/\s/g,'')!=='حذف'){toast('لم يتم الحذف، يجب كتابة كلمة حذف');return}
+  go('goods');
+  if(await safe(async()=>{for(const g of kids)await store.remove('goods',g.id);await store.remove('goods',id)}))undoToast(`تم حذف ${sh.name}`,[{c:'goods',x:sh},...kids.map(x=>({c:'goods',x}))])}
 const gNum=v=>{const n=num(v);return n>0?Math.round(n*100)/100:0};
 const goodsFields=(g={})=>`<label class="field"><span>رقم الكرتون أو اسمه</span><input type="text" name="code" value="${esc(g.code||'')}" autocomplete="off" dir="auto"></label>
   <label class="field"><span>الصنف</span><input type="text" name="desc" value="${esc(g.desc||'')}" placeholder="اختياري، مثل: كحلي ياباني" dir="auto"></label>
@@ -1659,13 +1735,13 @@ const goodsFields=(g={})=>`<label class="field"><span>رقم الكرتون أو
   <label class="field"><span>عدد الأمتار في الكرتون</span><input type="text" name="meters" inputmode="decimal" value="${g.meters||''}"></label>
   <label class="field"><span>ملاحظة</span><input type="text" name="note" value="${esc(g.note||'')}" placeholder="اختياري"></label>`;
 const goodsOf=v=>({code:normPhone(v.code).replace(/\s+/g,' '),desc:(v.desc||'').trim(),rolls:gNum(v.rolls),cartons:Math.max(1,Math.round(gNum(v.cartons))||1),meters:gNum(v.meters),note:(v.note||'').trim()});
-async function addGoods(){
+async function addGoods(){const sid=UI.detail&&UI.detail.type==='ship'?UI.detail.id:null;if(!sid)return;
   for(;;){
     const r=await modal({title:'إضافة كرتون',body:goodsFields(),actions:[{key:'ok',label:'إضافة'},{key:'more',label:'إضافة وكرتون آخر',cls:'ghost'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
     if(!r)return;const g=goodsOf(r.values);if(!g.code){toast('اكتب رقم الكرتون أو اسمه');continue}
-    const was=(goodsDupes()[gKey(g.code)]||0)>0;
-    if(!await safe(()=>store.add('goods',{...g,st:''})))return;
-    toast(was?`تمت الإضافة. الكرتون ${g.code} مسجل من قبل، وعليه علامة «مكرر»`:`تمت إضافة الكرتون ${g.code}`);
+    const was=(goodsDupes(cartonsOf(sid))[gKey(g.code)]||0)>0;
+    if(!await safe(()=>store.add('goods',{...g,st:'',shipId:sid})))return;
+    toast(was?`تمت الإضافة. الكرتون ${g.code} مسجل في الشحنة من قبل، وعليه علامة «مكرر»`:`تمت إضافة الكرتون ${g.code}`);
     if(r.key!=='more')return}
 }
 async function editGoods(id){const g=(S.goods||[]).find(x=>x.id===id);if(!g)return;
@@ -1679,12 +1755,6 @@ async function goodsIssue(id){const g=(S.goods||[]).find(x=>x.id===id);if(!g)ret
   const r=await modal({title:`❓ خلل في الكرتون ${esc(g.code)}`,body:`<label class="field"><span>ما الخلل؟</span><input type="text" name="note" value="${esc(g.note||'')}" placeholder="اختياري، مثل: ناقص طاقتين"></label>`,
     actions:[{key:'ok',label:'حفظ'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
   if(!r)return;await safe(()=>store.update('goods',id,{st:'issue',note:r.values.note.trim()}))}
-async function goodsClear(){const all=[...(S.goods||[])];if(!all.length)return;
-  const r=await modal({title:'حذف كل البضاعة',body:`<p>سيُحذف <b>${all.length}</b> كرتون من قائمة البضاعة. يمكنك التراجع خلال ثوانٍ بعد الحذف.</p><label class="field"><span>للتأكيد اكتب كلمة <b>حذف</b></span><input type="text" name="confirm" autocomplete="off" placeholder="حذف"></label>`,
-    actions:[{key:'del',label:'حذف الكل',cls:'danger'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
-  if(!r)return;if(r.values.confirm.replace(/\s/g,'')!=='حذف'){toast('لم يتم الحذف، يجب كتابة كلمة حذف');return}
-  UI.gq='';UI.gf='all';
-  if(await safe(async()=>{for(const g of all)await store.remove('goods',g.id)}))undoToast(`تم حذف ${all.length} كرتون`,all.map(x=>({c:'goods',x})))}
 
 /* قراءة الكراتين من صورة (قائمة التعبئة أو ملصق الكرتون). الأرقام تطلع في جدول تراجعه قبل الحفظ */
 /* قراءة البضاعة من صورة. المهم أربع أشياء بس: رقم أو اسم الكرتون، الطاقات، الأمتار، عدد الكراتين. أي عمود ثاني يتجاهل.
@@ -1775,14 +1845,31 @@ async function goodsGrid(cv,W,H,prog,mkWorker){
   // أغلب أرقام الكراتين أرقام؟ أي خانة طلعت حروف نعيد قراءتها كأرقام بس (الرقم الواحد الصغير يتلخبط أحيانًا)
   if(keyCol==='code'&&live.filter(r=>/^\d+$/.test(tx[r].code)).length>=live.length*.6)for(const r of live)if(!/^\d+([-~]\d+)?$/.test(tx[r].code)){
     for(const psm of ['7','8']){const t=await read(r,col.code,'0123456789-',"eng",psm);if(/^\d+([-~]\d+)?$/.test(t)){tx[r].code=t;break}}}
-  const readNum=async(r,c)=>{let t=await read(r,c,NUM);if(!/\d/.test(t)&&box(r,c))for(const [psm,lo] of [['8'],['10'],['7',1],['8',1]]){t=await read(r,c,NUM,'eng',psm,lo);if(/\d/.test(t))break}return t};
+  /* كل رقم ينقرا مرتين بطريقتين. لو اختلفوا نقرأ مرة ثالثة وناخذ الأغلبية، ولو ما فيه أغلبية تطلع الخانة صفراء للمراجعة */
+  const LOW={};const flag=(r,k)=>{(LOW[r]=LOW[r]||{})[k]=1};
+  const vote=(arr,norm)=>{const c={};arr.forEach(t=>{const k=norm(t);if(k!=='')c[k]=(c[k]||0)+1});let best=null,bn=0;for(const k in c)if(c[k]>bn){bn=c[k];best=k}return{best,bn}};
+  const readNum=async(r,c,k)=>{const n1=t=>/\d/.test(t)?String(gN(t)):'';
+    let a=await read(r,c,NUM),b2=await read(r,c,NUM,'eng','7',1);
+    if(n1(a)&&n1(a)===n1(b2))return a;
+    const c3=await read(r,c,NUM,'eng','8');let v=vote([a,b2,c3],n1);
+    if(v.bn>=2)return [a,b2,c3].find(t=>n1(t)===v.best);
+    if(!v.best){for(const [psm,lo] of [['10'],['8',1]]){const t=await read(r,c,NUM,'eng',psm,lo);if(n1(t))return t}return''}
+    flag(r,k);return n1(a)?a:n1(b2)?b2:c3};
   // صف المجموع: خانة الكرتون فيه غالبًا فاضية، فنشيك عمود الاسم
   if(keyCol==='code'&&col.name!=null)for(const r of R0.slice(-6))if(!tx[r].code&&box(r,col.name)){const t=await read(r,col.name,'',lang);if(/total|grand|المجموع|الإجمالي|إجمالي/i.test(t)){tx[r].code='*';tx[r].name=t;live.push(r)}}
-  for(const k of need)for(const r of live){tx[r][k]=await readNum(r,col[k]);step()}
+  for(const k of need)for(const r of live){tx[r][k]=await readNum(r,col[k],k);step()}
+  // رقم الكرتون: نقرأه مرة ثانية بالخانة كاملة، ولو اختلف تطلع صفراء
+  if(keyCol==='code'&&!ar)for(const r of live)if(tx[r].code!=='*'){const t=await read(r,col.code,AN,'eng','7',1);if(t&&t.replace(/\W/g,'').toUpperCase()!==tx[r].code.replace(/\W/g,'').toUpperCase()){const t3=await read(r,col.code,AN,'eng','8');
+    const nz=x=>x.replace(/\W/g,'').toUpperCase();if(nz(t3)===nz(t))tx[r].code=t;else if(nz(t3)!==nz(tx[r].code))flag(r,'code')}}
+  // الأمتار غالبًا بنفس الشكل (مثل 109.80). لو خانة شكلها غريب تطلع صفراء
+  const fmtOf=t=>(String(t||'').match(/\.(\d+)/)||[,''])[1].length;
+  for(const k of ['meters','yards'])if(col[k]!=null){const f={};live.forEach(r=>{const x=fmtOf(tx[r][k]);f[x]=(f[x]||0)+1});const top=+Object.keys(f).sort((a,b)=>f[b]-f[a])[0];
+    if(f[top]>=live.length*.7)live.forEach(r=>{if(tx[r][k]&&fmtOf(tx[r][k])!==top&&tx[r].code!=='*')flag(r,'meters')})}
+  if(col.rolls!=null)live.forEach(r=>{const v=gN(tx[r].rolls);if(v>80&&tx[r].code!=='*')flag(r,'rolls')});
   if(col.code!=null&&col.name!=null)for(const r of live)if(tx[r].name==null){tx[r].name=await read(r,col.name,'',lang);step()}
   for(const w of Object.values(ws))try{await w.terminate()}catch(e){}
   const rows=[];let tot=null;
-  for(const r of live){const x=goodsRow(tx[r],col);if(!x)continue;if(x.total){tot=x;continue}rows.push(x)}
+  for(const r of live){const x=goodsRow(tx[r],col);if(!x)continue;if(x.total){tot=x;continue}if(LOW[r])x.low=LOW[r];rows.push(x)}
   return{rows,tot};
 }
 
@@ -1817,9 +1904,9 @@ function goodsLine(t){
   const r2=nums.filter((n,i)=>i!==ri||nums.length===1);meters=r2.length?Math.max(...r2):0;if(nums.length===1&&nums[0]<=60&&Number.isInteger(nums[0])){rolls=nums[0];meters=0}
   return{code,desc:'',rolls,cartons,meters}}
 
-async function goodsImg(){
+async function goodsImg(){const sid=UI.detail&&UI.detail.type==='ship'?UI.detail.id:null;
   const f=await new Promise(res=>{const i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=()=>res(i.files&&i.files[0]||null);i.click()});if(!f)return;
-  const im=await new Promise(res=>{const u=URL.createObjectURL(f),x=new Image();x.onload=()=>res(x);x.onerror=()=>res(null);x.src=u});
+  const src=URL.createObjectURL(f),im=await new Promise(res=>{const x=new Image();x.onload=()=>res(x);x.onerror=()=>res(null);x.src=src});
   if(!im){toast('تعذّر فتح الصورة');return}
   const L=Math.max(im.naturalWidth,im.naturalHeight),sc=Math.min(2.2,Math.max(1,1800/L),2600/L),W=Math.round(im.naturalWidth*sc),H=Math.round(im.naturalHeight*sc);
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const cx=cv.getContext('2d',{willReadFrequently:true});cx.fillStyle='#fff';cx.fillRect(0,0,W,H);cx.imageSmoothingQuality='high';cx.drawImage(im,0,0,W,H);
@@ -1829,7 +1916,7 @@ async function goodsImg(){
   const mk=l=>Tesseract.createWorker(l);
   let res=null;
   try{res=await goodsGrid(cv,W,H,prog,mk)}catch(e){res=null}
-  if(res&&res.rows&&res.rows.length){$('#toast').classList.remove('show');await goodsReview(res.rows,res.tot);return}
+  if(res&&res.rows&&res.rows.length){$('#toast').classList.remove('show');await goodsReview(res.rows,res.tot,sid,src);return}
   // بدون خطوط جدول (أو ما لقينا العناوين داخل الخانات): نقرأ الصفحة كاملة
   const id=cx.getImageData(0,0,W,H),d=id.data,hist=new Array(256).fill(0),gr=new Uint8Array(W*H);
   for(let i=0;i<W*H;i++){gr[i]=(d[i*4]*299+d[i*4+1]*587+d[i*4+2]*114)/1000;hist[gr[i]]++}
@@ -1843,31 +1930,37 @@ async function goodsImg(){
   let out=goodsByWords(lines);
   if(!out||!out.rows.length){try{const la=await page('ara+eng');const o2=goodsByWords(la);if(o2&&o2.rows.length)out=o2}catch(e){}}
   $('#toast').classList.remove('show');
-  if(out&&out.rows.length){await goodsReview(out.rows,out.tot);return}
-  await goodsReview(lines.map(l=>goodsLine(l.text||'')).filter(Boolean));
+  if(out&&out.rows.length){await goodsReview(out.rows,out.tot,sid,src);return}
+  await goodsReview(lines.map(l=>goodsLine(l.text||'')).filter(Boolean),null,sid,src);
 }
-async function goodsReview(rows,tot){
+async function goodsReview(rows,tot,sid,src){
   // صف فيه أكثر من كرتون (مثل 4-6): الأرقام ممكن تكون للكرتون الواحد أو مجموع الصف. نختار اللي يطابق المجموع في الصورة
   if(tot)for(const k of ['rolls','meters'])if(tot[k]&&rows.some(r=>r.cartons>1)){
     const per=sum(rows,r=>(+r[k]||0)*(r.cartons||1)),whole=sum(rows,r=>+r[k]||0);
     if(Math.abs(whole-tot[k])<0.01&&Math.abs(per-tot[k])>=0.01)rows.forEach(r=>{if(r.cartons>1)r[k]=Math.round(r[k]/r.cartons*100)/100})}
   if(!rows.length)rows=[{code:'',rolls:'',cartons:1,meters:''}];
   for(let i=0;i<4;i++)rows.push({code:'',desc:'',rolls:'',cartons:'',meters:''});
-  const have=goodsDupes(),seen={};rows.forEach(r=>{const k=gKey(r.code);if(k)seen[k]=(seen[k]||0)+1});
+  const have=sid?goodsDupes(cartonsOf(sid)):{},seen={},RN=goodsNames(rows.filter(r=>r.code).concat(sid?cartonsOf(sid):[]));rows.forEach(r=>{const k=gKey(r.code);if(k)seen[k]=(seen[k]||0)+1});
   const found=rows.filter(r=>r.code).length;
   const sumR=sum(rows,r=>(+r.rolls||0)*(+r.cartons||1)),sumM=Math.round(sum(rows,r=>(+r.meters||0)*(+r.cartons||1))*100)/100;
   const chk=(lab,a,b)=>b?`<span class="${Math.abs(a-b)<0.01?'ok':'bad'}">${lab} ${Math.abs(a-b)<0.01?'✓ يطابق المجموع في الصورة':`⚠ مجموعها ${fmt(a)} وفي الصورة ${fmt(b)}`}</span>`:'';
-  const checks=tot?`<div class="ocr-chk">${tot.count?chk('عدد الكراتين',found,tot.count):''}${chk('الطاقات',sumR,tot.rolls)}${chk('الأمتار',sumM,tot.meters)}</div>`:'';
-  const body=`<p>${found?`تمت قراءة <b>${found}</b> كرتون من الصورة. راجع الأرقام وصحّح أي خطأ قبل الإضافة.`:'لم تُقرأ كراتين واضحة من الصورة. اكتبها في الجدول، أو صوّر القائمة بإضاءة أوضح.'} لاستبعاد صف امسح رقم الكرتون فيه. الخانات الصفراء أرقام مكررة.</p>${checks}
+  const checks=tot?`<div class="ocr-chk">${tot.count?chk('عدد الكراتين',sum(rows,r=>r.code?(+r.cartons||1):0),tot.count):''}${chk('الطاقات',sumR,tot.rolls)}${chk('الأمتار',sumM,tot.meters)}</div>`:'';
+  const nLow=rows.filter(r=>r.low).length;
+  const body=`<p>${found?`تمت قراءة <b>${found}</b> كرتون من الصورة. راجع الأرقام وصحّح أي خطأ قبل الإضافة.`:'لم تُقرأ كراتين واضحة من الصورة. اكتبها في الجدول، أو صوّر القائمة بإضاءة أوضح.'} لاستبعاد صف امسح رقم الكرتون فيه.</p>${nLow?`<p class="g-lowmsg">في <b>${nLow}</b> ${nLow===1?'سطر':'أسطر'} خانات صفراء لم يتأكد منها القارئ. قارنها مع الصورة.</p>`:''}${checks}
+    ${src?`<details class="g-img"><summary>عرض الصورة للمقارنة</summary><img src="${src}" alt="صورة القائمة"></details>`:''}
+    ${sid?'':`<label class="field"><span>اسم الشحنة</span><input type="text" name="shipName" value="${esc('شحنة '+fmtShort(today()))}"></label>`}
     <div class="ocr-wrap"><table class="ocr-tbl goods-tbl"><thead><tr><th>الكرتون</th><th>الطاقات</th><th>الكراتين</th><th>الأمتار</th></tr></thead><tbody>${rows.map((r,i)=>{const k=gKey(r.code),dp=k&&(have[k]||seen[k]>1);
-      return `<tr><td><input name="g${i}_code" value="${esc(r.code)}" dir="auto"${dp?' class="low"':''}>${r.desc?`<input name="g${i}_desc" value="${esc(r.desc)}" dir="auto" class="g-desc-in">`:''}</td><td><input name="g${i}_rolls" value="${r.rolls||''}" inputmode="decimal" dir="ltr"></td><td><input name="g${i}_cartons" value="${r.cartons||''}" inputmode="numeric" dir="ltr" placeholder="${r.code?'':'1'}"></td><td><input name="g${i}_meters" value="${r.meters||''}" inputmode="decimal" dir="ltr"></td></tr>`}).join('')}</tbody></table></div>`;
-  setTimeout(()=>{const a=document.activeElement;if(a&&a.closest&&a.closest('.ocr-tbl'))a.blur()},30);
+      const lw=k=>r.low&&r.low[k]?' low':'';
+      return `<tr><td><input name="g${i}_code" value="${esc(r.code)}" dir="auto" class="${dp?'dup':''}${lw('code')}">${r.desc?`<input name="g${i}_desc" value="${esc(r.desc)}" dir="auto" class="g-desc-in${(RN.n[gKey(r.desc)]||0)>1?' gt'+RN.c[gKey(r.desc)]:''}">`:''}</td><td><input name="g${i}_rolls" value="${r.rolls||''}" inputmode="decimal" dir="ltr" class="${lw('rolls')}"></td><td><input name="g${i}_cartons" value="${r.cartons||''}" inputmode="numeric" dir="ltr" placeholder="${r.code?'':'1'}"></td><td><input name="g${i}_meters" value="${r.meters||''}" inputmode="decimal" dir="ltr" class="${lw('meters')}"></td></tr>`}).join('')}</tbody></table></div>`;
+  setTimeout(()=>{const a=document.activeElement;if(a&&a.closest&&a.closest('#modal-root')&&a.tagName==='INPUT')a.blur()},30);
   const r=await modal({title:'مراجعة الكراتين من الصورة',body,actions:[{key:'ok',label:'إضافة الكراتين'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
   if(!r)return;
   const list=rows.map((_,i)=>goodsOf({code:r.values[`g${i}_code`],desc:r.values[`g${i}_desc`],rolls:r.values[`g${i}_rolls`],cartons:r.values[`g${i}_cartons`],meters:r.values[`g${i}_meters`]})).filter(g=>g.code);
   if(!list.length){toast('لا توجد كراتين للإضافة');return}
-  if(await safe(async()=>{for(const g of list)await store.add('goods',{...g,st:''})}))toast(`تمت إضافة ${list.length} كرتون`)}
-document.addEventListener('input',e=>{if(e.target.id==='goodsQ'){UI.gq=e.target.value;refresh()}});
+  let ship=sid;
+  if(await safe(async()=>{if(!ship)ship=await store.add('goods',{kind:'ship',name:(r.values.shipName||'').trim()||'شحنة '+fmtShort(today()),date:today()});
+    for(const g of list)await store.add('goods',{...g,st:'',shipId:ship})})){toast(`تمت إضافة ${list.length} كرتون`);if(!sid&&typeof ship==='string'){UI.gf='all';UI.gq2='';go('goods',{type:'ship',id:ship})}}}
+document.addEventListener('input',e=>{if(e.target.id==='goodsQ'){UI.gq=e.target.value;refresh()}if(e.target.id==='goodsQ2'){UI.gq2=e.target.value;refresh()}});
 Object.assign(ACT,{
   addGoods:()=>addGoods(),
   goodsImg:()=>goodsImg(),
@@ -1875,8 +1968,12 @@ Object.assign(ACT,{
   gOk:t=>{const g=(S.goods||[]).find(x=>x.id===t.dataset.id);if(g)safe(()=>store.update('goods',g.id,{st:g.st==='ok'?'':'ok'}))},
   gIssue:t=>goodsIssue(t.dataset.id),
   gFilter:t=>{UI.gf=t.dataset.f;refresh()},
-  goodsClear:()=>goodsClear()
+  addShip:()=>addShip(),
+  openShip:t=>{UI.gf='all';UI.gq2='';go('goods',{type:'ship',id:t.dataset.id})}
 });
+{const m0=ACT.menu,d0=ACT.delCurrent;
+  ACT.menu=t=>UI.detail&&UI.detail.type==='ship'?editShip(UI.detail.id):m0(t);
+  ACT.delCurrent=t=>UI.detail&&UI.detail.type==='ship'?deleteShip(UI.detail.id):d0(t)}
 document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t||t.closest('#modal-root'))return;const f=ACT[t.dataset.act];if(f){e.preventDefault();f(t)}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.enter&&!e.target.closest('#modal-root')){e.preventDefault();ACT[e.target.dataset.enter](e.target)}});
 document.addEventListener('input',e=>{e.target.classList&&e.target.classList.remove('err');});

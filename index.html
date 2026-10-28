@@ -553,6 +553,13 @@ td.num{direction:ltr;text-align:left}
 :root[data-theme="dark"] .g-same{filter:brightness(.82) saturate(1.2)}
 .goods-tbl input.g-desc-in[class*=" gt"]{font-weight:600}
 .gt0{color:#1F4E8C!important}.gt1{color:#1E6B3A!important}.gt2{color:#8A4A12!important}.gt3{color:#5B2D8C!important}.gt4{color:#16656B!important}.gt5{color:#8C1F4A!important}.gt6{color:#55611A!important}.gt7{color:#9A7000!important}
+
+.g-cmp{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:4px 0 10px}
+.g-cmp>div{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:8px 12px;align-items:baseline}
+.g-cmp>div+div{border-top:1px solid var(--line)}
+.g-cmp span{color:var(--muted);font-size:.86rem}.g-cmp b{font-weight:600}.g-cmp small{display:block;color:var(--muted);font-weight:400;font-size:.78rem}
+.g-cmp-h{background:var(--surface-2)}.g-cmp-h b{font-size:.82rem;color:var(--muted);font-weight:500}
+.g-match{background:var(--pos-soft);color:var(--pos);border-radius:10px;padding:8px 12px;font-weight:500}
 </style>
 </head>
 <body>
@@ -645,7 +652,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='27 أكتوبر - ط';
+const APP_VERSION='28 أكتوبر - ب';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1198,7 +1205,7 @@ cust:{
 },
 /* ===== البضاعة: كل شحنة لحالها ===== */
 goods:{
-  html:()=>`<div class="page-head g-head"><div><h1>البضاعة</h1><p class="sub">كل صورة شحنة لحالها، واللي تضيفه يدويًا في نفس اليوم يكون شحنة واحدة</p></div><div class="head-btns"><button class="btn ghost" data-act="goodsImg">${svg('camera')}شحنة من صورة</button><button class="btn" data-act="addGoods">+ إضافة كرتون</button></div></div>
+  html:()=>`<div class="page-head g-head"><div><h1>البضاعة</h1><p class="sub">صورة قائمة التعبئة تصير شحنة، وصورة ملصق الكرتون تشيّكه. اللي تضيفه يدويًا في نفس اليوم يكون شحنة واحدة</p></div><div class="head-btns"><button class="btn ghost" data-act="goodsImg">${svg('camera')}من صورة</button><button class="btn" data-act="addGoods">+ إضافة كرتون</button></div></div>
   <div id="goodsErr"></div>
   <label class="field cust-search" id="gSearchW" hidden><input type="search" id="goodsQ" placeholder="ابحث برقم الكرتون أو الصنف في كل الشحنات" value="${esc(UI.gq||'')}" autocomplete="off"></label>
   <div id="list" class="list">${loading}</div>`,
@@ -1211,7 +1218,7 @@ goods:{
     const q=gKey(UI.gq||'');
     if(q){const res=cart.filter(g=>gKey(g.code).includes(q)||gKey(g.desc||'').includes(q)).sort(gSort);L.className='list';
       L.innerHTML=res.length?res.map(g=>{const c=cartonsOf(g.shipId);return goodsCard(g,goodsDupes(c),true,goodsNames(c))}).join(''):'<p class="empty">لا يوجد كرتون بهذا الرقم أو الصنف.</p>';return}
-    if(!ships.length){L.className='';L.innerHTML=`<div class="empty-big"><p>لا توجد بضاعة بعد. صوّر قائمة التعبئة، أو أضف الكراتين يدويًا.</p><div class="head-btns" style="justify-content:center"><button class="btn ghost" data-act="goodsImg">${svg('camera')}شحنة من صورة</button><button class="btn brass" data-act="addGoods">+ إضافة كرتون</button></div></div>`;return}
+    if(!ships.length){L.className='';L.innerHTML=`<div class="empty-big"><p>لا توجد بضاعة بعد. صوّر قائمة التعبئة، أو أضف الكراتين يدويًا.</p><div class="head-btns" style="justify-content:center"><button class="btn ghost" data-act="goodsImg">${svg('camera')}من صورة</button><button class="btn brass" data-act="addGoods">+ إضافة كرتون</button></div></div>`;return}
     L.className='list';L.innerHTML=ships.map(shipCard).join('');
   }
 },
@@ -1913,34 +1920,124 @@ function goodsLine(t){
   const r2=nums.filter((n,i)=>i!==ri||nums.length===1);meters=r2.length?Math.max(...r2):0;if(nums.length===1&&nums[0]<=60&&Number.isInteger(nums[0])){rolls=nums[0];meters=0}
   return{code,desc:'',rolls,cartons,meters}}
 
+/* ملصق كرتون واحد: كل سطر فيه طاقة وطولها، وفوق رقم الكرتون، وتحت المجموع. الأشكال تختلف من مصنع لمصنع، فنقرأ بأكثر من طريقة ونتأكد من الأرقام ببعض */
+const G_KEY=/(?:bale|cart?oon|carton|ctn|case|box|كرتون)[^\S\n]*(?:no|n0|ng|nd|#)?\.?[^\S\n]*(?:\/[^:\n]{0,24})?[^\S\n]*[:：;=]+[-–]?[^\S\n]*([A-Za-z0-9][A-Za-z0-9\-\/]*)/i;
+function gLev(a,b){if(Math.abs(a.length-b.length)>1)return 9;const d=[...Array(b.length+1).keys()];for(let i=1;i<=a.length;i++){let p=d[0];d[0]=i;for(let j=1;j<=b.length;j++){const t=d[j];d[j]=Math.min(d[j]+1,d[j-1]+1,p+(a[i-1]===b[j-1]?0:1));p=t}}return d[b.length]}
+function goodsSlip(text,listLike){
+  const t=normPhone(text).replace(/[|‖]/g,' '),L=t.split('\n');
+  const known=new Map(allCartons().map(g=>[gKey(g.code),g.code]));
+  const km=t.match(G_KEY),slipWord=/packing\s*s[l1i]ip|bale\s*no|cart?oon\s*no/i.test(t);
+  // أسطر الطاقات: فيها طول مثل 18.30 أو 20.002، ومو سطر مجموع أو وزن
+  const isTot=l=>/total|tota1|wt\b|weight|gross|net\s*w/i.test(l);
+  const rows=[];let first=-1;
+  L.forEach((l,i)=>{if(isTot(l))return;const d=(l.match(/(?<![\d.])\d{1,3}[.,]\d{2,3}(?![\d.])/g)||[]).map(x=>+x.replace(',','.'));if(!d.length)return;
+    if(!/[A-Za-z]{2,}|\d{4,}/.test(l.replace(/(?<![\d.])\d{1,3}[.,]\d{2,3}(?![\d.])/g,'')))return;   // لازم معه رقم طاقة أو اسم
+    rows.push({i,d});if(first<0)first=i});
+  // رقم الكرتون
+  let code=km?km[1]:null,how=code?'key':null;
+  if(!code){const toks=new Set((t.match(/[A-Za-z0-9][A-Za-z0-9\-\/]{1,}/g)||[]).map(gKey));const hit=[...toks].filter(k=>known.has(k));
+    if(hit.length===1){code=known.get(hit[0]);how='known'}}
+  if(!code&&first>0){for(let i=0;i<first&&!code;i++){if(!/[A-Za-z]{5,}|\d{1,2}\/\d{1,2}\/\d{2,4}/.test(L[i]))continue;const m=L[i].match(/(?<![\d\/.:-])\d{3,6}(?![\d\/.:])/g);if(m){code=m[0];how='head'}}}
+  const isSlip=how==='key'||how==='known'&&rows.length>=2||slipWord&&code||how==='head'&&rows.length>=2&&!listLike;
+  if(!isSlip||!code)return null;
+  // وحدة الطول: أمتار إذا فيه عمود أمتار، وإلا ياردة إذا مكتوبة
+  const hl=L.slice(0,Math.max(first,1)).join(' ')+' '+t.slice(0,600);
+  const mPos=hl.search(/\b(mtrs?|meters?|metres?|mts)\b|متر/i),yPos=hl.search(/\b(yards?|yds|yard)\b/i);
+  const yard=yPos>=0&&mPos<0,both=yPos>=0&&mPos>=0;
+  const vals=rows.map(r=>{const u=[...new Set(r.d)];if(u.length===1)return u[0];if(both)return mPos<yPos?r.d[0]:r.d[r.d.length-1];return r.d[0]});
+  // عدد الطاقات
+  let rolls=0;const pc=t.match(/total[^\S\n]*(?:pc|pcs|pieces?|rolls?|than|ps)s?\.?[^\S\n]*[:=\-]*[^\S\n]*(\d{1,3})\b/i);if(pc)rolls=+pc[1];
+  const tl=t.match(/(?:^|[ \t])total[ \t]*[>»:]+[ \t]*(\d{1,3})\b/im);if(!rolls&&tl)rolls=+tl[1];
+  const lastR=rows.length?rows[rows.length-1].i:-1,after=L.slice(lastR+1,lastR+5);
+  if(!rolls)for(const l of after){const m=l.match(/^\W*(\d{1,3})\s+(\d+[.,]\d{1,3})\W*$/);if(m){rolls=+m[1];break}}
+  if(!rolls)rolls=rows.length;
+  // الطول: الأغلب × العدد، أو المجموع لو يطابق
+  const cnt={};vals.forEach(v=>{cnt[v]=(cnt[v]||0)+1});const mode=+(Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]||0);
+  // قراءة تختلف عن الأغلب بحرف واحد (48.29 بدل 18.29) غالبًا غلط قراءة
+  const fx=vals.map(v=>v!==mode&&gLev(String(v),String(mode))===1?mode:v),same=fx.filter(v=>v===mode).length;
+  const byMode=Math.round(mode*rolls*100)/100,bySum=Math.round(fx.reduce((a,b)=>a+b,0)*100)/100;
+  const totals=[];[...L.filter(isTot),...after].forEach(l=>(l.match(/\d+[.,]\d{1,3}/g)||[]).forEach(x=>totals.push(+x.replace(',','.'))));
+  const yardTot=(t.match(/yards?[^\S\n]*[:：][^\S\n]*(\d+(?:[.,]\d+)?)/i)||[])[1];if(yardTot)totals.push(+yardTot.replace(',','.'));
+  const ok=(v,e)=>e&&Math.abs(v-e)<=e*.01;
+  let near=totals.find(v=>ok(v,byMode))??totals.find(v=>ok(v,bySum));
+  let len=near!=null?near:(same>=fx.length*.6?byMode:bySum);if(!len&&totals.length)len=totals[0];
+  if(!rolls&&!len)return null;
+  const dz=t.match(/(?:design|quality|article|style|الصنف)[^\S\n]*(?:no)?\.?[^\S\n]*[:：;]+[^\S\n]*([A-Za-z0-9][\w\-\/.]*)/i);
+  let desc=dz?dz[1]:'';if(!desc&&rows.length){const m=L[rows[0].i].match(/\b([A-Z]{3,}[\s~-]?\d+[A-Z]?)\b/);if(m)desc=m[1].replace(/[\s~]/,'-')}
+  const sure=near!=null||(rows.length===rolls&&rows.length>1);
+  return{code,how,desc,rolls,cartons:1,meters:yard?Math.round(len*0.9144*100)/100:len,note:yard?`${fmt(len)} ياردة`:'',sure}}
+async function goodsLabelReview(x,sid,src){
+  const k=gKey(x.code);let hits=allCartons().filter(g=>gKey(g.code)===k),guess=false;
+  if(!hits.length&&k.length>=3){hits=allCartons().filter(g=>gLev(gKey(g.code),k)===1);guess=hits.length===1;if(!guess)hits=[]}   // رقم قريب (حرف واحد غلط بالقراءة)
+  const hit=hits.find(g=>g.shipId===sid)||hits[0];
+  const shipName=id=>((S.goods||[]).find(z=>z.id===id)||{}).name||'';
+  const img=src?`<details class="g-img"><summary>عرض الصورة للمقارنة</summary><img src="${src}" alt="صورة الملصق"></details>`:'';
+  setTimeout(()=>{const a=document.activeElement;if(a&&a.closest&&a.closest('#modal-root')&&a.tagName==='INPUT')a.blur()},30);
+  if(hit){
+    const okR=(hit.rolls||0)===x.rolls,okM=Math.abs((hit.meters||0)-x.meters)<=Math.max(.6,x.meters*.01),same=okR&&okM;
+    const diff=[!okR?`الطاقات في الشحنة ${fmt(hit.rolls||0)} وفي الملصق ${fmt(x.rolls)}`:'',!okM?`الأمتار في الشحنة ${fmt(hit.meters||0)} وفي الملصق ${fmt(x.meters)}`:''].filter(Boolean);
+    const row=(l,a,b)=>`<div><span>${l}</span><b dir="auto">${a}</b><b dir="auto">${b}</b></div>`;
+    const body=`<p>هذا ملصق كرتون واحد، والكرتون موجود في «${esc(shipName(hit.shipId))}».${guess?` القراءة طلعت <b dir="ltr">${esc(x.code)}</b>، والأقرب لها الكرتون <b dir="ltr">${esc(hit.code)}</b>.`:''}</p>
+      <div class="g-cmp"><div class="g-cmp-h"><span></span><b>في الشحنة</b><b>في الملصق</b></div>${row('الكرتون',esc(hit.code),esc(x.code))}${row('الطاقات',fmt(hit.rolls||0),fmt(x.rolls))}${row('الأمتار',fmt(hit.meters||0),fmt(x.meters)+(x.note?` <small>(${esc(x.note)})</small>`:''))}</div>
+      <p class="${same?'g-match':'g-lowmsg'}">${same?'✓ الملصق يطابق المسجل في الشحنة':'⚠ '+diff.join('، ')+'. قارن مع الصورة، ممكن القراءة غلطت.'}</p>${img}`;
+    const r=await modal({title:`ملصق الكرتون ${esc(x.code)}`,body,actions:same?[{key:'ok',label:'✅ تم التشييك'},{key:'issue',label:'❓ فيه خلل',cls:'ghost'},{key:'cancel',label:'إلغاء',cls:'ghost'}]:[{key:'issue',label:'❓ تعليم فيه خلل'},{key:'ok',label:'✅ تم التشييك',cls:'ghost'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+    if(!r)return;
+    const ok=r.key==='ok';
+    if(await safe(()=>store.update('goods',hit.id,ok?{st:'ok'}:{st:'issue',note:diff.join('، ')||hit.note||'خلل من الملصق'}))){toast(ok?`✅ تم تشييك الكرتون ${hit.code}`:`❓ تم تعليم الكرتون ${hit.code}`);UI.gf='all';UI.gq2='';go('goods',{type:'ship',id:hit.shipId})}
+    return}
+  const r=await modal({title:'ملصق كرتون',body:`<p>هذا ملصق كرتون واحد، وهذا الكرتون غير موجود في شحناتك. راجع الأرقام وأضفه ${sid?'لهذه الشحنة':'لبضاعة اليوم'}.</p>${img}${goodsFields(x)}`,
+    actions:[{key:'ok',label:'إضافة الكرتون'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+  if(!r)return;const g=goodsOf(r.values);if(!g.code){toast('اكتب رقم الكرتون أو اسمه');return}
+  const target=sid||await dayShip(today());
+  if(await safe(()=>store.add('goods',{...g,st:'',shipId:target}))){toast(`تمت إضافة الكرتون ${g.code}`);if(!sid){UI.gf='all';UI.gq2='';go('goods',{type:'ship',id:target})}}}
+/* الصورة ممكن تكون مقلوبة أو على جنب: نجرب الاتجاهات على نسخة صغيرة وناخذ اللي كلماته أوضح */
+function gRotate(c0,a,sc=1){const sw=Math.round(c0.width*sc),sh=Math.round(c0.height*sc),c=document.createElement('canvas'),r=a%180!==0;c.width=r?sh:sw;c.height=r?sw:sh;
+  const x=c.getContext('2d',{willReadFrequently:true});x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.imageSmoothingQuality='high';x.translate(c.width/2,c.height/2);x.rotate(a*Math.PI/180);x.drawImage(c0,-sw/2,-sh/2,sw,sh);return c}
+async function goodsOrient(cv){
+  const sc=Math.min(1,1100/Math.max(cv.width,cv.height)),w=await Tesseract.createWorker('eng');await w.setParameters({tessedit_pageseg_mode:'6'});
+  const score=async a=>{try{const r=await w.recognize(gRotate(cv,a,sc));const ws=r.data.words||[];return{a,s:ws.filter(x=>x.confidence>70&&/[A-Za-z0-9]{3,}/.test(x.text)).length,text:r.data.text||''}}catch(e){return{a,s:0,text:''}}};
+  let best=await score(0);
+  if(best.s<25)for(const a of [90,270,180]){const r=await score(a);if(r.s>best.s*1.5&&r.s>best.s+3)best=r}
+  try{await w.terminate()}catch(e){}return best}
+/* تبييض الخلفية: كل نقطة تنقارن بما حولها، فالرخام والتجاعيد وظل الورقة يختفون والكتابة تبقى */
+function gAdaptive(c0){const W=c0.width,H=c0.height,x0=c0.getContext('2d',{willReadFrequently:true}),id=x0.getImageData(0,0,W,H),d=id.data,g=new Float64Array(W*H);
+  for(let i=0;i<W*H;i++)g[i]=(d[i*4]*299+d[i*4+1]*587+d[i*4+2]*114)/1000;
+  const I=new Float64Array((W+1)*(H+1));for(let y=0;y<H;y++){let r=0;for(let x=0;x<W;x++){r+=g[y*W+x];I[(y+1)*(W+1)+x+1]=I[y*(W+1)+x+1]+r}}
+  const R=Math.max(12,Math.round(Math.max(W,H)/90)),c=document.createElement('canvas');c.width=W;c.height=H;const q=c.getContext('2d'),o=q.createImageData(W,H);
+  for(let y=0;y<H;y++){const ya=Math.max(0,y-R),yb=Math.min(H,y+R+1);for(let x=0;x<W;x++){const xa=Math.max(0,x-R),xb=Math.min(W,x+R+1);
+    const m=(I[yb*(W+1)+xb]-I[ya*(W+1)+xb]-I[yb*(W+1)+xa]+I[ya*(W+1)+xa])/((yb-ya)*(xb-xa));const v=g[y*W+x]<m-18?0:255,k=(y*W+x)*4;o.data[k]=o.data[k+1]=o.data[k+2]=v;o.data[k+3]=255}}
+  q.putImageData(o,0,0);return c}
 async function goodsImg(){const sid=UI.detail&&UI.detail.type==='ship'?UI.detail.id:null;
   const f=await new Promise(res=>{const i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=()=>res(i.files&&i.files[0]||null);i.click()});if(!f)return;
   const src=URL.createObjectURL(f),im=await new Promise(res=>{const x=new Image();x.onload=()=>res(x);x.onerror=()=>res(null);x.src=src});
   if(!im){toast('تعذّر فتح الصورة');return}
   const L=Math.max(im.naturalWidth,im.naturalHeight),sc=Math.min(2.2,Math.max(1,1800/L),2600/L),W=Math.round(im.naturalWidth*sc),H=Math.round(im.naturalHeight*sc);
-  const cv=document.createElement('canvas');cv.width=W;cv.height=H;const cx=cv.getContext('2d',{willReadFrequently:true});cx.fillStyle='#fff';cx.fillRect(0,0,W,H);cx.imageSmoothingQuality='high';cx.drawImage(im,0,0,W,H);
+  let cv=document.createElement('canvas');cv.width=W;cv.height=H;{const cx=cv.getContext('2d',{willReadFrequently:true});cx.fillStyle='#fff';cx.fillRect(0,0,W,H);cx.imageSmoothingQuality='high';cx.drawImage(im,0,0,W,H)}
   const prog=m=>{const t=$('#toast');t.classList.remove('undo');t.textContent=m;t.classList.add('show');clearTimeout(toastT)};
   prog('جارٍ تجهيز قارئ الصور…');
   try{await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js')}catch(e){toast('قارئ الصور يحتاج اتصالًا بالإنترنت في أول مرة');return}
   const mk=l=>Tesseract.createWorker(l);
-  let res=null;
-  try{res=await goodsGrid(cv,W,H,prog,mk)}catch(e){res=null}
-  if(res&&res.rows&&res.rows.length){$('#toast').classList.remove('show');await goodsReview(res.rows,res.tot,sid,src);return}
-  // بدون خطوط جدول (أو ما لقينا العناوين داخل الخانات): نقرأ الصفحة كاملة
-  const id=cx.getImageData(0,0,W,H),d=id.data,hist=new Array(256).fill(0),gr=new Uint8Array(W*H);
-  for(let i=0;i<W*H;i++){gr[i]=(d[i*4]*299+d[i*4+1]*587+d[i*4+2]*114)/1000;hist[gr[i]]++}
-  let tot=W*H,sm=0;for(let t=0;t<256;t++)sm+=t*hist[t];let sB=0,wB=0,best=0,th=128;
-  for(let t=0;t<256;t++){wB+=hist[t];if(!wB)continue;const wF=tot-wB;if(!wF)break;sB+=t*hist[t];const v=wB*wF*(sB/wB-(sm-sB)/wF)**2;if(v>best){best=v;th=t}}
-  for(let i=0;i<W*H;i++){const v=gr[i]>th?255:0;d[i*4]=d[i*4+1]=d[i*4+2]=v}cx.putImageData(id,0,0);
-  let lines=[];
-  const page=async l=>{const w=await Tesseract.createWorker(l,1,{logger:m=>{if(m.status==='recognizing text')prog('جارٍ قراءة الصورة… '+Math.round(m.progress*100)+'%')}});
-    await w.setParameters({tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'});const r=await w.recognize(cv);try{await w.terminate()}catch(e){}return r.data.lines||[]};
-  try{lines=await page('eng')}catch(e){toast('تعذّر تشغيل قارئ الصور، تأكد من الاتصال بالإنترنت');return}
-  let out=goodsByWords(lines);
-  if(!out||!out.rows.length){try{const la=await page('ara+eng');const o2=goodsByWords(la);if(o2&&o2.rows.length)out=o2}catch(e){}}
-  $('#toast').classList.remove('show');
-  if(out&&out.rows.length){await goodsReview(out.rows,out.tot,sid,src);return}
-  await goodsReview(lines.map(l=>goodsLine(l.text||'')).filter(Boolean),null,sid,src);
+  try{
+    prog('جارٍ فحص اتجاه الصورة…');
+    try{const o=await goodsOrient(cv);if(o.a)cv=gRotate(cv,o.a)}catch(e){}
+    // قراءة الصفحة كاملة بعد تبييض الخلفية
+    const page=async(l,c)=>{const w=await Tesseract.createWorker(l,1,{logger:m=>{if(m.status==='recognizing text')prog('جارٍ قراءة الصورة… '+Math.round(m.progress*100)+'%')}});
+      await w.setParameters({tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'});const r=await w.recognize(c);try{await w.terminate()}catch(e){}return r.data};
+    const bw=gAdaptive(cv);let pd=null;try{pd=await page('eng',bw)}catch(e){toast('تعذّر تشغيل قارئ الصور، تأكد من الاتصال بالإنترنت');return}
+    const lines=pd.lines||[],text=pd.text||lines.map(l=>l.text||'').join('\n');
+    const byW=goodsByWords(lines),listLike=!!(byW&&byW.rows.length>1&&new Set(byW.rows.map(r=>gKey(r.code))).size>1);
+    // ملصق كرتون واحد؟
+    const slip=goodsSlip(text,listLike);
+    if(slip){$('#toast').classList.remove('show');await goodsLabelReview(slip,sid,src);return}
+    // قائمة تعبئة بجدول خطوط
+    let res=null;try{res=await goodsGrid(cv,cv.width,cv.height,prog,mk)}catch(e){res=null}
+    if(res&&res.rows&&res.rows.length){$('#toast').classList.remove('show');await goodsReview(res.rows,res.tot,sid,src);return}
+    let out=byW;
+    if(!out||!out.rows.length){try{const o2=goodsByWords((await page('ara+eng',bw)).lines||[]);if(o2&&o2.rows.length)out=o2}catch(e){}}
+    $('#toast').classList.remove('show');
+    if(out&&out.rows.length){await goodsReview(out.rows,out.tot,sid,src);return}
+    await goodsReview(lines.map(l=>goodsLine(l.text||'')).filter(Boolean),null,sid,src);
+  }catch(e){toast('تعذّرت قراءة الصورة، جرّب صورة أوضح')}
 }
 async function goodsReview(rows,tot,sid,src){
   // صف فيه أكثر من كرتون (مثل 4-6): الأرقام ممكن تكون للكرتون الواحد أو مجموع الصف. نختار اللي يطابق المجموع في الصورة
@@ -1959,7 +2056,7 @@ async function goodsReview(rows,tot,sid,src){
     ${src?`<details class="g-img"><summary>عرض الصورة للمقارنة</summary><img src="${src}" alt="صورة القائمة"></details>`:''}
     ${sid?'':`<label class="field"><span>اسم الشحنة</span><input type="text" name="shipName" value="${esc('شحنة '+fmtShort(today()))}"></label>`}
     <div class="ocr-wrap"><table class="ocr-tbl goods-tbl"><thead><tr><th>الكرتون</th><th>الطاقات</th><th>الكراتين</th><th>الأمتار</th></tr></thead><tbody>${rows.map((r,i)=>{const k=gKey(r.code),dp=k&&(have[k]||seen[k]>1);
-      const lw=k=>r.low&&r.low[k]?' low':'';
+      const lw=k=>(r.low&&r.low[k])||(k==='meters'&&+r.meters>5000)||(k==='rolls'&&+r.rolls>200)?' low':'';
       return `<tr><td><input name="g${i}_code" value="${esc(r.code)}" dir="auto" class="${dp?'dup':''}${lw('code')}">${r.desc?`<input name="g${i}_desc" value="${esc(r.desc)}" dir="auto" class="g-desc-in${(RN.n[gKey(r.desc)]||0)>1?' gt'+RN.c[gKey(r.desc)]:''}">`:''}</td><td><input name="g${i}_rolls" value="${r.rolls||''}" inputmode="decimal" dir="ltr" class="${lw('rolls')}"></td><td><input name="g${i}_cartons" value="${r.cartons||''}" inputmode="numeric" dir="ltr" placeholder="${r.code?'':'1'}"></td><td><input name="g${i}_meters" value="${r.meters||''}" inputmode="decimal" dir="ltr" class="${lw('meters')}"></td></tr>`}).join('')}</tbody></table></div>`;
   setTimeout(()=>{const a=document.activeElement;if(a&&a.closest&&a.closest('#modal-root')&&a.tagName==='INPUT')a.blur()},30);
   const r=await modal({title:'مراجعة الكراتين من الصورة',body,actions:[{key:'ok',label:'إضافة الكراتين'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});

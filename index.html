@@ -570,6 +570,19 @@ td.num{direction:ltr;text-align:left}
 .sum-plus:active{transform:translateY(-50%) scale(.9)}
 .sum-hint{display:block;min-height:0;white-space:pre;font-size:.86rem;color:var(--brass);font-weight:500;margin-top:4px}
 .sum-hint:empty{display:none}
+
+.seg.two{grid-template-columns:repeat(2,1fr)}
+@supports selector(:has(a)){.seg.two::before{width:calc((100% - 12px)/2);inset-inline-start:calc(4px + var(--i,0) * ((100% - 12px)/2 + 4px))}}
+.g-seg{margin-bottom:18px}
+.cnt-add .btn{margin-top:6px}
+.cnt-row{appearance:none;font:inherit;color:inherit;width:100%;display:flex;justify-content:space-between;align-items:baseline;gap:12px;background:none;border:0;border-top:1px solid var(--line);padding:13px 4px;cursor:pointer;text-align:start}
+.cnt-row:first-child{border-top:0}
+.cnt-row span{font-size:1.02rem}
+.cnt-row b{font-weight:600;white-space:nowrap}.cnt-row small{color:var(--muted);font-weight:400}
+@media (hover:hover){.cnt-row:hover span{color:var(--brass)}}
+.cnt-foot{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}
+.cnt-foot .btn svg{width:18px;height:18px;margin-inline-end:6px;vertical-align:-3px}
+.cnt-foot .g-clear{margin-top:0}
 </style>
 </head>
 <body>
@@ -662,7 +675,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='29 أكتوبر - ج';
+const APP_VERSION='29 أكتوبر - د';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1215,12 +1228,13 @@ cust:{
 },
 /* ===== البضاعة: كل شحنة لحالها ===== */
 goods:{
-  html:()=>`<div class="page-head g-head"><div><h1>البضاعة</h1><p class="sub">صورة قائمة التعبئة تصير شحنة، وصورة ملصق الكرتون تشيّكه. اللي تضيفه يدويًا في نفس اليوم يكون شحنة واحدة</p></div><div class="head-btns"><button class="btn ghost" data-act="goodsImg">${svg('camera')}من صورة</button><button class="btn" data-act="addGoods">+ إضافة كرتون</button></div></div>
+  html:()=>(UI.gview==='count'?countListHtml():'')||`${gViewSeg()}<div class="page-head g-head"><div><h1>البضاعة</h1><p class="sub">صورة قائمة التعبئة تصير شحنة، وصورة ملصق الكرتون تشيّكه. اللي تضيفه يدويًا في نفس اليوم يكون شحنة واحدة</p></div><div class="head-btns"><button class="btn ghost" data-act="goodsImg">${svg('camera')}من صورة</button><button class="btn" data-act="addGoods">+ إضافة كرتون</button></div></div>
   <div id="goodsErr"></div>
   <label class="field cust-search" id="gSearchW" hidden><input type="search" id="goodsQ" placeholder="ابحث برقم الكرتون أو الصنف في كل الشحنات" value="${esc(UI.gq||'')}" autocomplete="off"></label>
   <div id="list" class="list">${loading}</div>`,
   update(){
     goodsMigrate();
+    if(UI.gview==='count'){countListUpdate();return}
     const L=$('#list');
     $('#goodsErr').innerHTML=GOODS_ERR?`<p class="warn-box">قواعد Firestore لا تسمح بقسم البضاعة حاليًا، لذلك لن تُحفظ التسجيلات. أضف <b>goods</b> في القواعد.</p>`:'';
     const ships=shipList(),cart=allCartons();
@@ -1230,6 +1244,32 @@ goods:{
       L.innerHTML=res.length?res.map(g=>{const c=cartonsOf(g.shipId);return goodsCard(g,goodsDupes(c),true,goodsNames(c))}).join(''):'<p class="empty">لا يوجد كرتون بهذا الرقم أو الصنف.</p>';return}
     if(!ships.length){L.className='';L.innerHTML=`<div class="empty-big"><p>لا توجد بضاعة بعد. صوّر قائمة التعبئة، أو أضف الكراتين يدويًا.</p><div class="head-btns" style="justify-content:center"><button class="btn ghost" data-act="goodsImg">${svg('camera')}من صورة</button><button class="btn brass" data-act="addGoods">+ إضافة كرتون</button></div></div>`;return}
     L.className='list';L.innerHTML=ships.map(shipCard).join('');
+  }
+},
+count:{
+  html:()=>`${back('الجرد')}<div class="page-head"><div><h1 id="dname">…</h1><p class="sub" id="cntSub"></p></div></div>
+  <section class="hero"><span class="hero-label">مجموع الأمتار</span><strong class="hero-num" id="cntTot">—</strong><div class="hero-row" id="cntSums"></div></section>
+  <section class="panel cnt-add"><h2>إضافة صنف</h2>
+    <label class="field"><span>اسم الصنف</span><input type="text" id="cntName" list="cntNames" placeholder="مثل: الريان" autocomplete="off" dir="auto" data-enter="cntNext"></label><datalist id="cntNames"></datalist>
+    <div id="cntMetersW">${sumField('الأمتار','cntMeters','')}</div>
+    <p class="note-sm">اضغط + بعد كل طاقة عشان تنجمع الأمتار. لو الصنف مسجل في هذا الجرد، الأمتار تنضاف عليه.</p>
+    <button class="btn block" data-act="cntAdd">إضافة للجرد</button></section>
+  <section class="panel"><div class="panel-head"><h2>الأصناف</h2><span id="cntCount"></span></div>
+    <label class="field cust-search" id="cntQW" hidden><input type="search" id="cntQ" placeholder="ابحث باسم الصنف" value="${esc(UI.cntq||'')}" autocomplete="off"></label>
+    <div id="cntList">${loading}</div></section>
+  <div id="cntFoot"></div>`,
+  update(){
+    const c=(S.goods||[]).find(x=>x.id===UI.detail.id&&x.kind==='count');if(!c){go('goods');return}
+    $('#dname').textContent=c.name;$('#cntSub').textContent=c.date?fmtLong(c.date):'';
+    const items=countItems(c.id),tot=sum(items,x=>x.meters||0);
+    $('#cntTot').innerHTML=`<span class="mnum">${fmt(tot)}</span> <small>متر</small>`;
+    $('#cntSums').innerHTML=`<span>الأصناف <b>${items.length}</b></span>`;
+    const dl=$('#cntNames');if(dl)dl.innerHTML=countNameList().map(n=>`<option value="${esc(n)}">`).join('');
+    $('#cntQW').hidden=items.length<8;$('#cntCount').textContent=items.length?`${items.length} صنف`:'';
+    const q=gKey(UI.cntq||''),list=items.filter(x=>!q||gKey(x.name).includes(q)).sort((a,b)=>a.name.localeCompare(b.name,'ar',{numeric:true}));
+    $('#cntList').innerHTML=items.length?(list.length?list.map(x=>`<button class="cnt-row" data-act="cntEdit" data-id="${x.id}"><span dir="auto">${esc(x.name)}</span><b><span class="mnum">${fmt(x.meters||0)}</span> <small>م</small></b></button>`).join(''):'<p class="empty">لا يوجد صنف بهذا الاسم.</p>')
+      :'<p class="empty">لم تُسجل أصناف بعد. اكتب اسم الصنف وأمتاره من الأعلى.</p>';
+    $('#cntFoot').innerHTML=items.length?`<div class="cnt-foot"><button class="btn ghost" data-act="cntShare">${svg('chat')}إرسال الجرد واتساب</button><button class="btn ghost g-clear" data-act="delCurrent">${svg('trash')}حذف الجرد</button></div>`:`<button class="btn ghost block g-clear" data-act="delCurrent">${svg('trash')}حذف الجرد</button>`;
   }
 },
 ship:{
@@ -1618,7 +1658,7 @@ async function sharePDF(name){
 
 const ACT={
   nav:t=>go(t.dataset.tab),
-  back:()=>{if(history.state&&history.state.nav&&history.length>2)history.back();else go(UI.tab)},
+  back:()=>{if(UI.detail&&UI.detail.type==='count')UI.gview='count';if(history.state&&history.state.nav&&history.length>2)history.back();else go(UI.tab)},
   menu:()=>UI.detail.type==='cust'?editCustomer(UI.detail.id):editName({branch:'branches',rep:'reps',worker:'workers'}[UI.detail.type],UI.detail.id),
   editName:t=>t.dataset.col==='customers'?editCustomer(t.dataset.id):editName(t.dataset.col,t.dataset.id),
   addBranch:()=>addEntity('branches','فرع'),
@@ -1704,7 +1744,7 @@ const gKey=c=>normPhone(c).toLowerCase().replace(/\s+/g,' ');
 /* الشحنة نفسها محفوظة في نفس مجموعة goods (kind:'ship') عشان ما تحتاج تعديل قواعد Firestore، وكل كرتون فيه shipId */
 const isShip=g=>g&&g.kind==='ship';
 const shipList=()=>(S.goods||[]).filter(isShip).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||0)-(a.createdAt||0));
-const allCartons=()=>(S.goods||[]).filter(g=>!isShip(g));
+const allCartons=()=>(S.goods||[]).filter(g=>!g.kind);
 const cartonsOf=sid=>allCartons().filter(g=>g.shipId===sid);
 const gSort=(a,b)=>gKey(a.code).localeCompare(gKey(b.code),'en',{numeric:true})||(a.createdAt||0)-(b.createdAt||0);
 /* نفس الصنف: كل صنف مكرر ياخذ لون، فالكراتين اللي لها نفس اللون نفس الصنف */
@@ -1712,6 +1752,49 @@ function goodsNames(list){const m={},col={};let i=0;list.forEach(g=>{const k=gKe
   Object.keys(m).sort((a,b)=>a.localeCompare(b,'en',{numeric:true})).forEach(k=>{if(m[k]>1)col[k]=i++%8});return{n:m,c:col}}
 function goodsDupes(list){const m={};list.forEach(g=>{const k=gKey(g.code);if(k)m[k]=(m[k]||0)+1});return m}
 function goodsTotals(list){let ctn=0,rolls=0,m=0;list.forEach(g=>{const c=g.cartons||1;ctn+=c;rolls+=(g.rolls||0)*c;m+=(g.meters||0)*c});return{ctn,rolls,m:Math.round(m*100)/100}}
+/* ===== الجرد: كل صنف وأمتاره (بدون طاقات ولا ألوان) ===== */
+const gViewSeg=()=>`<div class="seg two g-seg" role="radiogroup" aria-label="البضاعة أو الجرد"><label><input type="radio" name="gview" value="ship" ${UI.gview!=='count'?'checked':''}><span>الشحنات</span></label><label><input type="radio" name="gview" value="count" ${UI.gview==='count'?'checked':''}><span>الجرد</span></label></div>`;
+const countList=()=>(S.goods||[]).filter(g=>g.kind==='count').sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||0)-(a.createdAt||0));
+const countItems=cid=>(S.goods||[]).filter(g=>g.kind==='citem'&&g.countId===cid);
+function countNameList(){const m=new Map();(S.goods||[]).forEach(g=>{const n=g.kind==='citem'?g.name:!g.kind?g.desc:'';if(n&&!m.has(gKey(n)))m.set(gKey(n),n)});return [...m.values()].sort((a,b)=>a.localeCompare(b,'ar'))}
+function countListHtml(){return `${gViewSeg()}<div class="page-head g-head"><div><h1>الجرد</h1><p class="sub">عد أمتار كل صنف في المحل. كل جرد محفوظ بتاريخه</p></div><div class="head-btns"><button class="btn" data-act="cntNew">+ جرد جديد</button></div></div>
+  <div id="goodsErr"></div><div id="list" class="list">${loading}</div>`}
+function countListUpdate(){const L=$('#list'),cs=countList();
+  if(!cs.length){L.className='';L.innerHTML=`<div class="empty-big"><p>لا يوجد جرد بعد. ابدأ جردًا جديدًا وسجّل أمتار كل صنف.</p><button class="btn brass" data-act="cntNew">+ جرد جديد</button></div>`;return}
+  L.className='list';L.innerHTML=cs.map(c=>{const it=countItems(c.id);return `<button class="ship-card" data-act="cntOpen" data-id="${c.id}"><div class="sc-top"><h3>${esc(c.name)}</h3>${c.date?`<span>${fmtShort(c.date)}</span>`:''}</div>
+    <div class="g-meta"><span>الأصناف <b class="mnum">${it.length}</b></span><span>الأمتار <b class="mnum">${fmt(sum(it,x=>x.meters||0))}</b></span></div></button>`}).join('')}
+async function countNew(){const ex=countList().find(c=>c.date===today());
+  const r=await modal({title:'جرد جديد',body:`${ex?`<p>فيه جرد بتاريخ اليوم: «${esc(ex.name)}». تقدر تكمل عليه أو تبدأ جرد ثاني.</p>`:''}<label class="field"><span>اسم الجرد</span><input type="text" name="name" value="جرد المحل"></label>`,
+    actions:[{key:'ok',label:'بدء الجرد'},...(ex?[{key:'cont',label:'إكمال جرد اليوم',cls:'ghost'}]:[]),{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+  if(!r)return;if(r.key==='cont'){go('goods',{type:'count',id:ex.id});return}
+  let id=null;if(await safe(async()=>{id=await store.add('goods',{kind:'count',name:r.values.name.trim()||'جرد المحل',date:today()})})&&typeof id==='string'){UI.cntq='';go('goods',{type:'count',id})}}
+async function countAdd(){const cid=UI.detail.id,ni=$('#cntName'),mi=document.querySelector('[name=cntMeters]');
+  const name=(ni.value||'').trim().replace(/\s+/g,' '),m=Math.round(gSum(mi.value)*100)/100;
+  if(!name){ni.classList.add('err');ni.focus();toast('اكتب اسم الصنف');return}
+  if(!(m>0)){mi.classList.add('err');mi.focus();toast('اكتب الأمتار');return}
+  const ex=countItems(cid).find(x=>gKey(x.name)===gKey(name));
+  if(!await safe(()=>ex?store.update('goods',ex.id,{meters:Math.round(((ex.meters||0)+m)*100)/100}):store.add('goods',{kind:'citem',countId:cid,name,meters:m})))return;
+  toast(ex?`أضيف ${fmt(m)} م على ${ex.name}، صار ${fmt((ex.meters||0)+m)} م`:`تم تسجيل ${name}: ${fmt(m)} م`);
+  ni.value='';mi.value='';const h=mi.closest('.field').querySelector('.sum-hint');if(h)h.textContent='';ni.focus()}
+async function countEdit(id){const x=(S.goods||[]).find(g=>g.id===id);if(!x)return;
+  const r=await modal({title:'تعديل الصنف',body:`<label class="field"><span>اسم الصنف</span><input type="text" name="name" value="${esc(x.name)}" dir="auto"></label>${sumField('الأمتار','meters',x.meters||'')}<p class="note-sm">تقدر تضيف عليها: اضغط + واكتب الأمتار الجديدة.</p>`,
+    actions:[{key:'save',label:'حفظ'},{key:'del',label:'حذف',cls:'danger'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+  if(!r)return;
+  if(r.key==='del'){if(await safe(()=>store.remove('goods',id)))undoToast(`تم حذف ${x.name}`,[{c:'goods',x}]);return}
+  const name=r.values.name.trim(),meters=gNum(r.values.meters);if(!name){toast('اكتب اسم الصنف');return}
+  if(await safe(()=>store.update('goods',id,{name,meters})))toast('تم الحفظ')}
+async function countRename(id){const c=(S.goods||[]).find(x=>x.id===id);if(!c)return;
+  const r=await modal({title:'تعديل الجرد',body:`<label class="field"><span>اسم الجرد</span><input type="text" name="name" value="${esc(c.name)}"></label><label class="field"><span>التاريخ</span><input type="date" name="date" value="${c.date||today()}"></label>`,actions:[{key:'ok',label:'حفظ'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+  if(!r)return;const name=r.values.name.trim();if(!name){toast('اكتب اسم الجرد');return}
+  if(await safe(()=>store.update('goods',id,{name,date:r.values.date||c.date})))toast('تم الحفظ')}
+async function countDelete(id){const c=(S.goods||[]).find(x=>x.id===id);if(!c)return;const kids=countItems(id);
+  const r=await modal({title:`حذف ${esc(c.name)}`,body:`<p>${kids.length?`سيُحذف الجرد ومعه <b>${kids.length}</b> صنف.`:'سيُحذف الجرد.'} يمكنك التراجع خلال ثوانٍ بعد الحذف.</p><label class="field"><span>للتأكيد اكتب كلمة <b>حذف</b></span><input type="text" name="confirm" autocomplete="off" placeholder="حذف"></label>`,
+    actions:[{key:'del',label:'حذف الجرد',cls:'danger'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+  if(!r)return;if(r.values.confirm.replace(/\s/g,'')!=='حذف'){toast('لم يتم الحذف، يجب كتابة كلمة حذف');return}
+  go('goods');if(await safe(async()=>{for(const k of kids)await store.remove('goods',k.id);await store.remove('goods',id)}))undoToast(`تم حذف ${c.name}`,[{c:'goods',x:c},...kids.map(x=>({c:'goods',x}))])}
+function countShare(){const c=(S.goods||[]).find(x=>x.id===UI.detail.id);if(!c)return;const it=countItems(c.id).sort((a,b)=>a.name.localeCompare(b.name,'ar',{numeric:true}));
+  const txt=`*${c.name}*${c.date?'\n'+fmtLong(c.date):''}\n\n${it.map(x=>`${x.name}: ${fmt(x.meters||0)} م`).join('\n')}\n\n*المجموع: ${fmt(sum(it,x=>x.meters||0))} متر*`;
+  window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank')}
 /* الإدخال اليدوي: كل يوم شحنة وحدة رقمها ثابت (m-التاريخ)، فلو انشغلت الخطوة مرتين أو من جهازين ما تتكرر */
 const gDay=t=>{const d=new Date(t);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
 async function dayShip(d){const id='m-'+d;if(!(S.goods||[]).some(x=>x.id===id))await store.restore('goods',{id,kind:'ship',name:'بضاعة '+fmtShort(d),date:d,day:1,createdAt:Date.now()});return id}
@@ -2093,7 +2176,8 @@ async function goodsReview(rows,tot,sid,src){
   let ship=sid;
   if(await safe(async()=>{if(!ship)ship=await store.add('goods',{kind:'ship',name:(r.values.shipName||'').trim()||'شحنة '+fmtShort(today()),date:today()});
     for(const g of list)await store.add('goods',{...g,st:'',shipId:ship})})){toast(`تمت إضافة ${list.length} كرتون`);if(!sid&&typeof ship==='string'){UI.gf='all';UI.gq2='';go('goods',{type:'ship',id:ship})}}}
-document.addEventListener('input',e=>{if(e.target.id==='goodsQ'){UI.gq=e.target.value;refresh()}if(e.target.id==='goodsQ2'){UI.gq2=e.target.value;refresh()}});
+document.addEventListener('input',e=>{if(e.target.id==='goodsQ'){UI.gq=e.target.value;refresh()}if(e.target.id==='goodsQ2'){UI.gq2=e.target.value;refresh()}if(e.target.id==='cntQ'){UI.cntq=e.target.value;refresh()}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.name==='cntMeters'&&!e.target.closest('#modal-root')){e.preventDefault();e.target.blur();ACT.cntAdd()}});
 Object.assign(ACT,{
   addGoods:()=>addGoods(),
   goodsImg:()=>goodsImg(),
@@ -2102,17 +2186,24 @@ Object.assign(ACT,{
   gIssue:t=>goodsIssue(t.dataset.id),
   gFilter:t=>{UI.gf=t.dataset.f;refresh()},
   addShip:()=>addShip(),
+  cntNew:()=>countNew(),
+  cntOpen:t=>{UI.cntq='';go('goods',{type:'count',id:t.dataset.id})},
+  cntAdd:()=>countAdd(),
+  cntNext:()=>{const m=document.querySelector('[name=cntMeters]');if(m)m.focus()},
+  cntEdit:t=>countEdit(t.dataset.id),
+  cntShare:()=>countShare(),
   openShip:t=>{UI.gf='all';UI.gq2='';go('goods',{type:'ship',id:t.dataset.id})}
 });
 {const m0=ACT.menu,d0=ACT.delCurrent;
-  ACT.menu=t=>UI.detail&&UI.detail.type==='ship'?editShip(UI.detail.id):m0(t);
-  ACT.delCurrent=t=>UI.detail&&UI.detail.type==='ship'?deleteShip(UI.detail.id):d0(t)}
+  ACT.menu=t=>UI.detail&&UI.detail.type==='ship'?editShip(UI.detail.id):UI.detail&&UI.detail.type==='count'?countRename(UI.detail.id):m0(t);
+  ACT.delCurrent=t=>UI.detail&&UI.detail.type==='ship'?deleteShip(UI.detail.id):UI.detail&&UI.detail.type==='count'?countDelete(UI.detail.id):d0(t)}
 document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t||t.closest('#modal-root'))return;const f=ACT[t.dataset.act];if(f){e.preventDefault();f(t)}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.enter&&!e.target.closest('#modal-root')){e.preventDefault();ACT[e.target.dataset.enter](e.target)}});
 document.addEventListener('input',e=>{e.target.classList&&e.target.classList.remove('err');});
 document.addEventListener('change',e=>{const el=e.target,v=el.value;
   if(el.name==='method')UI.method=v;
   if(el.name==='cmethod')UI.cmethod=v;
+  if(el.name==='gview'){UI.gview=v;mount();return}
   if(!v)return;
   if(el.id==='day'){UI.date=v;refresh()}
   if(el.id==='wMonth'){UI.wMonth=v;refresh()}

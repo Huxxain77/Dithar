@@ -565,7 +565,8 @@ td.num{direction:ltr;text-align:left}
 .goods-tbl input.g-shade-in{font-style:normal;color:var(--brass)}
 
 .sum-in{position:relative;display:block}
-.sum-in input{width:100%;padding-right:104px;padding-left:14px;text-align:left}
+.sum-in input{width:100%;padding-right:56px;padding-left:14px;text-align:left}
+.sum-in.two-btn input{padding-right:104px}
 .sum-plus{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:42px;height:38px;border:0;border-radius:10px;background:var(--brass-soft);color:var(--brass);font:inherit;font-size:1.45rem;font-weight:600;line-height:1;cursor:pointer;touch-action:manipulation}
 .sum-plus:active{transform:translateY(-50%) scale(.9)}
 .sum-hint{display:block;min-height:0;white-space:pre;font-size:.86rem;color:var(--brass);font-weight:500;margin-top:4px}
@@ -677,7 +678,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='29 أكتوبر - هـ';
+const APP_VERSION='29 أكتوبر - و';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1843,7 +1844,7 @@ async function deleteShip(id){const sh=(S.goods||[]).find(x=>x.id===id);if(!sh)r
 const gTerm=x=>{const f=String(x).split(/[*×xX]/).map(y=>num(y));if(f.some(n=>!(n>0)))return f.length>1&&f.slice(0,-1).every(n=>n>0)&&String(x).trim().match(/[*×xX]\s*$/)?f.slice(0,-1).reduce((a,b)=>a*b,1):(f.length===1&&f[0]>0?f[0]:0);return f.reduce((a,b)=>a*b,1)};
 const gSum=v=>String(v??'').split(/[+＋]/).reduce((a,x)=>a+gTerm(x),0);
 const gNum=v=>{const n=gSum(v);return n>0?Math.round(n*100)/100:0};
-const sumField=(label,name,val,mode='decimal')=>`<label class="field"><span>${label}</span><span class="sum-in"><input type="text" name="${name}" inputmode="${mode}" value="${val}" autocomplete="off" dir="ltr"><button type="button" class="sum-plus" tabindex="-1" aria-label="أضف رقم للمجموع">+</button><button type="button" class="sum-plus sum-times" tabindex="-1" aria-label="ضرب">×</button></span><small class="sum-hint" aria-live="polite"></small></label>`;
+const sumField=(label,name,val,mode='decimal',times=true)=>`<label class="field"><span>${label}</span><span class="sum-in${times?' two-btn':''}"><input type="text" name="${name}" inputmode="${mode}" value="${val}" autocomplete="off" dir="ltr"><button type="button" class="sum-plus" tabindex="-1" aria-label="أضف رقم للمجموع">+</button>${times?'<button type="button" class="sum-plus sum-times" tabindex="-1" aria-label="ضرب">×</button>':''}</span><small class="sum-hint" aria-live="polite"></small></label>`;
 document.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('.sum-plus');if(!b)return;e.preventDefault();
   const i=b.parentNode.querySelector('input'),op=b.classList.contains('sum-times')?'×':'+';let v=i.value.trim();if(v){if(/[+＋×*]\s*$/.test(v))v=v.replace(/[+＋×*]\s*$/,'');i.value=v+op}i.focus();const L=i.value.length;try{i.setSelectionRange(L,L)}catch(_){ }i.scrollLeft=i.scrollWidth;i.dispatchEvent(new Event('input',{bubbles:true}))},true);
 document.addEventListener('input',e=>{const i=e.target;if(!i.closest||!i.closest('.sum-in'))return;const h=i.closest('.field').querySelector('.sum-hint');
@@ -1855,7 +1856,7 @@ document.addEventListener('focusout',e=>{const i=e.target;if(!i.closest||!i.clos
 const goodsFields=(g={})=>`<label class="field"><span>رقم الكرتون أو اسمه</span><input type="text" name="code" value="${esc(g.code||'')}" autocomplete="off" dir="auto"></label>
   <label class="field"><span>الصنف</span><input type="text" name="desc" value="${esc(g.desc||'')}" placeholder="اختياري، مثل: كحلي ياباني" dir="auto"></label>
   <label class="field"><span>اللون أو رقم اللون</span><input type="text" name="shade" value="${esc(g.shade||'')}" placeholder="اختياري، مثل: 3 أو كحلي" dir="auto"></label>
-  <div class="two">${sumField('عدد الطاقات في الكرتون','rolls',g.rolls||'')}<label class="field"><span>عدد الكراتين</span><input type="text" name="cartons" inputmode="numeric" value="${g.cartons||1}"></label></div>
+  <div class="two">${sumField('عدد الطاقات في الكرتون','rolls',g.rolls||'','decimal',false)}<label class="field"><span>عدد الكراتين</span><input type="text" name="cartons" inputmode="numeric" value="${g.cartons||1}"></label></div>
   ${sumField('عدد الأمتار في الكرتون','meters',g.meters||'')}
   <label class="field"><span>ملاحظة</span><input type="text" name="note" value="${esc(g.note||'')}" placeholder="اختياري"></label>`;
 const goodsOf=v=>({code:normPhone(v.code).replace(/\s+/g,' '),desc:(v.desc||'').trim(),shade:normPhone(v.shade||'').trim(),rolls:gNum(v.rolls),cartons:Math.max(1,Math.round(gNum(v.cartons))||1),meters:gNum(v.meters),note:(v.note||'').trim()});

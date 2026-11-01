@@ -678,7 +678,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='29 أكتوبر - و';
+const APP_VERSION='1 نوفمبر - أ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -2235,6 +2235,9 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
 .sum-row.total{border-bottom:0;border-top:2px solid var(--ink);margin-top:6px;padding-top:12px;font-size:1.1rem}
 .sum-row.total b{font-size:1.5rem}
 .sum-row .hint{display:block;font-size:.78rem;color:var(--muted);font-weight:400}
+.sum-sub{background:var(--surface-2);border-radius:10px;padding:8px 12px;margin:6px 0 4px;display:grid;gap:4px;font-size:.84rem;color:var(--muted)}
+.sum-sub div{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.sum-sub b{color:var(--ink);font-weight:500;white-space:nowrap}
 </style>
 <script>
 (function(){
@@ -2252,12 +2255,17 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
     var T=sumEntries(S.entries.filter(function(x){return inRange(x.date,a,b)}));
     var wages=0;S.workers.forEach(function(w){wages+=workerTotals(w.id,a,b).salary});
     var repPaid=0;S.reps.forEach(function(r){repPaid+=repTotals(r.id,a,b).paid});
+    // للعلم بس (ما يأثر على الصافي): كم انصرف لهم فعليًا، وكم باقي لهم أو عليهم
+    var wPaid=0,wOwed=0,wAdv=0;S.workers.forEach(function(w){wPaid+=workerTotals(w.id,a,b).ded;var bl=workerBalance(w,b).balance;if(bl>0.004)wOwed+=bl;else if(bl<-0.004)wAdv-=bl});
+    var wInfo='<div class="sum-sub"><div><span>انصرف لهم فعليًا خلال الفترة (دفعات وسلف)</span><b>'+fmt(wPaid)+'</b></div>'+
+      '<div><span>المتبقي لهم حتى '+fmtShort(b)+'</span><b>'+(WT_ALL?fmt(wOwed):'…')+'</b></div>'+
+      (wAdv>0.004?'<div><span>سلف عليهم أكثر من رواتبهم</span><b>'+(WT_ALL?fmt(wAdv):'…')+'</b></div>':'')+'</div>';
     var net=T.in-T.fee-T.out-wages-repPaid;
     var row=function(label,hint,v,cls){return '<div class="sum-row '+(cls||'')+'"><span>'+label+(hint?'<span class="hint">'+hint+'</span>':'')+'</span><b>'+(cls==='minus'?'− ':'')+fmt(v)+' <small>ر.س</small></b></div>'};
     box.innerHTML=
       row('دخل المحل بعد العمولة','كاش + مدى + فيزا ('+fmt(T.in)+') بعد خصم عمولة الشبكة '+fmt(T.fee),T.in-T.fee)+
       row('مصروفات المحل','',T.out,'minus')+
-      row('رواتب العمال','الراتب كامل قبل خصم السلف',wages,'minus')+
+      row('رواتب العمال','الراتب كامل قبل خصم السلف',wages,'minus')+wInfo+
       row('المدفوع للمناديب','المسدد لهم خلال الفترة',repPaid,'minus')+
       row('الصافي النهائي','',net,'total');
     document.getElementById('sumNet').innerHTML=money(net);

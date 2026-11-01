@@ -678,7 +678,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='1 نوفمبر - أ';
+const APP_VERSION='1 نوفمبر - ب';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1212,6 +1212,7 @@ cust:{
       <p class="note-sm">يُضاف السداد إلى دخل اليومية بطريقة الدفع المختارة. التحويل يُحسب مع الكاش لأنه بدون عمولة.</p>
       <button class="btn brass block" data-act="custPay">تسجيل التسديد</button>
       <button class="btn ghost block sm" data-act="custPayAll" style="margin-top:8px">سداد كامل المبلغ المتبقي</button>
+      <button class="btn ghost block sm" data-act="custDisc" style="margin-top:8px">خصم للعميل (بدون دخل)</button>
     </section>
   </div>
   <section class="panel"><div class="panel-head"><h2>سجل الحركات</h2><span>الأحدث أولًا</span></div><div id="custLog">${loading}</div></section>`,
@@ -1223,9 +1224,9 @@ cust:{
     const t=custTotals(c.id);
     $('#custBalL').textContent=t.bal<-0.004?'رصيد دائن للعميل (مبلغ زائد)':'المتبقي على العميل';
     $('#custBal').innerHTML=money(Math.abs(t.bal));
-    $('#custSums').innerHTML=`<span>إجمالي الدين <b>${fmt(t.debt)}</b></span><span>إجمالي المسدد <b>${fmt(t.paid)}</b></span>`;
+    $('#custSums').innerHTML=`<span>إجمالي الدين <b>${fmt(t.debt)}</b></span><span>إجمالي المسدد <b>${fmt(t.paid)}</b></span>${t.disc?`<span>الخصم <b>${fmt(t.disc)}</b></span>`:''}`;
     let run=0;const rows=t.tx.map(x=>{run+=x.kind==='debt'?x.amount:-x.amount;return{...x,run}});
-    $('#custLog').innerHTML=rows.length?rows.reverse().map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind==='debt'?'out':'in'}">${x.kind==='debt'?'دين':'سداد'+(x.method?' · '+PML[x.method]:'')}</span><span>${fmtLong(x.date)}</span></div>${x.kind==='debt'&&x.items&&x.items.length?`<ul class="debt-lines">${x.items.map(i=>`<li><span>${esc(i.d||'بدون تفاصيل')}</span><b>${fmt(i.p)}</b></li>`).join('')}</ul>`:''}<div class="item-note">${x.note?esc(x.note)+' — ':''}المتبقي بعد الحركة ${fmt(x.run)}</div></div><div class="item-amt ${x.kind==='debt'?'neg':'pos'}">${x.kind==='debt'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delCustTx" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
+    $('#custLog').innerHTML=rows.length?rows.reverse().map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind==='debt'?'out':x.kind==='disc'?'brass':'in'}">${x.kind==='debt'?'دين':x.kind==='disc'?'خصم':'سداد'+(x.method?' · '+PML[x.method]:'')}</span><span>${fmtLong(x.date)}</span></div>${x.kind==='debt'&&x.items&&x.items.length?`<ul class="debt-lines">${x.items.map(i=>`<li><span>${esc(i.d||'بدون تفاصيل')}</span><b>${fmt(i.p)}</b></li>`).join('')}</ul>`:''}<div class="item-note">${x.note?esc(x.note)+' — ':''}المتبقي بعد الحركة ${fmt(x.run)}</div></div><div class="item-amt ${x.kind==='debt'?'neg':'pos'}">${x.kind==='debt'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delCustTx" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
       :'<p class="empty">لا توجد حركات. سجّل أول دين للعميل من الأعلى.</p>';
   }
 },
@@ -1394,8 +1395,8 @@ report:{
 
 /* ---------- مديونية العملاء ---------- */
 function custTotals(id){const tx=S.custTx.filter(x=>x.custId===id).sort(byDateAsc);
-  const debt=sum(tx.filter(x=>x.kind==='debt'),x=>x.amount),paid=sum(tx.filter(x=>x.kind==='pay'),x=>x.amount);
-  return{tx,debt,paid,bal:debt-paid,last:tx[tx.length-1]}}
+  const debt=sum(tx.filter(x=>x.kind==='debt'),x=>x.amount),paid=sum(tx.filter(x=>x.kind==='pay'),x=>x.amount),disc=sum(tx.filter(x=>x.kind==='disc'),x=>x.amount);
+  return{tx,debt,paid,disc,bal:debt-paid-disc,last:tx[tx.length-1]}}   // الخصم ينقص الدين بس ما ينضاف لليومية
 const fmtLong=s=>parseD(s).toLocaleDateString(LOC,{weekday:'short',day:'numeric',month:'short',year:'numeric'});
 /* رقم الواتساب: 05xxxxxxxx يصير 9665xxxxxxxx */
 /* الأرقام العربية (٠٥٤…) تتحول لأرقام عادية عشان كل الأرقام بنفس الشكل والحجم */
@@ -1702,14 +1703,21 @@ const ACT={
     if(await safe(async()=>{const eid=await store.add('entries',{branchId:BID,kind:'in',amount:a,method:m==='transfer'?'cash':m,via:m==='transfer'?'transfer':null,note:'سداد دين: '+c.name,date:d});
       await store.add('custTx',{custId:UI.detail.id,kind:'pay',amount:a,method:m,entryId:typeof eid==='string'?eid:null,note,date:d})})){
       $('#cpayAmt').value='';$('#cpayNote').value='';toast(`تم تسجيل السداد ${fmt(a)} ${PML[m]}، وأُضيف لليومية`)}},
+  async custDisc(){const id=UI.detail.id,b=custTotals(id).bal;if(!(b>0.004)){toast('لا توجد مستحقات على العميل');return}
+    const r=await modal({title:'خصم للعميل',body:`<p>الخصم ينقص من دين العميل، وما ينضاف لدخل اليومية. المتبقي عليه الآن <b>${fmt(b)}</b> ر.س.</p><label class="field"><span>مبلغ الخصم</span><input type="text" name="amt" inputmode="decimal" value="${Math.round(b*100)/100}"></label><label class="field"><span>ملاحظة</span><input type="text" name="note" placeholder="اختياري، مثل: خصم على الباقي"></label>`,
+      actions:[{key:'ok',label:'تسجيل الخصم'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+    if(!r)return;const a=Math.round(num(r.values.amt)*100)/100;if(!(a>0)){toast('اكتب مبلغ الخصم');return}
+    if(a>b+0.004){toast(`الخصم أكبر من المتبقي (${fmt(b)})`);return}
+    if(await safe(()=>store.add('custTx',{custId:id,kind:'disc',amount:a,note:r.values.note.trim(),date:today()})))toast(`تم خصم ${fmt(a)} ر.س، ${a>=b-0.004?'وصار حساب العميل مسدد':'والمتبقي '+fmt(b-a)}`)},
   custPayAll:()=>{const b=custTotals(UI.detail.id).bal;if(!(b>0)){toast('لا توجد مستحقات');return}const el=$('#cpayAmt');el.value=String(Math.round(b*100)/100);el.focus()},
   custWA:()=>{const c=S.customers.find(x=>x.id===UI.detail.id);if(!c)return;const t=custTotals(c.id);
     const tx=t.tx.slice(-12),its=x=>x.items&&x.items.length?x.items:[{d:x.note||'بضاعة',p:x.amount}];
     const lines=tx.map(x=>x.kind==='debt'
       ?'• '+fmtShort(x.date)+': مشتريات بـ '+fmt(x.amount)+' ر.س\n'+its(x).map(i=>'   - '+(i.d||'بضاعة')+': '+fmt(i.p)+' ر.س').join('\n')
+      :x.kind==='disc'?'• '+fmtShort(x.date)+': خصم '+fmt(x.amount)+' ر.س'
       :'• '+fmtShort(x.date)+': دفعت '+fmt(x.amount)+' ر.س'+((x.method||x.note)?' ('+[x.method?PML[x.method]:'',x.note||''].filter(Boolean).join('، ')+')':''));
     const msg='السلام عليكم '+c.name+'،\nمعك دثار للأقمشة، هذا كشف حسابك'+(t.tx.length>tx.length?' (آخر '+tx.length+' حركة)':'')+':\n\n'+lines.join('\n\n')
-      +'\n\nإجمالي المشتريات: '+fmt(t.debt)+' ر.س\nالمدفوع: '+fmt(t.paid)+' ر.س\n'+(t.bal>0.004?'المتبقي عليك: '+fmt(t.bal)+' ر.س':t.bal<-0.004?'رصيدك لدينا: '+fmt(-t.bal)+' ر.س':'حسابك مسدد بالكامل، شكرًا لك.');
+      +'\n\nإجمالي المشتريات: '+fmt(t.debt)+' ر.س\nالمدفوع: '+fmt(t.paid)+' ر.س\n'+(t.disc?'الخصم: '+fmt(t.disc)+' ر.س\n':'')+(t.bal>0.004?'المتبقي عليك: '+fmt(t.bal)+' ر.س':t.bal<-0.004?'رصيدك لدينا: '+fmt(-t.bal)+' ر.س':'حسابك مسدد بالكامل، شكرًا لك.');
     window.open('https://wa.me/'+waNum(c.phone)+'?text='+encodeURIComponent(msg),'_blank')},
   delCustTx:t=>delLinked('custTx',t.dataset.id),
   async setSalary(){const w=S.workers.find(x=>x.id===UI.detail.id);if(!w)return;const m0=UI.wMonth||curMonth(),fm=wFirstMonth(w);

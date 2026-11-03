@@ -678,7 +678,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='1 نوفمبر - ج';
+const APP_VERSION='3 نوفمبر - أ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1003,8 +1003,8 @@ function workerBalance(w,upto){
   const sal=(W_SALARIED(w)&&fm<=m)?sum(monthsIn(fm+'-01',upto),mm=>wSalaryOn(w,mm)):0;
   const tx=S.workerTx.filter(x=>x.workerId===w.id&&x.date<=upto);
   const pcs=W_PIECES(w)?sum(tx.filter(x=>x.kind==='pieces'),x=>x.amount):0;
-  const paid=sum(tx.filter(x=>x.kind==='exp'),x=>x.amount);
-  return{earned:sal+pcs,paid,balance:sal+pcs-paid};
+  const paid=sum(tx.filter(x=>x.kind==='exp'),x=>x.amount),bon=sum(tx.filter(x=>x.kind==='bonus'),x=>x.amount);
+  return{earned:sal+pcs+bon,paid,balance:sal+pcs+bon-paid};
 }
 let WT_ALL=false,WT_LOADING=false;
 async function ensureWorkerHistory(){
@@ -1020,8 +1020,10 @@ const balTxt=v=>WT_ALL?fmt(v):'…';
 function workerTotals(wid,from,to){
   const w=S.workers.find(x=>x.id===wid)||{};
   const tx=S.workerTx.filter(x=>x.workerId===wid&&x.kind==='exp'&&inRange(x.date,from,to));
-  const salary=sum(monthsIn(from,to),m=>wSalaryOn(w,m)),ded=sum(tx,x=>x.amount);
-  return{salary,ded,net:salary-ded,tx,gross:salary};
+  const ms=monthsIn(from,to),base=sum(ms,m=>wSalaryOn(w,m)),ded=sum(tx,x=>x.amount);
+  /* العلاوة لشهر واحد بس: تنحسب في شهرها وما تتكرر */
+  const btx=S.workerTx.filter(x=>x.workerId===wid&&x.kind==='bonus'&&ms.includes((x.month||x.date||'').slice(0,7))),bonus=sum(btx,x=>x.amount),salary=base+bonus;
+  return{salary,base,bonus,btx,ded,net:salary-ded,tx,gross:salary};
 }
 const stat=(l,v,c='')=>`<div class="stat ${c}"><span>${l}</span><strong>${fmt(v)}</strong> <small>ر.س</small></div>`;
 const statN=(l,v)=>`<div class="stat"><span>${l}</span><strong>${fmt(v)}</strong></div>`;
@@ -1313,7 +1315,7 @@ workers:{
 },
 /* ===== worker detail ===== */
 worker:{
-  html:()=>`${back('العمال')}<div class="page-head"><div><h1 id="dname">…</h1><p class="sub" id="wPrice"></p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" data-act="setSalary">تغيير الراتب</button><button class="btn ghost" data-act="toggleStop" id="stopBtn">إيقاف العامل</button></div></div>
+  html:()=>`${back('العمال')}<div class="page-head"><div><h1 id="dname">…</h1><p class="sub" id="wPrice"></p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" data-act="addBonus">+ علاوة</button><button class="btn ghost" data-act="setSalary">تغيير الراتب</button><button class="btn ghost" data-act="toggleStop" id="stopBtn">إيقاف العامل</button></div></div>
   <div class="date-bar"><button class="icon-btn" data-act="wMonthShift" data-n="-1" aria-label="الشهر السابق">${svg('prev')}</button><input type="month" id="wMonth" value="${UI.wMonth}" aria-label="الشهر"><button class="icon-btn" data-act="wMonthShift" data-n="1" aria-label="الشهر التالي">${svg('next')}</button></div>
   <section class="hero"><span class="hero-label" id="wHeroLabel">المستحق له</span><strong class="hero-num" id="wNet">—</strong><div class="hero-row" id="wSums"></div></section>
   <div class="grid1">
@@ -1323,7 +1325,7 @@ worker:{
       <button class="btn brass block" data-act="addWExp">تسجيل الدفعة</button>
     </section>
   </div>
-  <section class="panel"><div class="panel-head"><h2>دفعات الشهر</h2><span id="wMonLabel"></span></div><div id="wLog">${loading}</div></section>`,
+  <section class="panel"><div class="panel-head"><h2>حركات الشهر</h2><span id="wMonLabel"></span></div><div id="wLog">${loading}</div></section>`,
   update(){
     const w=S.workers.find(x=>x.id===UI.detail.id);if(!w){go('workers');return}
     $('#dname').textContent=w.name;$('#wPrice').innerHTML=`الراتب الشهري الحالي ${money(salaryFor(w,curMonth()))}`;
@@ -1334,12 +1336,13 @@ worker:{
     $('#stopBtn').textContent=wStopped(w)?'إعادة تفعيل العامل':'إيقاف العامل';
     $('#wHeroLabel').textContent=`${now<0?'عليه لك':'المستحق له'} حتى ${fmtShort(upto)}`;
     $('#wNet').innerHTML=WT_ALL?money(Math.abs(now)):'…';
-    $('#wSums').innerHTML=`<span>رصيد سابق <b>${balTxt(before)}</b></span><span>راتب ${fmtMonth(UI.wMonth)} <b>${fmt(t.salary)}</b></span><span>المدفوع هذا الشهر <b>${fmt(t.ded)}</b></span>${wStopped(w)?`<span class="tag out">متوقف من ${fmtMonth(shiftMonth(w.end,1))}</span>`:''}`;
+    $('#wSums').innerHTML=`<span>رصيد سابق <b>${balTxt(before)}</b></span><span>راتب ${fmtMonth(UI.wMonth)} <b>${fmt(t.base)}</b></span>${t.bonus?`<span>علاوة الشهر <b>${fmt(t.bonus)}</b></span>`:''}<span>المدفوع هذا الشهر <b>${fmt(t.ded)}</b></span>${wStopped(w)?`<span class="tag out">متوقف من ${fmtMonth(shiftMonth(w.end,1))}</span>`:''}`;
     $('#wMonLabel').textContent=fmtMonth(UI.wMonth);
-    const tx=[...t.tx].sort(byDateAsc).reverse();
-    $('#wLog').innerHTML=tx.length?tx.map(x=>
+    const tx=[...t.btx,...t.tx].sort(byDateAsc).reverse();
+    $('#wLog').innerHTML=tx.length?tx.map(x=>x.kind==='bonus'?
+      `<div class="item"><div class="item-main"><div class="item-title"><span class="tag in">علاوة</span><span>${fmtMonth(x.month||x.date.slice(0,7))}</span></div><div class="item-note">${esc(x.note||'علاوة لهذا الشهر فقط')}</div></div><div class="item-amt pos">+${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delWTx" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`:
       `<div class="item"><div class="item-main"><div class="item-title"><span class="tag out">دفعة</span><span>${fmtShort(x.date)}</span></div><div class="item-note">${esc(x.note||'بدون ملاحظة')}</div></div><div class="item-amt neg">−${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delWTx" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
-      :'<p class="empty">لا توجد دفعات في هذا الشهر.</p>';
+      :'<p class="empty">لا توجد حركات في هذا الشهر.</p>';
   }
 },
 /* ===== monthly report ===== */
@@ -1379,7 +1382,7 @@ report:{
     else{const rows=[...S.workers].sort(byName).map(w=>({w,...workerTotals(w.id,a,b)}));
       rows.forEach(r=>{r.before=workerBalance(r.w,shiftDay(a,-1)).balance;r.bal=workerBalance(r.w,b).balance});
       const bc=v=>WT_ALL?cell(v,v<0?'neg':''):'<td class="num">…</td>';
-      $('#rWorkers').innerHTML=`<table><thead><tr><th>العامل</th><th class="num">رصيد سابق</th><th class="num">راتب الفترة</th><th class="num">المدفوع خلال الفترة</th><th class="num">المستحق له</th></tr></thead><tbody>${
+      $('#rWorkers').innerHTML=`<table><thead><tr><th>العامل</th><th class="num">رصيد سابق</th><th class="num">الراتب والعلاوة</th><th class="num">المدفوع خلال الفترة</th><th class="num">المستحق له</th></tr></thead><tbody>${
         rows.map(r=>`<tr><td>${esc(r.w.name)}${wStopped(r.w)?' <small>(متوقف)</small>':''}</td>${bc(r.before)}${cell(r.salary)}${cell(r.ded,'neg')}${bc(r.bal)}</tr>`).join('')
       }</tbody><tfoot><tr><td>الإجمالي</td>${bc(sum(rows,r=>r.before))}${cell(sum(rows,r=>r.salary))}${cell(sum(rows,r=>r.ded),'neg')}${bc(sum(rows,r=>r.bal))}</tr></tfoot></table>`}
     // reps
@@ -1733,6 +1736,12 @@ const ACT={
     if(wStopped(w)){if(await confirmBox(`إعادة تفعيل ${esc(w.name)}؟`,'سيُحسب راتبه كل شهر من جديد.','إعادة التفعيل'))await safe(()=>store.update('workers',w.id,{end:null}))&&toast('تم إعادة التفعيل');return}
     if(await confirmBox(`إيقاف ${esc(w.name)}؟`,`راتب ${fmtMonth(m)} يُحسب له، ويتوقف من الشهر القادم. تبقى حساباته السابقة كما هي، ويمكنك تسجيل دفعات له لتسوية حسابه.`,'إيقاف'))await safe(()=>store.update('workers',w.id,{end:m}))&&toast('تم إيقاف العامل')},
   delWTx:t=>delRow('workerTx',t.dataset.id,'حذف هذا التسجيل؟'),
+  async addBonus(){const w=S.workers.find(x=>x.id===UI.detail.id);if(!w)return;const m0=UI.wMonth||curMonth();
+    const r=await modal({title:`علاوة لـ ${esc(w.name)}`,body:`<p>العلاوة تنضاف لمستحقاته في الشهر اللي تختاره بس، وما تتكرر كل شهر.</p><label class="field"><span>المبلغ</span><input type="text" name="amt" inputmode="decimal" placeholder="مثل: 300"></label><label class="field"><span>الشهر</span><input type="month" name="month" value="${m0}"></label><label class="field"><span>ملاحظة</span><input type="text" name="note" placeholder="اختياري، مثل: مكافأة العيد"></label>`,
+      actions:[{key:'ok',label:'إضافة العلاوة'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+    if(!r)return;const a=Math.round(num(r.values.amt)*100)/100;if(!(a>0)){toast('اكتب مبلغ العلاوة');return}
+    const m=/^\d{4}-\d{2}$/.test(r.values.month||'')?r.values.month:m0;
+    if(await safe(()=>store.add('workerTx',{workerId:w.id,kind:'bonus',amount:a,month:m,date:m+'-01',note:r.values.note.trim()}))){toast(`تمت إضافة علاوة ${fmt(a)} ر.س لشهر ${fmtMonth(m)}`);if(m!==UI.wMonth){UI.wMonth=m;refresh()}}},
   syncInfo:()=>syncInfo(),
   devices:()=>devicesInfo(),
   login:async()=>{const u=$('#lgUser').value,p=$('#lgPass').value;if(!u.trim()||!p){toast('اكتب البريد وكلمة المرور');return}
@@ -2261,7 +2270,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
     var box=document.getElementById('sumList');if(!box)return;
     var a=UI.rFrom,b=UI.rTo;if(a>b){var t=a;a=b;b=t}
     var T=sumEntries(S.entries.filter(function(x){return inRange(x.date,a,b)}));
-    var wages=0;S.workers.forEach(function(w){wages+=workerTotals(w.id,a,b).salary});
+    var wages=0,wBonus=0;S.workers.forEach(function(w){var t=workerTotals(w.id,a,b);wages+=t.salary;wBonus+=t.bonus});
     var repPaid=0;S.reps.forEach(function(r){repPaid+=repTotals(r.id,a,b).paid});
     // للعلم بس (ما يأثر على الصافي): كم انصرف لهم فعليًا، وكم باقي لهم أو عليهم
     var wPaid=0,wOwed=0,wAdv=0;S.workers.forEach(function(w){wPaid+=workerTotals(w.id,a,b).ded;var bl=workerBalance(w,b).balance;if(bl>0.004)wOwed+=bl;else if(bl<-0.004)wAdv-=bl});
@@ -2273,7 +2282,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
     box.innerHTML=
       row('دخل المحل بعد العمولة','كاش + مدى + فيزا ('+fmt(T.in)+') بعد خصم عمولة الشبكة '+fmt(T.fee),T.in-T.fee)+
       row('مصروفات المحل','',T.out,'minus')+
-      row('رواتب العمال','الراتب كامل قبل خصم السلف',wages,'minus')+wInfo+
+      row('رواتب العمال',wBonus>0.004?'الراتب كامل مع العلاوات ('+fmt(wBonus)+')، قبل خصم السلف':'الراتب كامل قبل خصم السلف',wages,'minus')+wInfo+
       row('المدفوع للمناديب','المسدد لهم خلال الفترة',repPaid,'minus')+
       row('الصافي النهائي','',net,'total');
     document.getElementById('sumNet').innerHTML=money(net);

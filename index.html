@@ -586,6 +586,8 @@ td.num{direction:ltr;text-align:left}
 .cnt-foot .g-clear{margin-top:0}
 
 .sum-times{right:54px!important;font-size:1.3rem}
+
+.seg.four span{font-size:.88rem;padding-inline:2px;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -678,7 +680,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='3 نوفمبر - أ';
+const APP_VERSION='3 نوفمبر - ب';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -738,7 +740,7 @@ const BID='main';
 const TABS=[['branches','اليومية','اليومية'],['reps','المناديب','المناديب'],['workers','العمال','العمال'],['debts','مديونية العملاء','الديون'],['goods','البضاعة','البضاعة'],['report','التقرير الشهري','التقرير']];
 const METHODS=[['cash','كاش'],['mada','مدى'],['visa','فيزا']];
 const ML=Object.fromEntries(METHODS);
-const PAY_METHODS=[['cash','كاش'],['mada','مدى'],['visa','فيزا'],['transfer','تحويل']],PML=Object.fromEntries(PAY_METHODS);
+const PAY_METHODS=[['cash','كاش'],['mada','مدى'],['visa','فيزا'],['transfer','تحويل بنكي']],PML=Object.fromEntries(PAY_METHODS);
 
 let toastT;
 function toast(msg){const t=$('#toast');t.classList.remove('undo');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600)}
@@ -1098,7 +1100,7 @@ branches:{
   <div class="date-bar day-bar"><button class="icon-btn" data-act="dayMonthShift" data-n="-1" aria-label="الشهر السابق">${svg('prev2')}</button><button class="icon-btn" data-act="dayShift" data-n="-1" aria-label="اليوم السابق">${svg('prev')}</button><input type="date" id="day" value="${UI.date}" aria-label="التاريخ"><button class="icon-btn" data-act="dayShift" data-n="1" aria-label="اليوم التالي">${svg('next')}</button><button class="icon-btn" data-act="dayMonthShift" data-n="1" aria-label="الشهر التالي">${svg('next2')}</button><button class="btn ghost" data-act="dayToday">اليوم</button></div>
   <div class="grid2">
     <section class="panel"><h2>إضافة دخل</h2>
-      <div class="seg" role="radiogroup" aria-label="طريقة الدفع">${METHODS.map(([k,l])=>`<label><input type="radio" name="method" value="${k}" ${UI.method===k?'checked':''}><span>${l}</span></label>`).join('')}</div>
+      <div class="seg four" role="radiogroup" aria-label="طريقة الدفع">${PAY_METHODS.map(([k,l])=>`<label><input type="radio" name="method" value="${k}" ${UI.method===k?'checked':''}><span>${l}</span></label>`).join('')}</div>
       <div class="inline"><input type="text" id="incAmt" inputmode="decimal" placeholder="المبلغ" data-enter="addIncome" aria-label="مبلغ الدخل"><button class="btn" data-act="addIncome">إضافة</button></div>
       <p class="sub">يُسجَّل كل مبلغ على حدة، ويمكنك إضافة أكثر من مبلغ.</p>
     </section>
@@ -1117,8 +1119,9 @@ branches:{
     const s=sumEntries(dayE);
     $('#dayLabel').textContent=fmtDay(UI.date);
     $('#dayStats').innerHTML=stat('الدخل',s.in,'pos')+stat('عمولة الشبكة',s.fee,'neg')+stat('المصروف',s.out,'neg')+stat('الصافي',s.net);
-    $('#dayChips').innerHTML=METHODS.map(([k,l])=>`<span class="chip">${l} <b>${fmt(s[k])}</b></span>`).join('');
-    $('#dayList').innerHTML=dayE.length?dayE.map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind}">${x.kind==='in'?(x.via==='transfer'?'تحويل':ML[x.method]):'مصروف'}</span><span class="item-note">${x.kind==='out'?esc(x.note||'بدون ملاحظة'):esc(x.note||'')} ${x.src==='xlsx'?'<small>من Excel</small>':x.src==='img'?'<small>من صورة</small>':fmtTime(x.createdAt)}</span></div></div><div class="item-amt ${x.kind==='in'?'pos':'neg'}">${x.kind==='in'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delEntry" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
+    const trf=sum(dayE.filter(x=>x.kind==='in'&&x.via==='transfer'),x=>x.amount);
+    $('#dayChips').innerHTML=METHODS.map(([k,l])=>`<span class="chip">${l} <b>${fmt(s[k])}</b></span>`).join('')+(trf?`<span class="chip">منها تحويل بنكي <b>${fmt(trf)}</b></span>`:'');
+    $('#dayList').innerHTML=dayE.length?dayE.map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind}">${x.kind==='in'?(x.via==='transfer'?'تحويل بنكي':ML[x.method]):'مصروف'}</span><span class="item-note">${x.kind==='out'?esc(x.note||'بدون ملاحظة'):esc(x.note||'')} ${x.src==='xlsx'?'<small>من Excel</small>':x.src==='img'?'<small>من صورة</small>':fmtTime(x.createdAt)}</span></div></div><div class="item-amt ${x.kind==='in'?'pos':'neg'}">${x.kind==='in'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delEntry" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
       :'<p class="empty">لا توجد حركات في هذا اليوم. أضف أول مبلغ من الأعلى.</p>';
     const m=UI.date.slice(0,7);$('#monLabel').textContent=fmtMonth(m);
     const monE=ents.filter(x=>x.date.startsWith(m));
@@ -1211,7 +1214,7 @@ cust:{
       <div class="seg four" role="radiogroup" aria-label="طريقة السداد">${PAY_METHODS.map(([k,l])=>`<label><input type="radio" name="cmethod" value="${k}" ${(UI.cmethod||'cash')===k?'checked':''}><span>${l}</span></label>`).join('')}</div>
       <label class="field"><span>المبلغ المسدد</span><input type="text" id="cpayAmt" inputmode="decimal" data-enter="custPay"></label>
       <div class="two"><label class="field"><span>التاريخ</span><input type="date" id="cpayDate" value="${today()}"></label><label class="field"><span>ملاحظة</span><input type="text" id="cpayNote" placeholder="اختياري" data-enter="custPay"></label></div>
-      <p class="note-sm">يُضاف السداد إلى دخل اليومية بطريقة الدفع المختارة. التحويل يُحسب مع الكاش لأنه بدون عمولة.</p>
+      <p class="note-sm">يُضاف السداد إلى دخل اليومية بطريقة الدفع المختارة. التحويل البنكي يُحسب مع الكاش لأنه بدون عمولة.</p>
       <button class="btn brass block" data-act="custPay">تسجيل التسديد</button>
       <button class="btn ghost block sm" data-act="custPayAll" style="margin-top:8px">سداد كامل المبلغ المتبقي</button>
       <button class="btn ghost block sm" data-act="custDisc" style="margin-top:8px">خصم للعميل</button>
@@ -1680,7 +1683,9 @@ const ACT={
   pickDay:t=>{UI.date=t.dataset.d;refresh();window.scrollTo({top:0})},
   async addIncome(){const a=amountOf('#incAmt');if(a==null)return;
     const m=(document.querySelector('input[name=method]:checked')||{}).value||'cash';
-    if(await safe(()=>store.add('entries',{branchId:BID,kind:'in',amount:a,method:m,date:UI.date}))){$('#incAmt').value='';$('#incAmt').focus();toast(`أُضيف ${fmt(a)} ${ML[m]}`)}},
+    /* التحويل البنكي ينحفظ كاش (بدون عمولة) ومعه علامة إنه تحويل */
+    const o=m==='transfer'?{method:'cash',via:'transfer'}:{method:m};
+    if(await safe(()=>store.add('entries',{branchId:BID,kind:'in',amount:a,...o,date:UI.date}))){$('#incAmt').value='';$('#incAmt').focus();toast(`أُضيف ${fmt(a)} ${PML[m]}`)}},
   async addExpense(){const a=amountOf('#expAmt');if(a==null)return;const note=$('#expNote').value.trim();
     if(await safe(()=>store.add('entries',{branchId:BID,kind:'out',amount:a,note,date:UI.date}))){$('#expAmt').value='';$('#expNote').value='';toast('أُضيف المصروف')}},
   delEntry:t=>delLinked('entries',t.dataset.id),

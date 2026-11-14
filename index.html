@@ -588,6 +588,9 @@ td.num{direction:ltr;text-align:left}
 .sum-times{right:54px!important;font-size:1.3rem}
 
 .seg.four span{font-size:.88rem;padding-inline:2px;white-space:nowrap}
+
+.cmp-pick{display:flex;align-items:center;gap:8px;margin:2px 0 6px;font-size:.86rem;color:var(--muted)}
+.cmp-pick select{flex:1;min-width:0;font:inherit;font-size:.9rem;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:7px 10px}
 </style>
 </head>
 <body>
@@ -680,7 +683,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='3 نوفمبر - ب';
+const APP_VERSION='14 نوفمبر - أ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -2204,6 +2207,7 @@ async function goodsReview(rows,tot,sid,src){
   if(await safe(async()=>{if(!ship)ship=await store.add('goods',{kind:'ship',name:(r.values.shipName||'').trim()||'شحنة '+fmtShort(today()),date:today()});
     for(const g of list)await store.add('goods',{...g,st:'',shipId:ship})})){toast(`تمت إضافة ${list.length} كرتون`);if(!sid&&typeof ship==='string'){UI.gf='all';UI.gq2='';go('goods',{type:'ship',id:ship})}}}
 document.addEventListener('input',e=>{if(e.target.id==='goodsQ'){UI.gq=e.target.value;refresh()}if(e.target.id==='goodsQ2'){UI.gq2=e.target.value;refresh()}if(e.target.id==='cntQ'){UI.cntq=e.target.value;refresh()}});
+document.addEventListener('change',e=>{if(e.target.id==='cmpSel'){UI.cmpK=+e.target.value||1;refresh()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.name==='cntMeters'&&!e.target.closest('#modal-root')){e.preventDefault();e.target.blur();ACT.cntAdd()}});
 Object.assign(ACT,{
   addGoods:()=>addGoods(),
@@ -2329,7 +2333,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
   var kfmt=function(v){var a=Math.abs(v);return a>=1000?(v/1000).toLocaleString('en-US',{maximumFractionDigits:1})+'k':String(Math.round(v))};
   var niceStep=function(span){var raw=span/4,p=Math.pow(10,Math.floor(Math.log10(raw||1))),m=raw/p;return (m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*p};
   // نفس اليوم في الشهر اللي قبل (لو الشهر أقصر ياخذ آخر يوم فيه)
-  var prevMonthDay=function(s){var d=parseD(s),day=d.getDate(),t=new Date(d.getFullYear(),d.getMonth()-1,1),last=new Date(t.getFullYear(),t.getMonth()+1,0).getDate();t.setDate(Math.min(day,last));return isoDate(t)};
+  var prevMonthDay=function(s,k){k=k||1;var d=parseD(s),day=d.getDate(),t=new Date(d.getFullYear(),d.getMonth()-k,1),last=new Date(t.getFullYear(),t.getMonth()+1,0).getDate();t.setDate(Math.min(day,last));return isoDate(t)};
   var days=function(a,b){var o=[];for(var d=a;d<=b;d=shiftDay(d,1))o.push(d);return o};
   var dayNet=function(list,d){var r=sumEntries(list.filter(function(x){return x.date===d}));return r.net};
   var grid=function(lo,hi,y){var st=niceStep(hi-lo),s='';for(var g=Math.ceil(lo/st)*st;g<=hi+1e-9;g+=st){s+='<line x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y(g)+'" y2="'+y(g)+'" stroke="'+(g===0?'#D5D3E2':C.grid)+'"/><text x="'+(P.l-6)+'" y="'+(y(g)+3.5)+'" font-size="10" fill="'+C.muted+'" text-anchor="end">'+kfmt(g)+'</text>'}return s};
@@ -2340,7 +2344,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
       '<h2 class="section-title">الرسومات</h2><section class="charts">'+
       '<div class="chart-card ch-daily"><h3 id="ch1T">دخل كل يوم</h3><p class="note">بعد عمولة مدى وفيزا<span class="no-print">. اضغط على أي عمود لعرض قيمته</span></p><div class="chart-box" id="ch1"></div>'+
       '<h3 class="ch-sub" id="ch1bT">مصروف كل يوم</h3><div class="chart-box" id="ch1b"></div></div>'+
-      '<div class="chart-card"><h3>مقارنة الدخل بالشهر الماضي</h3><p class="note" id="ch2N"></p><div class="chart-hero" id="ch2H"></div><div class="chart-box" id="ch2"></div><div class="chart-legend" id="ch2L"></div></div>'+
+      '<div class="chart-card"><h3>مقارنة الدخل</h3><label class="cmp-pick no-print"><span>قارن مع</span><select id="cmpSel" aria-label="الشهر اللي تقارن معه"></select></label><p class="note" id="ch2N"></p><div class="chart-hero" id="ch2H"></div><div class="chart-box" id="ch2"></div><div class="chart-legend" id="ch2L"></div></div>'+
       '<div class="chart-card"><h3>طرق الدفع</h3><p class="note">من إجمالي دخل الفترة</p><div id="ch3"></div></div>'+
       '</section><h2 class="section-title">الملخص</h2>');
   };
@@ -2349,7 +2353,11 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
     upd0.apply(this,arguments);
     if(!document.getElementById('ch1'))return;
     var a=UI.rFrom,b=UI.rTo;if(a>b){var t=a;a=b;b=t}
-    var pa=prevMonthDay(a),pb=prevMonthDay(b);
+    /* المقارنة: الشهر الماضي افتراضيًا، أو أي شهر قبله يختاره (عدد الأشهر للخلف) */
+    var K=Math.max(1,Math.min(36,UI.cmpK||1));
+    var pa=prevMonthDay(a,K),pb=prevMonthDay(b,K);
+    var sel=document.getElementById('cmpSel');
+    if(sel){var oh='';for(var k=1;k<=24;k++){var md=parseD(prevMonthDay(a,k)),nm=md.toLocaleDateString(LOC,{month:'long',year:'numeric'});oh+='<option value="'+k+'"'+(k===K?' selected':'')+'>'+(k===1?'الشهر الماضي ('+nm+')':nm)+'</option>'}sel.innerHTML=oh}
     if(typeof ensureRange==='function')ensureRange(pa,pb);
     var ents=S.entries.filter(function(x){return inRange(x.date,a,b)});
     var all=days(a,b),daily=all.length<=62;
@@ -2396,23 +2404,24 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.
     var end=b<today()?b:today(),box2=document.getElementById('ch2'),hero=document.getElementById('ch2H'),leg=document.getElementById('ch2L'),note=document.getElementById('ch2N');
     if(end<a){box2.innerHTML='<p class="chart-empty">الفترة لم تبدأ بعد.</p>';hero.innerHTML='';leg.innerHTML='';note.textContent=''}
     else{
-      var cd=days(a,end),pe=prevMonthDay(end),pd=days(pa,pe);
+      var cd=days(a,end),pe=prevMonthDay(end,K),pd=days(pa,pe);
       var pents=S.entries.filter(function(x){return x.kind==='in'&&inRange(x.date,pa,pe)});
       var cum=function(list,ds){var c=0;return ds.map(function(d){var t=sumEntries(list.filter(function(x){return x.date===d}));c+=t.in-t.fee;return c})};   // الدخل بعد العمولة، بدون المصروفات
       var cs=cum(ents,cd),ps=cum(pents,pd),n=Math.max(cs.length,ps.length);
       var oneMonth=a.slice(0,7)===b.slice(0,7);
-      var curL=oneMonth?parseD(a).toLocaleDateString(LOC,{month:'long'}):'هذه الفترة',prvL=oneMonth?parseD(pa).toLocaleDateString(LOC,{month:'long'}):'الفترة السابقة';
-      note.textContent='الدخل المتراكم بعد العمولة (كاش + مدى + فيزا) من '+fmtShort(a)+' حتى '+fmtShort(end)+'، مقارنةً بالأيام نفسها من الشهر السابق';
+      var sameY=a.slice(0,4)===pa.slice(0,4),mo={month:'long'},my={month:'long',year:'numeric'};
+      var curL=oneMonth?parseD(a).toLocaleDateString(LOC,sameY?mo:my):'هذه الفترة',prvL=oneMonth?parseD(pa).toLocaleDateString(LOC,sameY?mo:my):(K===1?'الفترة السابقة':'نفس الفترة قبل '+K+' أشهر');
+      note.textContent='الدخل المتراكم بعد العمولة (كاش + مدى + فيزا) من '+fmtShort(a)+' حتى '+fmtShort(end)+'، مقارنةً بالأيام نفسها من '+(oneMonth?prvL:(K===1?'الشهر السابق':'قبل '+K+' أشهر'));
       var cl=cs[cs.length-1]||0,pl=ps[ps.length-1]||0,diff=cl-pl;
       var oldMissing=store.root&&typeof LOADED!=='undefined'&&typeof CUTOFF_M!=='undefined'&&pa.slice(0,7)<CUTOFF_M&&LOADED[pa.slice(0,7)]!==true;
-      if(oldMissing){hero.innerHTML='<span class="d">جارٍ جلب بيانات الشهر الماضي…</span>'}
+      if(oldMissing){hero.innerHTML='<span class="d">جارٍ جلب بيانات '+esc2(prvL)+'…</span>'}
       else if(!pents.length){hero.innerHTML='<span class="chart-empty">لا توجد تسجيلات في '+esc2(prvL)+' للمقارنة.</span>'}
       else{var pc=pl?Math.round(diff/Math.abs(pl)*100):0;
         hero.innerHTML='<b dir="ltr">'+(diff>=0?'+':'−')+Math.abs(pc)+'%</b><span class="d '+(diff>=0?'up':'down')+'">'+(diff>=0?'▲ ':'▼ ')+fmt(Math.abs(diff))+' ر.س '+(diff>=0?'زيادة':'نقص')+'</span>'}
       var lo=Math.min(0,Math.min.apply(null,cs.concat(ps))),hi=Math.max(1,Math.max.apply(null,cs.concat(ps))),rg2=range(lo,hi);
       var iw2=W-P.l-P.r,ih2=H-P.t-P.b,x=function(i){return P.l+(n>1?i/(n-1):.5)*iw2},y2=function(v){return P.t+ih2-(v-rg2[0])/(rg2[1]-rg2[0])*ih2};
       var path=function(arr){return arr.map(function(v,i){return(i?'L':'M')+x(i).toFixed(1)+','+y2(v).toFixed(1)}).join('')};
-      var s2='<svg viewBox="0 0 '+W+' '+H+'" direction="ltr" role="img" aria-label="مقارنة الدخل بالشهر الماضي">'+grid(rg2[0],rg2[1],y2);
+      var s2='<svg viewBox="0 0 '+W+' '+H+'" direction="ltr" role="img" aria-label="مقارنة الدخل">'+grid(rg2[0],rg2[1],y2);
       if(pents.length&&!oldMissing)s2+='<path d="'+path(ps)+'" fill="none" stroke="'+C.prev+'" stroke-width="2" stroke-dasharray="5 4"/>';
       s2+='<path d="'+path(cs)+'" fill="none" stroke="'+C.cur+'" stroke-width="2.2" stroke-linejoin="round"/>';
       var li=cs.length-1;s2+='<circle cx="'+x(li)+'" cy="'+y2(cl)+'" r="4.5" fill="'+C.cur+'" stroke="#fff" stroke-width="2"/>';

@@ -693,7 +693,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='14 نوفمبر - ج';
+const APP_VERSION='18 نوفمبر - أ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyCLoyM5ukWvTmzaAthrR0d1QrV4PYeQk18",
@@ -1244,7 +1244,7 @@ cust:{
     $('#custBal').innerHTML=money(Math.abs(t.bal));
     $('#custSums').innerHTML=`<span>إجمالي الدين <b>${fmt(t.debt)}</b></span><span>إجمالي المسدد <b>${fmt(t.paid)}</b></span>${t.disc?`<span>الخصم <b>${fmt(t.disc)}</b></span>`:''}`;
     let run=0;const rows=t.tx.map(x=>{run+=x.kind==='debt'?x.amount:-x.amount;return{...x,run}});
-    $('#custLog').innerHTML=rows.length?rows.reverse().map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind==='debt'?'out':x.kind==='disc'?'brass':'in'}">${x.kind==='debt'?'دين':x.kind==='disc'?'خصم':'سداد'+(x.method?' · '+PML[x.method]:'')}</span><span>${fmtLong(x.date)}</span></div>${x.kind==='debt'&&x.items&&x.items.length?`<ul class="debt-lines">${x.items.map(i=>`<li><span>${esc(i.d||'بدون تفاصيل')}</span><b>${fmt(i.p)}</b></li>`).join('')}</ul>`:''}<div class="item-note">${x.note?esc(x.note)+' — ':''}المتبقي بعد الحركة ${fmt(x.run)}</div></div><div class="item-amt ${x.kind==='debt'?'neg':'pos'}">${x.kind==='debt'?'+':'−'}${fmt(x.amount)}</div><button class="icon-btn sm" data-act="delCustTx" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
+    $('#custLog').innerHTML=rows.length?rows.reverse().map(x=>`<div class="item"><div class="item-main"><div class="item-title"><span class="tag ${x.kind==='debt'?'out':x.kind==='disc'?'brass':'in'}">${x.kind==='debt'?'دين':x.kind==='disc'?'خصم':'سداد'+(x.method?' · '+PML[x.method]:'')}</span><span>${fmtLong(x.date)}</span></div>${x.kind==='debt'&&x.items&&x.items.length?`<ul class="debt-lines">${x.items.map(i=>`<li><span>${esc(i.d||'بدون تفاصيل')}</span><b>${fmt(i.p)}</b></li>`).join('')}</ul>`:''}<div class="item-note">${x.note?esc(x.note)+' — ':''}المتبقي بعد الحركة ${fmt(x.run)}</div></div><div class="item-amt ${x.kind==='debt'?'neg':'pos'}">${x.kind==='debt'?'+':'−'}${fmt(x.amount)}</div>${x.kind==='debt'?`<button class="icon-btn sm" data-act="custEditDebt" data-id="${x.id}" aria-label="تعديل الدين">${svg('edit')}</button>`:''}<button class="icon-btn sm" data-act="delCustTx" data-id="${x.id}" aria-label="حذف">${svg('x')}</button></div>`).join('')
       :'<p class="empty">لا توجد حركات. سجّل أول دين للعميل من الأعلى.</p>';
   }
 },
@@ -1423,11 +1423,11 @@ function normPhone(p){return String(p||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦
 function waNum(p){let d=String(p||'').replace(/[٠-٩]/g,x=>AR.indexOf(x)).replace(/\D/g,'');if(!d)return'';
   if(d.startsWith('00'))d=d.slice(2);if(d.startsWith('05')&&d.length===10)d='966'+d.slice(1);else if(d.startsWith('5')&&d.length===9)d='966'+d;return d.length>=10?d:''}
 const debtItemRow=(d='',p='')=>`<div class="debt-item"><input type="text" class="di-d" placeholder="الصنف، مثل: قماش ياباني" value="${esc(d)}"><input type="text" class="di-p" inputmode="decimal" placeholder="السعر" value="${esc(p)}"><button type="button" class="icon-btn sm di-x" data-act="delDebtItem" aria-label="حذف الصنف">${svg('x')}</button></div>`;
-function debtItems(){return[...document.querySelectorAll('#debtItems .debt-item')].map(r=>({el:r,d:r.querySelector('.di-d').value.trim(),p:num(r.querySelector('.di-p').value),raw:r.querySelector('.di-p').value.trim()}))}
-function debtSumUpd(){const el=$('#debtSum');if(el)el.textContent=fmt(sum(debtItems(),x=>x.p>0?x.p:0))}
-document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#debtItems'))debtSumUpd();if(e.target.id==='custQ'){UI.cq=e.target.value;refresh()}});
-document.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target.closest||!e.target.closest('#debtItems'))return;e.preventDefault();
-  const r=e.target.closest('.debt-item');if(e.target.classList.contains('di-d'))r.querySelector('.di-p').focus();else{const nx=r.nextElementSibling;if(nx)nx.querySelector('.di-d').focus();else ACT.custDebt()}});
+function debtItems(box){return[...(box||document.getElementById('debtItems')||document.createElement('i')).querySelectorAll('.debt-item')].map(r=>({el:r,d:r.querySelector('.di-d').value.trim(),p:num(r.querySelector('.di-p').value),raw:r.querySelector('.di-p').value.trim()}))}
+function debtSumUpd(){const el=$('#debtSum');if(el)el.textContent=fmt(sum(debtItems(),x=>x.p>0?x.p:0));const eb=document.getElementById('edItems'),es=document.getElementById('edSum');if(eb&&es)es.textContent=fmt(sum(debtItems(eb),x=>x.p>0?x.p:0))}
+document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#debtItems,#edItems'))debtSumUpd();if(e.target.id==='custQ'){UI.cq=e.target.value;refresh()}});
+document.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target.closest||!e.target.closest('#debtItems,#edItems'))return;e.preventDefault();
+  const r=e.target.closest('.debt-item');if(e.target.classList.contains('di-d'))r.querySelector('.di-p').focus();else{const nx=r.nextElementSibling;if(nx)nx.querySelector('.di-d').focus();else if(r.closest('#debtItems'))ACT.custDebt()}});
 async function addCustomer(){
   const r=await modal({title:'إضافة عميل',body:`<label class="field"><span>اسم العميل</span><input type="text" name="name"></label><label class="field"><span>رقم الجوال</span><input type="tel" name="phone" inputmode="tel" dir="ltr" placeholder="05xxxxxxxx"></label>`,
     actions:[{key:'ok',label:'إضافة'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
@@ -1709,8 +1709,23 @@ const ACT={
   delRepTx:t=>delRow('repTx',t.dataset.id,'حذف هذه الحركة؟'),
   addCustomer:()=>addCustomer(),
   openCust:t=>go('debts',{type:'cust',id:t.dataset.id}),
-  addDebtItem:()=>{$('#debtItems').insertAdjacentHTML('beforeend',debtItemRow());const l=$('#debtItems').lastElementChild;l.querySelector('.di-d').focus()},
-  delDebtItem:t=>{const r=t.closest('.debt-item'),box=$('#debtItems');if(box.children.length>1)r.remove();else{r.querySelectorAll('input').forEach(i=>i.value='')}debtSumUpd()},
+  addDebtItem:t=>{const box=document.getElementById(t&&t.dataset.box||'debtItems');box.insertAdjacentHTML('beforeend',debtItemRow());box.lastElementChild.querySelector('.di-d').focus()},
+  delDebtItem:t=>{const r=t.closest('.debt-item'),box=r.parentNode;if(box.children.length>1)r.remove();else{r.querySelectorAll('input').forEach(i=>i.value='')}debtSumUpd()},
+  /* تعديل دين مسجل: الأصناف والأسعار والتاريخ والملاحظة */
+  async custEditDebt(t){const x=S.custTx.find(y=>y.id===t.dataset.id);if(!x)return;
+    const rows=(x.items&&x.items.length?x.items:[{d:'',p:x.amount}]).map(i=>debtItemRow(i.d||'',i.p!=null?String(i.p):'')).join('');
+    const pr=modal({title:'تعديل الدين',body:`<div id="edItems" class="debt-items">${rows}</div><button type="button" class="btn ghost sm add-item" data-act="addDebtItem" data-box="edItems">+ صنف آخر</button>
+      <div class="debt-total"><span>المجموع</span><b id="edSum">${fmt(x.amount)}</b></div>
+      <div class="two"><label class="field"><span>التاريخ</span><input type="date" name="date" value="${x.date||today()}"></label><label class="field"><span>ملاحظة</span><input type="text" name="note" value="${esc(x.note||'')}" placeholder="اختياري"></label></div>`,
+      actions:[{key:'save',label:'حفظ التعديل'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
+    const box=document.getElementById('edItems');   // نمسك الأصناف قبل ما تنقفل النافذة
+    box.closest('.mbody').addEventListener('click',e=>{const b=e.target.closest('[data-act="addDebtItem"],[data-act="delDebtItem"]');if(!b)return;e.preventDefault();e.stopPropagation();ACT[b.dataset.act](b)});   // أزرار الأصناف داخل النافذة
+    const r=await pr;if(!r)return;
+    const its=debtItems(box).filter(i=>i.d||i.raw);
+    if(!its.length){toast('لازم يكون فيه صنف واحد على الأقل. لحذف الدين كامل استخدم زر الحذف');return}
+    if(its.some(i=>!(i.p>0))){toast('اكتب سعر صحيح لكل صنف، ولم يُحفظ التعديل');return}
+    const items=its.map(i=>({d:i.d,p:i.p})),amount=Math.round(sum(items,i=>i.p)*100)/100;
+    if(await safe(()=>store.update('custTx',x.id,{items,amount,date:r.values.date||x.date,note:(r.values.note||'').trim()})))toast(amount!==x.amount?`تم التعديل: الدين صار ${fmt(amount)} بدل ${fmt(x.amount)}`:'تم حفظ التعديل')},
   async custDebt(){const its=debtItems().filter(x=>x.d||x.raw);
     if(!its.length){const f=$('#debtItems .di-p');f.classList.add('err');f.focus();toast('اكتب الصنف وسعره');return}
     const bad=its.find(x=>!(x.p>0));if(bad){const f=bad.el.querySelector('.di-p');f.classList.add('err');f.focus();toast('اكتب سعر صحيح لكل صنف');return}
